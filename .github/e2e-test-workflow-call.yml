@@ -22,14 +22,11 @@ jobs:
           - "e2e-test-ibc-timeout"
     runs-on: ubuntu-latest
     steps:
-        - name: Check out the repo
-          uses: actions/checkout@v3  
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v3
 
-        - name: Set up Go 1.19
-          uses: actions/setup-go@v3
-
-        - name: E2E Tests
-          run: make ${{ matrix.tests }}
-          env:
-            DYMENSION_CI:  ${{ inputs.dymension_ci }}"
-            ROLLAPP_CI: ${{ inputs.rollapp_ci }}"
+      - name: E2E Tests
+        run: make ${{ matrix.tests }}
+        env:
+          DYMENSION_CI:  ${{ inputs.dymension_ci }}"
+          ROLLAPP_CI: ${{ inputs.rollapp_ci }}"
