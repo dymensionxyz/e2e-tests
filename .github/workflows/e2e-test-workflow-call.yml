@@ -25,8 +25,19 @@ jobs:
       - name: Set up Go 1.19
         uses: actions/setup-go@v3
 
+      - name: Download Tarball Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ghcr.io/dymensionxyz/dymension
+          path: /tmp
+
+      - name: Load Docker Image
+        run: |
+          docker image load -i /tmp/e2e.tar 
+          docker image ls -a
+
       - name: E2E Tests
         run: make ${{ matrix.tests }}
         env:
-          DYMENSION_CI:  ${{ inputs.dymension_ci }}"
-          ROLLAPP_CI: ${{ inputs.rollapp_ci }}"
+          DYMENSION_CI:  ${{ inputs.dymension_ci }}
+          ROLLAPP_CI: ${{ inputs.rollapp_ci }}
