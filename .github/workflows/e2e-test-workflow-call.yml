@@ -28,7 +28,7 @@ jobs:
       - name: Download Tarball Artifact
         uses: actions/download-artifact@v3
         with:
-          name: ghcr.io/dymensionxyz/dymension
+          name: e2e
           path: /tmp
 
       - name: Load Docker Image
