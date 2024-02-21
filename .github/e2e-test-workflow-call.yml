@@ -1,0 +1,35 @@
+on:
+  workflow_call:
+    inputs:
+      dymension_ci:
+        description: 'CI run on Dymension Repo'
+        required: false
+        type: string
+        default: '' # empty string means run all tests
+      rollapp_ci:
+        description: 'CI run on Rollapp Repo'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  # e2e-tests-by runs the actual go test command to trigger the test.
+  e2e-tests:
+    strategy:
+      matrix:
+        tests: 
+          - "e2e-test-ibc"
+          - "e2e-test-ibc-timeout"
+    runs-on: ubuntu-latest
+    steps:
+        - name: Check out the repo
+          uses: actions/checkout@v3  
+
+        - name: Set up Go 1.19
+          uses: actions/setup-go@v3
+
+        - name: E2E Tests
+          run: make ${{ matrix.tests }}
+          env:
+            DYMENSION_CI:  ${{ inputs.dymension_ci }}"
+            ROLLAPP_CI: ${{ inputs.rollapp_ci }}"

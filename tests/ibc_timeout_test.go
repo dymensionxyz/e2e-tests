@@ -41,16 +41,10 @@ func TestIBCTransferTimeout(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp",
-				Name:    "rollapp-test",
-				ChainID: "demo-dymension-rollapp",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp",
-						Version:    "e2e",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "rollapp",
+				Name:                "rollapp-test",
+				ChainID:             "demo-dymension-rollapp",
+				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"os"
-	"strings"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -17,11 +16,17 @@ var (
 
 	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
 
-	repo, version = GetDockerImageInfo()
+	dymensionVersion, rollappVersion = GetDockerImageVersion()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: repo,
-		Version:    version,
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
+		UidGid:     "1025:1025",
+	}
+
+	rollappImage = ibc.DockerImage{
+		Repository: RollappMainRepo,
+		Version:    rollappVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -44,19 +49,17 @@ var (
 	}
 )
 
-// GetDockerImageInfo returns the appropriate repo and branch version string for integration with the CI pipeline.
-// The remote runner sets the BRANCH_CI env var. If present, tests will use the docker image pushed up to the repo.
-// If testing locally, user should run `make docker-build-debug` and tests will use the local image.
-func GetDockerImageInfo() (repo, version string) {
-	branchVersion, found := os.LookupEnv("BRANCH_CI")
-	repo = DymensionMainRepo
+func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
+	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		branchVersion = "e2e"
+		dymensionVersion = "latest"
 	}
 
-	// github converts / to - for pushed docker images
-	branchVersion = strings.ReplaceAll(branchVersion, "/", "-")
-	return repo, branchVersion
+	rollappVersion, found = os.LookupEnv("ROLLAPP_CI")
+	if !found {
+		rollappVersion = "latest"
+	}
+	return dymensionVersion, rollappVersion
 }
 
 func evmConfig() *simappparams.EncodingConfig {
