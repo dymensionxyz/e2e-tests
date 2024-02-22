@@ -20,5 +20,23 @@ permissions:
   packages: write
 
 jobs:   
+  # e2e-tests-by runs the actual go test command to trigger the test.
   e2e-tests:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
+    strategy:
+      matrix:
+        tests: 
+          - "e2e-test-ibc"
+          - "e2e-test-ibc-timeout"
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+      - name: Set up Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.4"
+
+      - name: E2E Tests
+        run: make ${{ matrix.tests }}
