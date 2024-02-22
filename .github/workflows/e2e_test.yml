@@ -21,4 +21,4 @@ permissions:
 
 jobs:   
   e2e-tests:
-    uses: ./github/workflows/e2e-test-workflow-call.yml@main
+    uses: ./.github/workflows/e2e-test-workflow-call.yml@main
