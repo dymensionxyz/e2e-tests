@@ -185,7 +185,8 @@ func TestIBCTransferTimeout(t *testing.T) {
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
 
-	// We need to wait for timeout before run relayer
+	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
+	// in order to trigger ibc timeout or else it will trigger callback
 	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
 	require.NoError(t, err)
 
