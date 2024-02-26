@@ -14,7 +14,7 @@ import (
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
+	RollappMainRepo = "ghcr.io/decentrio/rollapp"
 
 	dymensionVersion, rollappVersion = GetDockerImageVersion()
 
@@ -52,12 +52,12 @@ var (
 func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		dymensionVersion = "latest"
+		dymensionVersion = "e2e"
 	}
 
 	rollappVersion, found = os.LookupEnv("ROLLAPP_CI")
 	if !found {
-		rollappVersion = "latest"
+		rollappVersion = "e2e"
 	}
 	return dymensionVersion, rollappVersion
 }
