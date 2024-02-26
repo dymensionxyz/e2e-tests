@@ -20,6 +20,7 @@ jobs:
         tests: 
           - "e2e-test-ibc"
           - "e2e-test-ibc-timeout"
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
