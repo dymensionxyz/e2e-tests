@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         tests: 
-          - "e2e-test-ibc"
+          - "e2e-test-ibc-success"
           - "e2e-test-ibc-timeout"
       fail-fast: false
     runs-on: ubuntu-latest
