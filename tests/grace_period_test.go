@@ -204,7 +204,7 @@ func IBCGracePeriodCompliance(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
+	// Assert balance was updated on the Hub because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// Get the IBC denom for dymension on roll app
