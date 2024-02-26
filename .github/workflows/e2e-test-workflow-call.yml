@@ -20,8 +20,7 @@ jobs:
         tests: 
           - "e2e-test-ibc"
           - "e2e-test-ibc-timeout"
-          - "e2e-test-grace-period"
-      fail-fast: false
+          - "e2e-ibc-grace-period"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
