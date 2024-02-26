@@ -161,7 +161,8 @@ func IBCGracePeriodCompliance(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-	// Assert balance was not updated on the rollapp
+
+	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// Get the IBC denom for urax on Hub
@@ -182,6 +183,7 @@ func IBCGracePeriodCompliance(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
+	// Assert balance was updated on the Hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
@@ -201,8 +203,10 @@ func IBCGracePeriodCompliance(t *testing.T) {
 	// Compose an IBC transfer and send from dymension -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
+
+	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -214,7 +218,7 @@ func IBCGracePeriodCompliance(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
 	require.NoError(t, err)
 
-	// Assert funds are waiting
+	// Assert balance was updated on the Rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
