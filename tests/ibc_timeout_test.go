@@ -141,6 +141,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 		},
 	}
 
+	// Compose an IBC transfer and send from Rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
@@ -173,7 +174,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	// Compose an IBC transfer and send from dymension -> rollapp
+	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
