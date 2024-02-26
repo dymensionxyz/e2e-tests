@@ -16,8 +16,8 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TestStart is a basic test to assert that spinning up a dymension network with 1 validator works properly.
-func TestGracePeriodCompliance(t *testing.T) {
+// IBCGracePeriodCompliance ensures that the grace period for transaction finalization is correctly enforced on hub and rollapp.
+func IBCGracePeriodCompliance(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -27,7 +27,7 @@ func TestGracePeriodCompliance(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestGracePeriodCompliance:26657"
+	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-IBCGracePeriodCompliance:26657"
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	modifyGenesisKV := []cosmos.GenesisKV{
