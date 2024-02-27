@@ -2,12 +2,15 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -27,7 +30,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCGracePeriodCompliance:26657"
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	modifyGenesisKV := []cosmos.GenesisKV{
@@ -43,11 +46,11 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
-	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp",
+				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
 				ChainID:             "demo-dymension-rollapp",
 				Images:              []ibc.DockerImage{rollappImage},
@@ -68,7 +71,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "hub",
+				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
 				Images:              []ibc.DockerImage{dymensionImage},
@@ -93,19 +96,18 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	rollapp1 := chains[0].(*cosmos.CosmosChain)
-	dymension := chains[1].(*cosmos.CosmosChain)
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
-	r := relayer.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 
 	ic := test.NewSetup().
-		AddChain(rollapp1).
-		AddChain(dymension).
+		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
