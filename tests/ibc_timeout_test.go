@@ -8,7 +8,8 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	"github.com/decentrio/rollup-e2e-testing/relayer"
@@ -38,11 +39,11 @@ func TestIBCTransferTimeout(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
-	cf := cosmos.NewBuiltinChainFactory(zaptest.NewLogger(t), []*cosmos.ChainSpec{
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp",
+				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
 				ChainID:             "demo-dymension-rollapp",
 				Images:              []ibc.DockerImage{rollappImage},
@@ -71,18 +72,17 @@ func TestIBCTransferTimeout(t *testing.T) {
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
-	rollapp1 := chains[0].(*cosmos.CosmosChain)
-	dymension := chains[1].(*cosmos.CosmosChain)
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := relayer.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
-		AddChain(rollapp1).
-		AddChain(dymension).
+		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
