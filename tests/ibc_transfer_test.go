@@ -18,7 +18,7 @@ import (
 
 const ibcPath = "dymension-demo"
 
-// TestStart is a basic test to assert that spinning up a dymension network with 1 validator works properly.
+// TestIBCTransferSuccess ensure that the transfer between Hub and Rollapp is accurate.
 func TestIBCTransferSuccess(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
