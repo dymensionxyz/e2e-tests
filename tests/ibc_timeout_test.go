@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -28,7 +29,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCTransferTimeout:26657"
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -184,6 +185,11 @@ func TestIBCTransferTimeout(t *testing.T) {
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
 
+	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
+	// in order to trigger ibc timeout or else it will trigger callback
+	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
+	require.NoError(t, err)
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
@@ -196,11 +202,10 @@ func TestIBCTransferTimeout(t *testing.T) {
 		},
 	)
 
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
-
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 }
