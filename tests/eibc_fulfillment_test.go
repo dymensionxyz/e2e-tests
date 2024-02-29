@@ -187,7 +187,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, dymension.CosmosChain.FullNodes[0], eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 
