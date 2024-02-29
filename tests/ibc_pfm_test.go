@@ -383,7 +383,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 
 		// Send packet from rollapp1 -> dym -> osmosis
 		transfer := ibc.WalletData{
-			Address: rollappUserAddr,
+			Address: dymensionUserAddr,
 			Denom:   rollapp1.Config().Denom,
 			Amount:  transferAmount,
 		}
