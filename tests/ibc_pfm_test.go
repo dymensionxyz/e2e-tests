@@ -320,6 +320,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 				Receiver: osmosisUserAddr,
 				Channel:  channDymOsmos.ChannelID,
 				Port:     channDymOsmos.PortID,
+				Timeout:  5 * time.Minute,
 			},
 		}
 
@@ -342,6 +343,17 @@ func TestIBCTransferMultiHop(t *testing.T) {
 
 		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
+
+		dymAllBalance, err := dymension.AllBalances(ctx, dymensionUserAddr)
+		require.NoError(t, err)
+		osmoAllBalance, err := osmosis.AllBalances(ctx, osmosisUserAddr)
+		require.NoError(t, err)
+		rollappAllBalance, err := rollapp1.AllBalances(ctx, rollappUserAddr)
+		require.NoError(t, err)
+
+		fmt.Println("dym: ", dymAllBalance)
+		fmt.Println("osmo: ", osmoAllBalance)
+		fmt.Println("rollapp: ", rollappAllBalance)
 
 		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
 		require.True(t, dymBalance.Equal(zeroBal))
