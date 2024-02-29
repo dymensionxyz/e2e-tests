@@ -211,10 +211,6 @@ func TestEIBCFulfillment(t *testing.T) {
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, walletAmount.Sub(transferAmountWithoutFee).Add(transferData.Amount))
 
-	fmt.Println("Now waiting 500 blocks...")
-	err = testutil.WaitForBlocks(ctx, 500, rollapp1)
-	require.NoError(t, err)
-
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
