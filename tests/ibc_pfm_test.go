@@ -287,6 +287,79 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, osmosisOrigBal)
 
+	// t.Run("multihop osmosis->dym->rollapp", func(t *testing.T) {
+	// 	firstHopDenom := transfertypes.GetPrefixedDenom(channDymOsmos.PortID, channDymOsmos.ChannelID, osmosis.Config().Denom)
+	// 	secondHopDenom := transfertypes.GetPrefixedDenom(channsRollAppDym.PortID, channsRollAppDym.ChannelID, firstHopDenom)
+
+	// 	firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
+	// 	secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
+
+	// 	firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
+	// 	secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
+
+	// 	fmt.Println(firstHopDenom)
+	// 	fmt.Println(firstHopDenomTrace)
+	// 	fmt.Println(firstHopIBCDenom)
+
+	// 	fmt.Println(secondHopDenom)
+	// 	fmt.Println(secondHopDenomTrace)
+	// 	fmt.Println(secondHopIBCDenom)
+
+	// 	zeroBal := math.ZeroInt()
+	// 	transferAmount := math.NewInt(100_000)
+
+	// 	// Send packet from rollapp1 -> dym -> osmosis
+	// 	transfer := ibc.WalletData{
+	// 		Address: osmosisUserAddr,
+	// 		Denom:   osmosis.Config().Denom,
+	// 		Amount:  transferAmount,
+	// 	}
+
+	// 	firstHopMetadata := &PacketMetadata{
+	// 		Forward: &ForwardMetadata{
+	// 			Receiver: rollappUserAddr,
+	// 			Channel:  channDymRollApp.ChannelID,
+	// 			Port:     channDymRollApp.PortID,
+	// 			Timeout:  5 * time.Minute,
+	// 		},
+	// 	}
+
+	// 	memo, err := json.Marshal(firstHopMetadata)
+	// 	require.NoError(t, err)
+
+	// 	transferTx, err := osmosis.SendIBCTransfer(ctx, channOsmosDym.ChannelID, osmosisUser.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
+	// 	require.NoError(t, err)
+	// 	err = transferTx.Validate()
+	// 	require.NoError(t, err)
+
+	// 	err = testutil.WaitForBlocks(ctx, 50, osmosis)
+	// 	require.NoError(t, err)
+
+	// 	osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, osmosis.Config().Denom)
+	// 	require.NoError(t, err)
+
+	// 	dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
+	// 	require.NoError(t, err)
+
+	// 	rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, secondHopIBCDenom)
+	// 	require.NoError(t, err)
+
+	// 	dymAllBalance, err := dymension.AllBalances(ctx, dymensionUserAddr)
+	// 	require.NoError(t, err)
+	// 	osmoAllBalance, err := osmosis.AllBalances(ctx, osmosisUserAddr)
+	// 	require.NoError(t, err)
+	// 	rollappAllBalance, err := rollapp1.AllBalances(ctx, rollappUserAddr)
+	// 	require.NoError(t, err)
+
+	// 	fmt.Println("dym: ", dymAllBalance)
+	// 	fmt.Println("osmo: ", osmoAllBalance)
+	// 	fmt.Println("rollapp: ", rollappAllBalance)
+
+	// 	require.True(t, rollAppBalance.Equal(transferAmount))
+	// 	require.True(t, dymBalance.Equal(zeroBal))
+	// 	require.True(t, osmosisBalance.Equal(walletAmount.Sub(transferAmount)))
+	// })
+
 	t.Run("multihop rollapp->dym->osmosis", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
