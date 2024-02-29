@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+docker-build-e2e-pre-upgrade:
+	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e-pre-upgrade -f pre.Dockerfile .
+
 ###############################################################################
 ###                                E2E tests                                ###
 ###############################################################################
