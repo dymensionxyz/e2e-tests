@@ -47,6 +47,36 @@ var (
 		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
+
+	// Setup for Osmosis
+	osmosisImageRepo = "ghcr.io/strangelove-ventures/heighliner/osmosis" //
+
+	osmosisImage = ibc.DockerImage{
+		Repository: osmosisImageRepo,
+		UidGid:     "1025:1025",
+	}
+
+	osmosisConfig = ibc.ChainConfig{
+		Type:                "cosmos",
+		Name:                "osmosis",
+		ChainID:             "osmosis-1",
+		Images:              []ibc.DockerImage{osmosisImage},
+		Bin:                 "osmosisd",
+		Bech32Prefix:        "osmo",
+		Denom:               "uosmo",
+		CoinType:            "118",
+		GasPrices:           "0.5uosmo",
+		EncodingConfig:      defaultConfig(),
+		GasAdjustment:       2,
+		TrustingPeriod:      "112h",
+		NoHostMount:         false,
+		ModifyGenesis:       nil,
+		ConfigFileOverrides: nil,
+	}
+
+	// IBC Path
+	pathHubToRollApp = "hub-path"
+	pathDymToOsmos   = "dym-osmo"
 )
 
 func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
@@ -67,6 +97,12 @@ func evmConfig() *simappparams.EncodingConfig {
 
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	return &cfg
+}
+
+func defaultConfig() *simappparams.EncodingConfig {
+	cfg := cosmos.DefaultEncoding()
 
 	return &cfg
 }
