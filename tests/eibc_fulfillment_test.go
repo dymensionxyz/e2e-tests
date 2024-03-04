@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -38,7 +39,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 50
+	const BLOCK_FINALITY_PERIOD = 80
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
@@ -155,7 +156,6 @@ func TestEIBCFulfillment(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
@@ -165,24 +165,53 @@ func TestEIBCFulfillment(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	transferData := ibc.WalletData{
+		Address: marketMakerAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	var options ibc.TransferOptions
+	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, dymension)
+	require.NoError(t, err)
+	expMmBalanceRollappDenom := transferData.Amount
+	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom))
+	// end of preconditions
+
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	var options ibc.TransferOptions
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	zeroBalance := math.NewInt(0)
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+	require.True(t, balance.Equal(zeroBalance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
@@ -190,31 +219,35 @@ func TestEIBCFulfillment(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-	txResp, err := dymension.CosmosChain.GetTransaction(txhash)
-	require.NoError(t, err)
-	fmt.Println("Fulfill order tx:", txResp)
-
-	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 20)
-	require.NoError(t, err)
-	fmt.Println("After order fulfillment:", eibcEvents[0])
+	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	if eibcEvent != nil {
+		fmt.Println("After order fulfillment:", eibcEvent)
+	}
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// verify funds minus fee were added to receiver's address
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmountWithoutFee)
-	// verify funds were deducted from market maker's wallet address
-	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, walletAmount.Sub(transferAmountWithoutFee))
-	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD, dymension)
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, walletAmount.Sub(transferAmountWithoutFee).Add(transferData.Amount))
+	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
+	require.True(t, balance.Equal(transferAmountWithoutFee))
+	// verify funds were deducted from market maker's wallet address
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
+	require.True(t, balance.Equal(expMmBalanceRollappDenom))
+	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
+	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	require.NoError(t, err)
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom))
 
 	t.Cleanup(
 		func() {
@@ -226,10 +259,43 @@ func TestEIBCFulfillment(t *testing.T) {
 	)
 }
 
+func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) *dymensiontesting.EibcEvent {
+	txResp, err := dymension.GetTransaction(txhash)
+	if err != nil {
+		require.NoError(t, err)
+		return nil
+	}
+
+	const evType = "eibc"
+	events := txResp.Events
+
+	var (
+		id, _           = cosmos.AttributeValue(events, evType, "id")
+		price, _        = cosmos.AttributeValue(events, evType, "price")
+		fee, _          = cosmos.AttributeValue(events, evType, "fee")
+		isFulfilled, _  = cosmos.AttributeValue(events, evType, "is_fulfilled")
+		packetStatus, _ = cosmos.AttributeValue(events, evType, "packet_status")
+	)
+
+	eibcEvent := new(dymensiontesting.EibcEvent)
+	eibcEvent.ID = id
+	eibcEvent.Price = price
+	eibcEvent.Fee = fee
+	eibcEvent.IsFulfilled, err = strconv.ParseBool(isFulfilled)
+	if err != nil {
+		require.NoError(t, err)
+		return nil
+	}
+	eibcEvent.PacketStatus = packetStatus
+
+	return eibcEvent
+}
+
 func getEIbcEventsWithinBlockRange(
 	ctx context.Context,
 	dymension *dym_hub.DymHub,
 	blockRange uint64,
+	breakOnFirstOccurence bool,
 ) ([]dymensiontesting.EibcEvent, error) {
 	var eibcEventsArray []dymensiontesting.EibcEvent
 
@@ -244,7 +310,7 @@ func getEIbcEventsWithinBlockRange(
 		return nil, fmt.Errorf("error waiting for blocks: %w", err)
 	}
 
-	eibcEvents, err := getEventsOfType(dymension.CosmosChain, height, height+blockRange, "eibc", true)
+	eibcEvents, err := getEventsOfType(dymension.CosmosChain, height-5, height+blockRange, "eibc", breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
 	}
@@ -280,7 +346,7 @@ func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight ui
 					eventTypeArray = append(eventTypeArray, event)
 					if breakOnFirstOccurence {
 						shouldReturn = true
-						fmt.Println("eibc found!")
+						fmt.Printf("%s event found on block height: %d", eventType, height)
 						break
 					}
 				}
