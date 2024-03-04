@@ -82,10 +82,10 @@ func TestEIBCFulfillment(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
-				EncodingConfig:      evmConfig(),
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
@@ -190,6 +190,11 @@ func TestEIBCFulfillment(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+	txResp, err := dymension.CosmosChain.GetTransaction(txhash)
+	require.NoError(t, err)
+	fmt.Println("Fulfill order tx:", txResp)
 
 	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 20)
 	require.NoError(t, err)
