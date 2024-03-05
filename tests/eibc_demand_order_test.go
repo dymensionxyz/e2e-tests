@@ -224,6 +224,13 @@ func TestEIBCFulfillment(t *testing.T) {
 		fmt.Println("After order fulfillment:", eibcEvent)
 	}
 
+	// handle error check if it's possible to fulfill already fulfilled order
+	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	require.NoError(t, err)
+	txData, err := dymension.GetTransaction(txhash)
+	require.NoError(t, err)
+	require.Contains(t, txData.RawLog, "failed to execute")
+
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
