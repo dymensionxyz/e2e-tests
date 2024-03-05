@@ -8,6 +8,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
@@ -69,5 +70,6 @@ func encodingConfig() *simappparams.EncodingConfig {
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
+	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
