@@ -21,6 +21,7 @@ jobs:
           - "e2e-test-ibc-success"
           - "e2e-test-ibc-timeout"
           - "e2e-test-ibc-grace-period"
+          - "e2e-test-eibc-fulfillment"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
