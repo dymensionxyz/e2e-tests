@@ -22,15 +22,11 @@ e2e-test-ibc-grace-period:
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-fulfill-no-balance:
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOrderWithoutBalanceNegative .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCNoBalanceToFulfillOrder .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-fulfill-more-than-once:	
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOrderMoreThanOnceNegative .
-
-# Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-not-fulfilled:
-	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfilled .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-corrupted-memo:
