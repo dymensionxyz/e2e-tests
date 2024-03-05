@@ -25,10 +25,6 @@ e2e-test-eibc-fulfill-no-balance:
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNoBalanceToFulfillOrder .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-fulfill-more-than-once:	
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOrderMoreThanOnceNegative .
-
-# Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-corrupted-memo:
 	cd tests && go test -timeout=25m -race -v -run TestEIBCCorruptedMemoNegative .
 
@@ -37,7 +33,7 @@ e2e-test-eibc-excessive-fee:
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeMoreThanPacketAmountNegative .
 
 # Executes all tests via rollup-e2e-testing
-e2e-test-all: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-fulfill-more-than-once e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee
+e2e-test-all: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee
 
-.PHONY: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-fulfill-more-than-once e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee e2e-test-all
+.PHONY: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee e2e-test-all
 

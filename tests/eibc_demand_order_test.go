@@ -268,7 +268,7 @@ func TestEIBCFulfillment(t *testing.T) {
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
 // that is attempted to be fulfilled without having enough balance by the market maker
-// as a result, the order shouldn't get finalized and the packet be finalized without order fulfillment
+// as a result, the IBC packet should be finalized without order fulfillment
 func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -462,12 +462,6 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 			}
 		},
 	)
-}
-
-// This test case verifies the system's behavior when an eIBC packet is sent from the rollapp to the hub
-// that is fulfilled more than once
-func TestEIBCFulfillOrderMoreThanOnceNegative(t *testing.T) {
-
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
