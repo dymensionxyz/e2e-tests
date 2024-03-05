@@ -38,9 +38,9 @@ var (
 		Images:              []ibc.DockerImage{dymensionImage},
 		Bin:                 "dymd",
 		Bech32Prefix:        "dym",
-		Denom:               "adym",
+		Denom:               "udym",
 		CoinType:            "118",
-		GasPrices:           "0.0adym",
+		GasPrices:           "0.0udym",
 		EncodingConfig:      encodingConfig(),
 		GasAdjustment:       1.1,
 		TrustingPeriod:      "112h",
@@ -53,7 +53,7 @@ var (
 func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		dymensionVersion = "latest"
+		dymensionVersion = "e2e"
 	}
 
 	rollappVersion, found = os.LookupEnv("ROLLAPP_CI")
