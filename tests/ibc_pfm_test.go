@@ -41,7 +41,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	_ = ctx
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
@@ -61,7 +60,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dyms",
+				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
 				ChainID:             "demo-dymension-rollapp",
 				Images:              []ibc.DockerImage{rollappImage},
@@ -99,10 +98,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
 	osmosis := chains[2].(*cosmos.CosmosChain)
-
-	_ = rollapp1
-	_ = dymension
-	_ = osmosis
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -237,14 +232,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	channOsmosDym := channsOsmosis[0]
 	require.NotEmpty(t, channOsmosDym.ChannelID)
 
-	fmt.Println("======================")
-	fmt.Println("RollApp - Dym", channsRollAppDym.ChannelID, channsRollAppDym.Counterparty.ChannelID)
-	fmt.Println("Dym - RollApp", channDymRollApp.ChannelID, channDymRollApp.Counterparty.ChannelID)
-
-	fmt.Println("Osmos - Dym", channOsmosDym.ChannelID, channOsmosDym.Counterparty.ChannelID)
-	fmt.Println("Dym - Osmos", channDymOsmos.ChannelID, channDymOsmos.Counterparty.ChannelID)
-	fmt.Println("======================")
-
 	// Start the relayer and set the cleanup function.
 	err = r.StartRelayer(ctx, eRep, pathHubToRollApp, pathDymToOsmos)
 	require.NoError(t, err)
@@ -297,14 +284,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		fmt.Println(firstHopDenom)
-		fmt.Println(firstHopDenomTrace)
-		fmt.Println(firstHopIBCDenom)
-
-		fmt.Println(secondHopDenom)
-		fmt.Println(secondHopDenomTrace)
-		fmt.Println(secondHopIBCDenom)
-
 		zeroBal := math.ZeroInt()
 		transferAmount := math.NewInt(100_000)
 
@@ -332,7 +311,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 15, rollapp1)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
