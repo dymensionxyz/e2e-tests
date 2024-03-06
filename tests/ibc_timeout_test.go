@@ -50,7 +50,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -78,7 +78,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("relayer", "debug", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().

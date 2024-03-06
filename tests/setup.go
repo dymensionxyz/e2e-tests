@@ -27,8 +27,8 @@ var (
 	}
 
 	rollappImage = ibc.DockerImage{
-		Repository: RollappMainRepo,
-		Version:    rollappVersion,
+		Repository: "rollapp",
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
@@ -39,9 +39,9 @@ var (
 		Images:              []ibc.DockerImage{dymensionImage},
 		Bin:                 "dymd",
 		Bech32Prefix:        "dym",
-		Denom:               "udym",
+		Denom:               "adym",
 		CoinType:            "118",
-		GasPrices:           "0.0udym",
+		GasPrices:           "0.0adym",
 		EncodingConfig:      encodingConfig(),
 		GasAdjustment:       1.1,
 		TrustingPeriod:      "112h",

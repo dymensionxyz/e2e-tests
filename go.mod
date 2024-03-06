@@ -20,9 +20,10 @@ require (
 	cosmossdk.io/math v1.2.0
 	github.com/cosmos/cosmos-sdk v0.46.16-0.20231025193730-41d2a21c1348
 	github.com/cosmos/ibc-go/v6 v6.2.1
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240301142808-e435d00124b9
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240304032837-156d2232d3a7
 	github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240303211023-54fb68d347da
 	github.com/evmos/ethermint v0.22.0
+	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.24.0
 )
@@ -109,7 +110,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hdevalence/ed25519consensus v0.0.0-20220222234857-c00d1f31bab3 // indirect
-	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
