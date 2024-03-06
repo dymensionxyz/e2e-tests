@@ -16,6 +16,7 @@ e2e-test-ibc-timeout:
 e2e-test-eibc-fulfillment:
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment .
   
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-grace-period:
 	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance .

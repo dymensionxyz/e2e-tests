@@ -78,7 +78,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0adym",
+				GasPrices:           "0.0udym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",

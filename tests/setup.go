@@ -8,6 +8,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
@@ -40,7 +41,7 @@ var (
 		Bech32Prefix:        "dym",
 		Denom:               "adym",
 		CoinType:            "118",
-		GasPrices:           "0.0adym",
+		GasPrices:           "0.0udym",
 		EncodingConfig:      encodingConfig(),
 		GasAdjustment:       1.1,
 		TrustingPeriod:      "112h",
@@ -69,5 +70,6 @@ func encodingConfig() *simappparams.EncodingConfig {
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
+	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
