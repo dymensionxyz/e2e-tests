@@ -112,7 +112,7 @@ var (
 		// EVM params
 		{
 			Key:   "app_state.feemarket.params.no_base_fee",
-			Value: "true",
+			Value: true,
 		},
 		{
 			Key:   "app_state.evm.params.evm_denom",
@@ -120,7 +120,7 @@ var (
 		},
 		{
 			Key:   "app_state.evm.params.enable_create",
-			Value: "false",
+			Value: false,
 		},
 		// Incentives params should be set to days on live net and lockable duration to 2 weeks
 		{
@@ -150,7 +150,7 @@ var (
 		},
 		{
 			Key:   "app_state.gamm.params.enable_global_pool_fees",
-			Value: "true",
+			Value: true,
 		},
 		// Bank denom metadata
 		{
@@ -162,12 +162,12 @@ var (
 						map[string]interface{}{
 							"aliases":  []interface{}{},
 							"denom":    "adym",
-							"exponent": 0,
+							"exponent": "0",
 						},
 						map[string]interface{}{
 							"aliases":  []interface{}{},
 							"denom":    "DYM",
-							"exponent": 18,
+							"exponent": "18",
 						},
 					},
 					"description": "Denom metadata for DYM (adym)",
