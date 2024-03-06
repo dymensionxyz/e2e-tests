@@ -2,6 +2,7 @@ package tests
 
 import (
 	"os"
+	"time"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -10,6 +11,20 @@ import (
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
+
+type PacketMetadata struct {
+	Forward *ForwardMetadata `json:"forward"`
+}
+
+type ForwardMetadata struct {
+	Receiver       string        `json:"receiver"`
+	Port           string        `json:"port"`
+	Channel        string        `json:"channel"`
+	Timeout        time.Duration `json:"timeout"`
+	Retries        *uint8        `json:"retries,omitempty"`
+	Next           *string       `json:"next,omitempty"`
+	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
+}
 
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"

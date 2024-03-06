@@ -18,8 +18,20 @@ e2e-test-ibc-grace-period:
 e2e-test-transfer-multi-hop:
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop .
 
-# Executes all tests via rollup-e2e-testing
-e2e-test-all: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-transfer-multi-hop
+e2e-test-pfm-with-grace-period:
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFMWithGracePeriod .
 
-.PHONY: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-transfer-multi-hop e2e-test-all
+# Executes all tests via rollup-e2e-testing
+e2e-test-all: e2e-test-ibc-success \
+	e2e-test-ibc-timeout \
+	e2e-test-ibc-grace-period \
+	e2e-test-transfer-multi-hop \
+	e2e-test-pfm-with-grace-period
+
+.PHONY: e2e-test-ibc-success \
+	e2e-test-ibc-timeout \
+	e2e-test-ibc-grace-period \
+	e2e-test-transfer-multi-hop \
+	e2e-test-pfm-with-grace-period \
+	e2e-test-all
 

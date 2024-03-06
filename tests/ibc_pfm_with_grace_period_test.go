@@ -21,13 +21,12 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestIBCTransferMultiHop(t *testing.T) {
+func TestIBCPFMWithGracePeriod(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
 
 	ctx := context.Background()
-	_ = ctx
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
@@ -35,7 +34,15 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
+	modifyGenesisKV := []cosmos.GenesisKV{
+		{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: "100",
+		},
+	}
+
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -47,7 +54,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dyms",
+				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
 				ChainID:             "demo-dymension-rollapp",
 				Images:              []ibc.DockerImage{rollappImage},
@@ -66,8 +73,24 @@ func TestIBCTransferMultiHop(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "udym",
+				CoinType:            "118",
+				GasPrices:           "0.0udym",
+				EncodingConfig:      evmConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -85,10 +108,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
 	osmosis := chains[2].(*cosmos.CosmosChain)
-
-	_ = rollapp1
-	_ = dymension
-	_ = osmosis
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -223,14 +242,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	channOsmosDym := channsOsmosis[0]
 	require.NotEmpty(t, channOsmosDym.ChannelID)
 
-	fmt.Println("======================")
-	fmt.Println("RollApp - Dym", channsRollAppDym.ChannelID, channsRollAppDym.Counterparty.ChannelID)
-	fmt.Println("Dym - RollApp", channDymRollApp.ChannelID, channDymRollApp.Counterparty.ChannelID)
-
-	fmt.Println("Osmos - Dym", channOsmosDym.ChannelID, channOsmosDym.Counterparty.ChannelID)
-	fmt.Println("Dym - Osmos", channDymOsmos.ChannelID, channDymOsmos.Counterparty.ChannelID)
-	fmt.Println("======================")
-
 	// Start the relayer and set the cleanup function.
 	err = r.StartRelayer(ctx, eRep, pathHubToRollApp, pathDymToOsmos)
 	require.NoError(t, err)
@@ -273,7 +284,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, osmosisOrigBal)
 
-	t.Run("multihop rollapp->dym->osmosis", func(t *testing.T) {
+	t.Run("multihop rollapp->dym->osmosis, funds received on osmosis after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
 
@@ -282,14 +293,6 @@ func TestIBCTransferMultiHop(t *testing.T) {
 
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
-
-		fmt.Println(firstHopDenom)
-		fmt.Println(firstHopDenomTrace)
-		fmt.Println(firstHopIBCDenom)
-
-		fmt.Println(secondHopDenom)
-		fmt.Println(secondHopDenomTrace)
-		fmt.Println(secondHopIBCDenom)
 
 		zeroBal := math.ZeroInt()
 		transferAmount := math.NewInt(100_000)
@@ -330,8 +333,16 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 
+		// Make sure that the transfer is not successful yet due to the grace period
 		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
 		require.True(t, dymBalance.Equal(zeroBal))
+		require.True(t, osmosisBalance.Equal(zeroBal))
+
+		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
+		require.NoError(t, err)
+
+		osmosisBalance, err = osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		require.NoError(t, err)
 		require.True(t, osmosisBalance.Equal(transferAmount))
 	})
 }
