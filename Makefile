@@ -31,7 +31,7 @@ e2e-test-eibc-corrupted-memo:
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-excessive-fee:
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeMoreThanPacketAmountNegative .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeTooHigh .
 
 e2e-test-eibc-timeout:
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutHubToRollapp .

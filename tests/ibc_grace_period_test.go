@@ -76,7 +76,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "adym",
+				Denom:               "udym",
 				CoinType:            "118",
 				GasPrices:           "0.0udym",
 				EncodingConfig:      encodingConfig(),
