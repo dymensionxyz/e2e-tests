@@ -2,26 +2,30 @@ on:
   workflow_call:
     inputs:
       dymension_ci:
-        description: 'CI run on Dymension Repo'
+        description: "CI run on Dymension Repo"
         required: false
         type: string
-        default: 'latest' 
+        default: "latest"
       rollapp_ci:
-        description: 'CI run on Rollapp Repo'
+        description: "CI run on Rollapp Repo"
         required: false
         type: string
-        default: 'latest'
+        default: "latest"
 
 jobs:
   # e2e-tests-by runs the actual go test command to trigger the test.
   e2e-tests:
     strategy:
       matrix:
-        tests: 
+        tests:
           - "e2e-test-ibc-success"
           - "e2e-test-ibc-timeout"
           - "e2e-test-ibc-grace-period"
           - "e2e-test-eibc-fulfillment"
+          - "e2e-test-eibc-fulfill-no-balance"
+          - "e2e-test-eibc-corrupted-memo"
+          - "e2e-test-eibc-excessive-fee"
+          - "e2e-test-eibc-timeout"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -47,5 +51,5 @@ jobs:
       - name: E2E Tests
         run: make ${{ matrix.tests }}
         env:
-          DYMENSION_CI:  ${{ inputs.dymension_ci }}
+          DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_CI: ${{ inputs.rollapp_ci }}
