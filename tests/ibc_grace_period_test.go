@@ -79,7 +79,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 				Denom:               "udym",
 				CoinType:            "118",
 				GasPrices:           "0.0udym",
-				EncodingConfig:      evmConfig(),
+				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
