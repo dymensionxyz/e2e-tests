@@ -40,12 +40,13 @@ func TestEIBCFulfillment(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -83,14 +84,14 @@ func TestEIBCFulfillment(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,

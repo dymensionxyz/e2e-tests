@@ -32,12 +32,13 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestIBCGracePeriodCompliance:26657"
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
 
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: "20",
 		},
-	}
+	)
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -76,14 +77,14 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
