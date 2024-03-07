@@ -668,7 +668,7 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
 // that has set fee more than a packet amount
-func TestEIBCFeeMoreThanPacketAmountNegative(t *testing.T) {
+func TestEIBCFeeTooHigh(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
