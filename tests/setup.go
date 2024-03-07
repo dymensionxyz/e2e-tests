@@ -30,8 +30,8 @@ var (
 	}
 
 	rollappImage = ibc.DockerImage{
-		Repository: "rollapp",
-		Version:    "debug",
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "latest",
 		UidGid:     "1025:1025",
 	}
 

@@ -78,7 +78,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("relayer", "debug", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "latest", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
