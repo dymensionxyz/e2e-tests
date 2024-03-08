@@ -315,17 +315,8 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 15, rollapp1)
 		require.NoError(t, err)
 
-		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
-		require.NoError(t, err)
-
-		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
-		require.NoError(t, err)
-
-		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
-		require.NoError(t, err)
-
-		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
-		require.True(t, dymBalance.Equal(zeroBal))
-		require.True(t, osmosisBalance.Equal(transferAmount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
+		testutil.AssertBalance(t, ctx, osmosis, osmosisUserAddr, secondHopIBCDenom, transferAmount)
 	})
 }
