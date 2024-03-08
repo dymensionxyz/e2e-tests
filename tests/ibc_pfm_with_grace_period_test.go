@@ -33,6 +33,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
