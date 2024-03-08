@@ -56,14 +56,6 @@ var (
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		// gov params
 		{
-			Key:   "app_state.gov.deposit_params.min_deposit.0.denom",
-			Value: "adym",
-		},
-		{
-			Key:   "app_state.gov.deposit_params.min_deposit.0.amount",
-			Value: "10000000000",
-		},
-		{
 			Key:   "app_state.gov.voting_params.voting_period",
 			Value: "1m",
 		},
@@ -134,10 +126,6 @@ var (
 		// Misc params
 		{
 			Key:   "app_state.crisis.constant_fee.denom",
-			Value: "adym",
-		},
-		{
-			Key:   "app_state.gamm.params.pool_creation_fee.0.denom",
 			Value: "adym",
 		},
 		{
@@ -241,6 +229,15 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 			if err := dyno.Set(g, updatedEpochs, "app_state", "epochs", "epochs"); err != nil {
 				return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
 			}
+		}
+		if err := dyno.Set(g, "adym", "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
+			return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
+			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 		}
 		outputGenBz, err := json.Marshal(g)
 		if err != nil {

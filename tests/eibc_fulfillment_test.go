@@ -37,6 +37,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestEIBCFulfillment:26657"
 	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
