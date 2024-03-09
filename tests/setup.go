@@ -31,7 +31,7 @@ var (
 
 	rollappImage = ibc.DockerImage{
 		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "latest",
+		Version:    "e2e-amd",
 		UidGid:     "1025:1025",
 	}
 
