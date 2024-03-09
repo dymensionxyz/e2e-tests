@@ -53,6 +53,33 @@ var (
 		ConfigFileOverrides: nil,
 	}
 
+	rollappEVMGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "40000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+	}
+
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		// gov params
 		{
@@ -239,6 +266,26 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 		if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
 			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 		}
+		outputGenBz, err := json.Marshal(g)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+
+		return cosmos.ModifyGenesis(genesisKV)(chainConfig, outputGenBz)
+	}
+}
+
+func modifyRollappEVMGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(inputGenBz, &g); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+		}
+
 		outputGenBz, err := json.Marshal(g)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
