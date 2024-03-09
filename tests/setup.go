@@ -95,8 +95,8 @@ var (
 	}
 
 	// IBC Path
-	pathHubToRollApp = "hub-path"
-	pathDymToOsmos   = "dym-osmo"
+	pathHubToRollApp   = "hub-path"
+	pathDymToOsmos     = "dym-osmo"
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		// gov params
 		{
