@@ -69,6 +69,7 @@ func TestEIBCFulfillment(t *testing.T) {
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
@@ -110,7 +111,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "latest", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().

@@ -55,6 +55,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
@@ -79,7 +80,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "latest", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -203,7 +204,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 		},
 	)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
