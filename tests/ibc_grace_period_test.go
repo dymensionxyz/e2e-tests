@@ -163,22 +163,20 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	// Assert balance was updated on the Hub because transfer amount was deducted from wallet balance
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the Rollapp
