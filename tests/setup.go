@@ -228,7 +228,7 @@ var (
 func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		dymensionVersion = "latest"
+		dymensionVersion = "e2e"
 	}
 
 	rollappVersion, found = os.LookupEnv("ROLLAPP_CI")
