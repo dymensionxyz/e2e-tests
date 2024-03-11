@@ -19,7 +19,7 @@ import (
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
+	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
 	dymensionVersion, rollappVersion = GetDockerImageVersion()
 
@@ -30,8 +30,8 @@ var (
 	}
 
 	rollappImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "e2e-amd",
+		Repository: RollappMainRepo,
+		Version:    rollappVersion,
 		UidGid:     "1025:1025",
 	}
 
