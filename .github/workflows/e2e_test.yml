@@ -42,4 +42,5 @@ jobs:
           go-version: "1.21.4"
 
       - name: E2E Tests
-        run: make ${{ matrix.tests }}
+        run: |
+          make ${{ matrix.tests }}
