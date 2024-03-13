@@ -317,8 +317,8 @@ github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240311074607-a2992504c930 h1:noyhuOB5PTeuJlxwm8ODkJZ1pZkumNHq4t2IJr78XJk=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240311074607-a2992504c930/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240313090334-2f5d7c30d900 h1:Ux4COOt9ThujOEPBV25TDow4lOaVUa4Nv/8w65wUbKY=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240313090334-2f5d7c30d900/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.0 h1:/8DMNYp9SGi5f0w7uCm6d6M4OU2rGFK09Y2A4Xv7EE0=
@@ -353,8 +353,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQxaLAeM=
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240303211023-54fb68d347da h1:KYI7MUooqaMTe3aqlYlTVerOZB3nRY578X9K+fIPGEg=
-github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240303211023-54fb68d347da/go.mod h1:4PY6Y8pSTRrTmwVue9avSm3hzCOrOcCNQFz79cdgg8s=
+github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240312183255-90729718dc48 h1:ECfbVc9uG2krnxl/P5QyRX1NL/nMnQ+Nfj/uUjUk28U=
+github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240312183255-90729718dc48/go.mod h1:v63tbliaw8NMxS3EnkBb4oetY1RWet0/ZM0HxS0JrDI=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3 h1:iAtAivMtJh2Ublnq2KasC7EIa5/gfsff5EJ7kUlnd9A=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
 github.com/edsrzf/mmap-go v1.0.0 h1:CEBF7HpRnUCSJgGUb5h1Gm7e3VkmVDrR8lvWVLtrOFw=

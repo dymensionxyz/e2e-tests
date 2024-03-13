@@ -114,7 +114,7 @@ var (
 		// gov params
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
-			Value: "1m",
+			Value: "30s",
 		},
 		// staking params
 		{
