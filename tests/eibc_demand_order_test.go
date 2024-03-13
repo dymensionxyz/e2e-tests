@@ -36,16 +36,18 @@ func TestEIBCFulfillment(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -58,17 +60,18 @@ func TestEIBCFulfillment(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "demo-dymension-rollapp",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -83,14 +86,14 @@ func TestEIBCFulfillment(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -108,7 +111,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -260,6 +263,7 @@ func TestEIBCFulfillment(t *testing.T) {
 		func() {
 			err := r.StopRelayer(ctx, eRep)
 			if err != nil {
+
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 		},
@@ -280,16 +284,18 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -302,17 +308,18 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "demo-dymension-rollapp",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -327,14 +334,14 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -352,7 +359,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -477,16 +484,18 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -499,17 +508,18 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "demo-dymension-rollapp",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -524,14 +534,14 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -549,7 +559,7 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -679,16 +689,18 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -701,17 +713,18 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "demo-dymension-rollapp",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -726,14 +739,14 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
-				Denom:               "udym",
+				Denom:               "adym",
 				CoinType:            "118",
-				GasPrices:           "0.0udym",
+				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -751,7 +764,7 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
