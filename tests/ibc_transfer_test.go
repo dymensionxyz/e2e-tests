@@ -35,9 +35,6 @@ func TestIBCTransferSuccess(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
-	appTomlOverrides := make(testutil.Toml)
-	appTomlOverrides["minimum-gas-prices"] = "0urax"
-	configFileOverrides["config/app.toml"] = appTomlOverrides
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 2
