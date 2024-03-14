@@ -32,8 +32,8 @@ var (
 	}
 
 	oldDymensionImage = ibc.DockerImage{
-		Repository: DymensionMainRepo,
-		Version:    "da07cd57",
+		Repository: "ghcr.io/decentrio/dymension",
+		Version:    "old",
 		UidGid:     "1025:1025",
 	}
 
