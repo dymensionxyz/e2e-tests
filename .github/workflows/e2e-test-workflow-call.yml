@@ -14,7 +14,7 @@ on:
 
 jobs:
   # e2e-tests-by runs the actual go test command to trigger the test.
-  e2e-tests:
+  e2e-tests-with-rollapp:
     strategy:
       matrix:
         tests:
@@ -23,6 +23,42 @@ jobs:
           - "e2e-test-ibc-grace-period"
           - "e2e-test-eibc-fulfillment"
           - "e2e-test-transfer-multi-hop"
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+      - name: Set up Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.4"
+
+      - name: Download Tarball Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: e2e
+          path: /tmp
+
+      - name: Load Docker Image
+        run: |
+          docker image load -i /tmp/e2e.tar 
+          docker image ls -a
+
+      - name: E2E Tests
+        run: make ${{ matrix.tests }}
+        env:
+          DYMENSION_CI: ${{ inputs.dymension_ci }}
+          ROLLAPP_CI: ${{ inputs.rollapp_ci }}
+  e2e-tests-with-rollapp-evm:
+    strategy:
+      matrix:
+        tests:
+          - "rollapp-evm-e2e-test-ibc-success"
+          - "rollapp-evm-e2e-test-ibc-timeout"
+          - "rollapp-evm-e2e-test-ibc-grace-period"
+          - "rollapp-evm-e2e-test-eibc-fulfillment"
+          - "rollapp-evm-e2e-test-transfer-multi-hop"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:

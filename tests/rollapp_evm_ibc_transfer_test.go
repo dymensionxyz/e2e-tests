@@ -40,12 +40,12 @@ func TestRollappEVM_IBCTransferSuccess(t *testing.T) {
 	numRollAppVals := 1
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
-			Name: "rollapp1",
+			Name: "rollapp-evm-1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
 				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappImage},
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",

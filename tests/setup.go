@@ -19,9 +19,11 @@ import (
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
 
-	dymensionVersion, rollappVersion = GetDockerImageVersion()
+	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+
+	dymensionVersion, rollappVersion, rollappEVMVersion = GetDockerImageVersion()
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
@@ -32,6 +34,12 @@ var (
 	rollappImage = ibc.DockerImage{
 		Repository: RollappMainRepo,
 		Version:    rollappVersion,
+		UidGid:     "1025:1025",
+	}
+
+	rollappEVMImage = ibc.DockerImage{
+		Repository: RollappEVMMainRepo,
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -225,7 +233,7 @@ var (
 	}
 )
 
-func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
+func GetDockerImageVersion() (dymensionVersion, rollappVersion, rollappEVMVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
 		dymensionVersion = "latest"
@@ -235,7 +243,12 @@ func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
 	if !found {
 		rollappVersion = "latest"
 	}
-	return dymensionVersion, rollappVersion
+
+	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
+	if !found {
+		rollappEVMVersion = "latest"
+	}
+	return dymensionVersion, rollappVersion, rollappEVMVersion
 }
 
 func encodingConfig() *simappparams.EncodingConfig {

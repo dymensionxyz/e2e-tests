@@ -41,6 +41,28 @@ jobs:
         with:
           go-version: "1.21.4"
 
-      - name: E2E Tests
+      - name: Rollapp E2E Tests
         run: |
           make ${{ matrix.tests }}
+  e2e-tests-with-rollapp-evm:
+    strategy:
+      matrix:
+        tests:
+          - "rollapp-evm-e2e-test-ibc-success"
+          - "rollapp-evm-e2e-test-ibc-timeout"
+          - "rollapp-evm-e2e-test-ibc-grace-period"
+          - "rollapp-evm-e2e-test-eibc-fulfillment"
+          - "rollapp-evm-e2e-test-transfer-multi-hop"
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+      - name: Set up Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.4"
+
+      - name: Rollapp-EVM E2E Tests
+        run: make ${{ matrix.tests }}
