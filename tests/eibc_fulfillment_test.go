@@ -54,6 +54,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
