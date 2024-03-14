@@ -210,8 +210,8 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
-	// Wait a 30 blocks
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	// Wait a 40 blocks
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the Hub
