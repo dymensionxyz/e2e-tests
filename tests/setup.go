@@ -31,6 +31,12 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	oldDymensionImage = ibc.DockerImage{
+		Repository: DymensionMainRepo,
+		Version:    "da07cd57",
+		UidGid:     "1025:1025",
+	}
+
 	rollappImage = ibc.DockerImage{
 		Repository: RollappMainRepo,
 		Version:    rollappVersion,

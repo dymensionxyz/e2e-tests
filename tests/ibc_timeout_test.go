@@ -78,7 +78,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
+				Images:              []ibc.DockerImage{oldDymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
