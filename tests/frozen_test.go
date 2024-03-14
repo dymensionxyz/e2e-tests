@@ -134,36 +134,42 @@ func TestRollAppFreeze(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	height, err := dymension.Height(ctx)
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
-	t.Logf("height: %d", height)
 
 	rollAppheight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	t.Logf("rollAppheight: %d", rollAppheight)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
-
 	keyDir := dymension.GetRollApp().GetSequencerKeyDir()
 
+	fraudHeight := rollAppheight - 3
 	bds, err := json.Marshal(
 		rollapptypes.BlockDescriptors{
 			BD: []rollapptypes.BlockDescriptor{{
-				Height:                 rollAppheight + 1,
+				Height:                 fraudHeight,
 				StateRoot:              []byte("testtesttesttesttesttesttesttest"),
 				IntermediateStatesRoot: []byte("testtesttesttesttesttesttesttest"),
 			}}})
 	require.NoError(t, err)
 
-	// Submitting a fraud proof
-	err = dymension.GetNode().UpdateState(ctx, "sequencer", "rollappevm_1234-1", fmt.Sprint(rollAppheight+1), "1", "\"\"", "0", string(bds), keyDir)
+	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
-	stateInfo, err := dymension.QueryProposal(ctx, "rollappevm_1234-1")
+	stateInfo, err := dymension.GetNode().GetLatestState(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
 	t.Logf("height: %s", stateInfo)
 
-	err = dymension.Sub
+	json.Unmarshal(stateInfo)
+
+	// Submitting a fraud proof
+	err = dymension.GetNode().UpdateState(ctx, "sequencer", "rollappevm_1234-1", fmt.Sprint(fraudHeight), "1", "\"\"", "0", string(bds), keyDir)
+	require.NoError(t, err)
+
+	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	require.NoError(t, err)
+
+	err = dymension.GetNode().SubmitFraudProposal(ctx, "sequencer", "rollappevm_1234-1", fmt.Sprint(fraudHeight), sequencerAddr, "07-tendermint-0", "\"submit fraud\"", "\"submit fraud\"", keyDir)
+	require.NoError(t, err)
 }
