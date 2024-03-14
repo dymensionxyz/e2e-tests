@@ -12,6 +12,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -19,8 +20,9 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TestIBCGracePeriodCompliance ensures that the grace period for transaction finalization is correctly enforced on hub and rollapp.
-func TestIBCGracePeriodCompliance(t *testing.T) {
+// This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
+// that is fulfilled by the market maker
+func TestRollappEVM_EIBCFulfillment(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -34,15 +36,16 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	const BLOCK_FINALITY_PERIOD = 80
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "20",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -104,11 +107,10 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
-
+	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
@@ -136,56 +138,60 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
+	marketMakerAddr := marketMaker.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// Compose an IBC transfer and send from rollapp -> dymension
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
+	multiplier := math.NewInt(10)
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
+	transferAmountWithoutFee := transferAmount.Sub(eibcFee)
+
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-
-	transferData := ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	// Get the IBC denom for dymension on roll app
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+	transferData := ibc.WalletData{
+		Address: marketMakerAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	var options ibc.TransferOptions
+	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	// Assert balance was updated on the Rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
-
-	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	// wait until the packet is finalized
+	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, dymension)
 	require.NoError(t, err)
+	expMmBalanceRollappDenom := transferData.Amount
+	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+	// end of preconditions
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -193,30 +199,55 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	// set eIBC specific memo
+	options.Memo = BuildEIbcMemo(eibcFee)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	zeroBalance := math.NewInt(0)
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
-	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
 
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// fulfill demand order
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	require.NoError(t, err)
+	fmt.Println(txhash)
+	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	if eibcEvent != nil {
+		fmt.Println("After order fulfillment:", eibcEvent)
+	}
 
+	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	// Assert funds are waiting
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
-
-	// Wait a 30 blocks
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	// verify funds minus fee were added to receiver's address
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
-
-	// Assert balance was updated on the Hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
+	require.True(t, balance.Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance))
+	// verify funds were deducted from market maker's wallet address
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
+	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	require.NoError(t, err)
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	t.Cleanup(
 		func() {

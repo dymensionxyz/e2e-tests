@@ -20,7 +20,7 @@ import (
 )
 
 // TestIBCGracePeriodCompliance ensures that the grace period for transaction finalization is correctly enforced on hub and rollapp.
-func TestIBCGracePeriodCompliance(t *testing.T) {
+func TestRollappEVM_IBCGracePeriodCompliance(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
