@@ -36,6 +36,8 @@ func TestRollappGenesisEvent(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -69,6 +71,7 @@ func TestRollappGenesisEvent(t *testing.T) {
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
+			ExtraFlags:    extraFlags,
 		},
 	})
 
