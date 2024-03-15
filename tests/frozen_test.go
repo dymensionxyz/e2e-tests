@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -16,8 +19,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
@@ -144,32 +145,106 @@ func TestRollAppFreeze(t *testing.T) {
 
 	keyDir := dymension.GetRollApp().GetSequencerKeyDir()
 
-	fraudHeight := rollAppheight - 3
-	bds, err := json.Marshal(
-		rollapptypes.BlockDescriptors{
-			BD: []rollapptypes.BlockDescriptor{{
-				Height:                 fraudHeight,
-				StateRoot:              []byte("testtesttesttesttesttesttesttest"),
-				IntermediateStatesRoot: []byte("testtesttesttesttesttesttesttest"),
-			}}})
-	require.NoError(t, err)
+	// fraudHeight := rollAppheight - 2
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
-	stateInfo, err := dymension.GetNode().GetLatestState(ctx, "rollappevm_1234-1")
+	oldLatestIndex, err := dymension.GetNode().GetLatestIndex(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
-	t.Logf("height: %s", stateInfo)
 
-	json.Unmarshal(stateInfo)
+	// Define a struct to represent the JSON structure
+	var data struct {
+		StateIndex struct {
+			RollappID string `json:"rollappId"`
+			Index     string `json:"index"`
+		} `json:"stateIndex"`
+	}
 
-	// Submitting a fraud proof
-	err = dymension.GetNode().UpdateState(ctx, "sequencer", "rollappevm_1234-1", fmt.Sprint(fraudHeight), "1", "\"\"", "0", string(bds), keyDir)
+	// Unmarshal the JSON string into the struct
+	err = json.Unmarshal([]byte(oldLatestIndex), &data)
 	require.NoError(t, err)
+
+	// Access the index value
+	index := data.StateIndex.Index
+	uintIndex, err := strconv.ParseUint(index, 10, 64)
+	require.NoError(t, err)
+
+	targetIndex := uintIndex + 1
+
+	jsonData, err := json.Marshal(20)
+	require.NoError(t, err)
+
+	disputeblock := json.RawMessage(jsonData)
+	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
+		Title:       "Add new deployer_whitelist",
+		Description: "Add current dymensionUserAddr to the deployer_whitelist",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("rollapp", "DisputePeriodInBlocks", disputeblock),
+		},
+		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+	})
+	require.NoError(t, err)
+
+	t.Logf("testststsst %s ", propTx.ProposalID)
+
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
+	require.NoError(t, err)
+	require.Equal(t, new_params.Value, string(disputeblock))
+
+	// Loop until the latest index updates
+	for {
+		oldLatestIndex, err := dymension.GetNode().GetLatestIndex(ctx, "rollappevm_1234-1")
+		require.NoError(t, err)
+		var data struct {
+			StateIndex struct {
+				RollappID string `json:"rollappId"`
+				Index     string `json:"index"`
+			} `json:"stateIndex"`
+		}
+		err = json.Unmarshal(oldLatestIndex, &data)
+		require.NoError(t, err)
+
+		index := data.StateIndex.Index
+		uintIndex, err := strconv.ParseUint(index, 10, 64)
+		require.NoError(t, err)
+
+		t.Logf("Logging --------------------------: %d and %d", uintIndex, targetIndex)
+		if uintIndex == targetIndex {
+			break
+		}
+		if uintIndex > targetIndex {
+			targetIndex = uintIndex
+			break
+		}
+	}
 
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
+	submitFraudStr := "fraud"
 
-	err = dymension.GetNode().SubmitFraudProposal(ctx, "sequencer", "rollappevm_1234-1", fmt.Sprint(fraudHeight), sequencerAddr, "07-tendermint-0", "\"submit fraud\"", "\"submit fraud\"", keyDir)
-	require.NoError(t, err)
+	prop := cosmos.SubmitFraudProposal{
+		RollappId:    "rollappevm_1234-1",
+		Height:       fmt.Sprint(targetIndex + 1),
+		ProposerAddr: sequencerAddr,
+		ClientId:     "07-tendermint-0",
+		Tittle:       submitFraudStr,
+		Description:  submitFraudStr,
+	}
+	for {
+		err = dymension.GetNode().SubmitFraudProposal(ctx, "sequencer", prop, keyDir)
+		if err == nil {
+			break
+		}
+	}
+
+	t.Logf("Success SubmitFraudProposal")
 }
