@@ -30,6 +30,7 @@ jobs:
           - "e2e-test-ibc-grace-period"
           - "e2e-test-eibc-fulfillment"
           - "e2e-test-transfer-multi-hop"
+          - "e2e-test-batch-finalization"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
