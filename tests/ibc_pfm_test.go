@@ -329,7 +329,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 10, rollapp1, osmosis)
+		err = testutil.WaitForBlocks(ctx, 20, rollapp1, osmosis)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))

@@ -164,9 +164,6 @@ func TestRollappEVM_IBCGracePeriodCompliance(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -176,6 +173,9 @@ func TestRollappEVM_IBCGracePeriodCompliance(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
 	require.NoError(t, err)
@@ -210,7 +210,7 @@ func TestRollappEVM_IBCGracePeriodCompliance(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
-	// Wait a 30 blocks
+	// Wait a 40 blocks
 	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 

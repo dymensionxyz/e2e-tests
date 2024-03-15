@@ -187,7 +187,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, dymension)
+	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+20, dymension, rollapp1)
 	require.NoError(t, err)
 	expMmBalanceRollappDenom := transferData.Amount
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)

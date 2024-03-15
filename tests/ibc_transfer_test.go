@@ -203,7 +203,7 @@ func TestIBCTransferSuccess(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub

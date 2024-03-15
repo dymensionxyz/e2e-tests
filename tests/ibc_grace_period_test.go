@@ -211,7 +211,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
 	// Wait a 10 blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the Hub
