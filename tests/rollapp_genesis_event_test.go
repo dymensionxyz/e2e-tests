@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -163,5 +164,15 @@ func TestRollappGenesisEvent(t *testing.T) {
 	tx, err := dymension.GetTransaction(txHash)
 	require.NoError(t, err)
 
-	fmt.Println("tx: ", tx)
+	recipient, _ := cosmos.AttributeValue(tx.Events, "transfer", "recipient")
+	coinStr, _ := cosmos.AttributeValue(tx.Events, "transfer", "amount")
+
+	coin, err := sdk.ParseCoinNormalized(coinStr)
+	require.NoError(t, err)
+
+	validatorAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	require.Equal(t, recipient, validatorAddr)
+
+	testutil.AssertBalance(t, ctx, dymension, validatorAddr, coin.Denom, coin.Amount)
 }
