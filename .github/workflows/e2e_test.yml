@@ -11,23 +11,25 @@ on:
       # trigger workflow if PR is marked ready for review.
       - ready_for_review
     paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'LICENSE'
+      - "docs/**"
+      - "**.md"
+      - "LICENSE"
 
 permissions:
   contents: read
   packages: write
 
-jobs:   
+jobs:
   # e2e-tests-by runs the actual go test command to trigger the test.
   e2e-tests:
     strategy:
       matrix:
-        tests: 
+        tests:
           - "e2e-test-ibc-success"
           - "e2e-test-ibc-timeout"
           - "e2e-test-ibc-grace-period"
+          - "e2e-test-eibc-fulfillment"
+          - "e2e-test-transfer-multi-hop"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -40,4 +42,5 @@ jobs:
           go-version: "1.21.4"
 
       - name: E2E Tests
-        run: make ${{ matrix.tests }}
+        run: |
+          make ${{ matrix.tests }}
