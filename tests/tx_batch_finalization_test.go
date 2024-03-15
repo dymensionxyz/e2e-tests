@@ -159,11 +159,9 @@ func TestBatchFinalization(t *testing.T) {
 
 	lastFinalizedRollappHeight, err := dymension.FinalizedRollappStateHeight(ctx, rollapp1.GetChainID())
 	require.NoError(t, err)
-	fmt.Println(lastFinalizedRollappHeight)
 
 	currentFinalizedRollappDymHeight, err := dymension.FinalizedRollappDymHeight(ctx, rollapp1.GetChainID())
 	require.NoError(t, err)
-	fmt.Println(currentFinalizedRollappDymHeight)
 
 	// verify that the last creation height for finalized states on the hub is greater than dispute period
 	// also, last finalized rollapp state height needs to be greater than the rollapp height verified
