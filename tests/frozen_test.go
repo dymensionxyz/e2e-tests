@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -20,33 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
-
-type StateInfo struct {
-	BDs            BDs    `json:"stateInfo"`
-	DAPath         string `json:"DAPath"`
-	CreationHeight string `json:"creationHeight"`
-	NumBlocks      string `json:"numBlocks"`
-	Sequencer      string `json:"sequencer"`
-	StartHeight    string `json:"startHeight"`
-	StateInfoIndex Index  `json:"stateInfoIndex"`
-	Status         string `json:"status"`
-	Version        string `json:"version"`
-}
-
-type BDs struct {
-	BD []BD `json:"BD"`
-}
-
-type BD struct {
-	Height                 string `json:"height"`
-	IntermediateStatesRoot string `json:"intermediateStatesRoot"`
-	StateRoot              string `json:"stateRoot"`
-}
-
-type Index struct {
-	Index     string `json:"index"`
-	RollappId string `json:"rollappId"`
-}
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
 func TestRollAppFreeze(t *testing.T) {
@@ -168,8 +142,6 @@ func TestRollAppFreeze(t *testing.T) {
 
 	keyDir := dymension.GetRollApp().GetSequencerKeyDir()
 
-	// fraudHeight := rollAppheight - 2
-
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -184,7 +156,7 @@ func TestRollAppFreeze(t *testing.T) {
 	targetIndex := uintIndex + 1
 
 	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 20)
+	myUintStr := fmt.Sprintf("%d", 50)
 
 	// Create a JSON string with the uint value quoted
 	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
@@ -238,19 +210,43 @@ func TestRollAppFreeze(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 2)
 
-	// prop := cosmos.SubmitFraudProposal{
-	// 	RollappId:    "rollappevm_1234-1",
-	// 	Height:       fraudHeight,
-	// 	ProposerAddr: sequencerAddr,
-	// 	ClientId:     "07-tendermint-0",
-	// 	Tittle:       submitFraudStr,
-	// 	Description:  submitFraudStr,
-	// }
-
 	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), "rollappevm_1234-1", fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
+	// Wait a few blocks for the gov to pass and to verify if the state index increment
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Check if rollapp has frozen or not
+	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
+	require.NoError(t, err)
+	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+
+	// Check rollapp state index not increment
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	require.NoError(t, err)
+	require.Equal(t, latestIndex.StateIndex.Index, "2", "rollapp state index still increment")
+
+	// IBC Transfer not working
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	var transferAmount = math.NewInt(1_000_000)
+
+	err = dymension.IBCTransfer(ctx,
+		dymension, rollapp1, transferAmount, dymensionUserAddr,
+		rollappUserAddr, r, ibcPath, channel,
+		eRep, ibc.TransferOptions{})
+	require.Error(t, err)
+	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
+
+	err = rollapp1.IBCTransfer(ctx,
+		rollapp1, dymension, transferAmount, rollappUserAddr,
+		dymensionUserAddr, r, ibcPath, channel,
+		eRep, ibc.TransferOptions{})
+	require.Error(t, err)
 }
