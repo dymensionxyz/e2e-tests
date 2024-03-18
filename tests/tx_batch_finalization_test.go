@@ -168,13 +168,6 @@ func TestBatchFinalization(t *testing.T) {
 	require.True(t, (currentFinalizedRollappDymHeight > BLOCK_FINALITY_PERIOD) && (lastFinalizedRollappHeight > rollappHeight),
 		fmt.Sprintf("Mismatch in batch finalization check. Current finalization hub height: %d. Dispute period: %d. Last finalized rollapp height: %d. Rollapp height asserted: %d",
 			currentFinalizedRollappDymHeight, BLOCK_FINALITY_PERIOD, lastFinalizedRollappHeight, rollappHeight))
-
-	// rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), true)
-	// require.NoError(t, err)
-
-	// extractedInfo, err := ValidateAndExtract(*rollappState)
-	// require.NoError(t, err)
-	// fmt.Println(extractedInfo)
 }
 
 func IsAnyRollappStateFinalized(ctx context.Context, dymension *dym_hub.DymHub, rollappChainID string, timeoutSecs int) (bool, error) {
@@ -196,7 +189,7 @@ func IsAnyRollappStateFinalized(ctx context.Context, dymension *dym_hub.DymHub, 
 				}
 			}
 
-			if rollappState != nil {
+			if rollappState.StateInfo.BlockDescriptors.BD != nil {
 				return true, nil
 			}
 		}
