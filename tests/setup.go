@@ -123,6 +123,10 @@ var (
 			Key:   "app_state.feemarket.params.no_base_fee",
 			Value: true,
 		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0",
+		},
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
