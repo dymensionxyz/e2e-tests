@@ -41,8 +41,8 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+	numVals := 1
 	numFullNodes := 0
-	numOsmosisVals := 10
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -76,7 +76,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 			Name:          "osmosis",
 			Version:       "v17.0.0",
 			ChainConfig:   osmosisConfig,
-			NumValidators: &numOsmosisVals,
+			NumValidators: &numVals,
 			NumFullNodes:  &numFullNodes,
 		},
 	})
