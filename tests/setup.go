@@ -183,6 +183,10 @@ var (
 			Value: true,
 		},
 		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0",
+		},
+		{
 			Key:   "app_state.evm.params.evm_denom",
 			Value: "adym",
 		},
