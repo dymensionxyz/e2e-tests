@@ -140,7 +140,7 @@ func TestRollAppFreeze(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	keyDir := dymension.GetRollApp().GetSequencerKeyDir()
+	keyDir := rollapp1.GetSequencerKeyDir()
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)

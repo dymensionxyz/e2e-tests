@@ -317,8 +317,8 @@ github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240317180938-b9549bbf1ea4 h1:AI/Mk11FXZwJWe2SxUjLjYU8hGl5PEkJ+RMtZQP1TKs=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240317180938-b9549bbf1ea4/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240318043415-c137f270548c h1:gx4LxTzOELIaPERzBoviRD0ZIr/J8H5sxBPloTIAZE8=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240318043415-c137f270548c/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
 github.com/decentrio/rollup-e2e-testing v0.0.0-20240318080057-2e6f34226148 h1:Q9d/3LJSFnUqJiR5dwhtgW2g+DPgdDhAYS/SGxpapPo=
 github.com/decentrio/rollup-e2e-testing v0.0.0-20240318080057-2e6f34226148/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
