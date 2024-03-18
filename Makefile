@@ -25,9 +25,12 @@ e2e-test-ibc-grace-period:  clean-e2e
 e2e-test-transfer-multi-hop:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop .
 
+e2e-test-batch-finalization:
+	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization .
+
 e2e-test-rollapp-freeze:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze .
-
+  
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success \
 	e2e-test-ibc-timeout \
@@ -35,6 +38,7 @@ e2e-test-all: e2e-test-ibc-success \
 	e2e-test-transfer-multi-hop \
 	e2e-test-eibc-fulfillment \
 	e2e-test-transfer-multi-hop \
+	e2e-test-batch-finalization \
 	e2e-test-rollapp-freeze
 
 .PHONY: clean-e2e \
@@ -45,5 +49,5 @@ e2e-test-all: e2e-test-ibc-success \
 	e2e-test-transfer-multi-hop \
 	e2e-test-eibc-fulfillment \
 	e2e-test-transfer-multi-hop \
+	e2e-test-batch-finalization \
 	e2e-test-rollapp-freeze
-
