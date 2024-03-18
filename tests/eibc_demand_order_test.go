@@ -185,10 +185,13 @@ func TestEIBCFulfillment(t *testing.T) {
 	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, dymension)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 	expMmBalanceRollappDenom := transferData.Amount
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -206,6 +209,8 @@ func TestEIBCFulfillment(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	require.NoError(t, err)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 	zeroBalance := math.NewInt(0)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
@@ -250,9 +255,10 @@ func TestEIBCFulfillment(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
-	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -434,6 +440,8 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 	// verify funds balance right after sending the IBC transfer
 	zeroBalance := math.NewInt(0)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
@@ -453,9 +461,9 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	require.Contains(t, txData.RawLog, "insufficient funds") // verify that the transaction failed
 
 	// wait until packet finalization
-	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// verify funds were transferred to dymensionUserAddr
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBalance)
@@ -653,14 +661,16 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	}
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// get eIbc events
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.True(t, len(eibcEvents) == 0) // verify no EIBC event was registered on the hub
 
-	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, transferData.Amount)
@@ -836,6 +846,8 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 	// balance right after sending IBC transfer
 	zeroBalance := math.NewInt(0)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
@@ -844,9 +856,9 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.True(t, len(eibcEvents) == 0) // verify there were no eibc events registered on the hub
 
-	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
