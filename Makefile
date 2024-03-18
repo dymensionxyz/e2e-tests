@@ -41,8 +41,33 @@ e2e-test-eibc-timeout: clean-e2e
 e2e-test-transfer-multi-hop:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop .
 
-# Executes all tests via rollup-e2e-testing
-e2e-test-all: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-transfer-multi-hop e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee e2e-test-eibc-timeout
+e2e-test-rollapp-freeze:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze .
 
-.PHONY: e2e-test-ibc-success e2e-test-ibc-timeout e2e-test-ibc-grace-period e2e-test-transfer-multi-hop e2e-test-eibc-fulfillment e2e-test-eibc-fulfill-no-balance e2e-test-eibc-not-fulfilled e2e-test-eibc-corrupted-memo e2e-test-eibc-excessive-fee e2e-test-eibc-timeout e2e-test-all clean-e2e
+# Executes all tests via rollup-e2e-testing
+e2e-test-all: e2e-test-ibc-success \
+	e2e-test-ibc-timeout \
+	e2e-test-ibc-grace-period \
+	e2e-test-transfer-multi-hop \
+	e2e-test-eibc-fulfillment \
+	e2e-test-transfer-multi-hop \
+	e2e-test-rollapp-freeze \
+	e2e-test-eibc-fulfill-no-balance \
+	e2e-test-eibc-corrupted-memo \
+	e2e-test-eibc-excessive-fee \
+	e2e-test-eibc-timeout
+
+.PHONY: clean-e2e \
+	e2e-test-all \
+	e2e-test-ibc-success \
+	e2e-test-ibc-timeout \
+	e2e-test-ibc-grace-period \
+	e2e-test-transfer-multi-hop \
+	e2e-test-eibc-fulfillment \
+	e2e-test-transfer-multi-hop \
+	e2e-test-rollapp-freeze \
+	e2e-test-eibc-fulfill-no-balance \
+	e2e-test-eibc-corrupted-memo \
+	e2e-test-eibc-excessive-fee \
+	e2e-test-eibc-timeout
 
