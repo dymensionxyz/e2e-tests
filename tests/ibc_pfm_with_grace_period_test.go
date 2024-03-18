@@ -32,15 +32,13 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "100",
-		},
-	}
+	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
+		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+		Value: "100",
+	})
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -90,7 +88,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       cosmos.ModifyGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -114,7 +112,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, network)
 
 	ic := test.NewSetup().
