@@ -24,6 +24,7 @@ jobs:
           - "e2e-test-eibc-fulfillment"
           - "e2e-test-transfer-multi-hop"
           - "e2e-test-pfm-with-grace-period"
+          - "e2e-test-batch-finalization"
           - "e2e-test-rollapp-freeze"
       fail-fast: false
     runs-on: ubuntu-latest
