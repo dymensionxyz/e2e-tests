@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestIBCTransferMultiHop(t *testing.T) {
+func TestIBCPFMWithGracePeriod(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -35,7 +35,13 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
+	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
+		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+		Value: "100",
+	})
+
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -67,8 +73,24 @@ func TestIBCTransferMultiHop(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -262,7 +284,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, osmosisOrigBal)
 
-	t.Run("multihop rollapp->dym->osmosis", func(t *testing.T) {
+	t.Run("multihop rollapp->dym->osmosis, funds received on osmosis after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
 
@@ -299,11 +321,28 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 40, rollapp1, osmosis)
+		err = testutil.WaitForBlocks(ctx, 50, rollapp1)
 		require.NoError(t, err)
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
-		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
-		testutil.AssertBalance(t, ctx, osmosis, osmosisUserAddr, secondHopIBCDenom, transferAmount)
+		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
+		require.NoError(t, err)
+
+		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
+		require.NoError(t, err)
+
+		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		require.NoError(t, err)
+
+		// Make sure that the transfer is not successful yet due to the grace period
+		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
+		require.True(t, dymBalance.Equal(zeroBal))
+		require.True(t, osmosisBalance.Equal(zeroBal))
+
+		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
+		require.NoError(t, err)
+
+		osmosisBalance, err = osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		require.NoError(t, err)
+		require.True(t, osmosisBalance.Equal(transferAmount))
 	})
 }
