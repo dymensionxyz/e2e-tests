@@ -36,7 +36,7 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 20
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -135,20 +135,22 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, marketMakerUser, rollappUser := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
+	marketMakerAddr := marketMakerUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from hub to rollapp
@@ -157,6 +159,7 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	numerator := math.NewInt(15)
 	denominator := math.NewInt(10000)
 	globalEIbcFee := transferAmount.Mul(numerator).Quo(denominator)
+	transferAmountWithoutFee := transferAmount.Sub(globalEIbcFee)
 
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
@@ -178,6 +181,8 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	// Get the IBC denom for dymension on roll app
@@ -197,23 +202,45 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
-	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%d%s", globalEIbcFee, dymensionIBCDenom))
+	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
-	t.Cleanup(
-		func() {
-			err := r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
+	// fulfill demand order
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	require.NoError(t, err)
+	fmt.Println(txhash)
+	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	if eibcEvent != nil {
+		fmt.Println("After order fulfillment:", eibcEvent)
+	}
+	require.True(t, eibcEvent.IsFulfilled)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	// wait a few blocks and verify sender received funds on the hub
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	// verify funds minus fee were added to receiver's address
+	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
+	expBalance := walletAmount.Sub(transferData.Amount).Add(transferAmountWithoutFee)
+	require.True(t, balance.Equal(expBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalance, balance))
+	// verify funds were deducted from market maker's wallet address
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFee))
+	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
+	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+	expBalanceMarketMaker = expBalanceMarketMaker.Add(transferData.Amount)
+	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	t.Cleanup(
 		func() {
@@ -223,5 +250,4 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 			}
 		},
 	)
-
 }

@@ -850,6 +850,7 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	require.NoError(t, err)
 	// balance right after sending IBC transfer
 	zeroBalance := math.NewInt(0)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
 
 	// get eIbc event
