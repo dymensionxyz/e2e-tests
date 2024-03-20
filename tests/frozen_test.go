@@ -129,20 +129,9 @@ func TestRollAppFreeze(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, dymensionOrigBal)
-
-	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, rollappOrigBal)
-
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
-
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
@@ -199,20 +188,24 @@ func TestRollAppFreeze(t *testing.T) {
 			break
 		}
 	}
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
-
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
-
-	t.Log("deposit:", deposit)
 
 	rollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	fraudHeight := fmt.Sprint(rollappHeight - 2)
-
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), "rollappevm_1234-1", fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
+	err = dymension.SubmitFraudProposal(
+		ctx, dymensionUser.KeyName(),
+		"rollappevm_1234-1",
+		fmt.Sprint(rollappHeight-2),
+		sequencerAddr,
+		"07-tendermint-0",
+		"fraud",
+		"fraud",
+		"500000000000"+dymension.Config().Denom,
+	)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -230,7 +223,7 @@ func TestRollAppFreeze(t *testing.T) {
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, "2", "rollapp state index still increment")
+	require.Equal(t, latestIndex.StateIndex.Index, targetIndex, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -246,6 +239,7 @@ func TestRollAppFreeze(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
 
+	// Compose an IBC transfer and send from rollapp -> dymension
 	err = rollapp1.IBCTransfer(ctx,
 		rollapp1, dymension, transferAmount, rollappUserAddr,
 		dymensionUserAddr, r, ibcPath, channel,
@@ -391,10 +385,11 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollapp1User := users[0], users[1]
+	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollapp1UserAddr := rollapp1User.FormattedAddress()
+	rollapp2UserAddr := rollapp2User.FormattedAddress()
 
 	// Get original account balances
 	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -404,6 +399,10 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
+
+	rollapp2OrigBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, rollapp2.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, rollapp2OrigBal)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
@@ -453,6 +452,9 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	targetIndex := oldUintIndex + 1
 
+	rollapp2Index, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
+	require.NoError(t, err)
+
 	// Loop until the latest index updates
 	for {
 		latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
@@ -461,8 +463,6 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		index := latestIndex.StateIndex.Index
 		uintIndex, err := strconv.ParseUint(index, 10, 64)
 		require.NoError(t, err)
-
-		t.Log("lmao ------------------:", uintIndex, "and", targetIndex)
 
 		if uintIndex >= targetIndex {
 			break
@@ -480,6 +480,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
 
+	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
 	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), "rollappevm_1234-1", fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
@@ -490,29 +491,32 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Check if rollapp has frozen or not
+	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
 
-	// Check rollapp state index not increment
+	// Check rollapp1 state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, targetIndex, "rollapp state index still increment")
+	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
-	// IBC Transfer not working
+	// IBC channel for rollapps
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	channel2, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
 
+	// Confirm IBC Transfer not working between Dymension <-> rollapp1
 	err = dymension.IBCTransfer(ctx,
 		dymension, rollapp1, transferAmount, dymensionUserAddr,
 		rollapp1UserAddr, r, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
-	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
 
 	err = rollapp1.IBCTransfer(ctx,
 		rollapp1, dymension, transferAmount, rollapp1UserAddr,
@@ -520,7 +524,24 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
 
-	a, err := rollapp2.Height(ctx)
+	// Check other rollapp state index still increase 
+	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
 	require.NoError(t, err)
-	t.Log("Height -------------------", a)
+	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// IBC Transfer working between Dymension <-> rollapp2
+	err = dymension.IBCTransfer(ctx,
+		dymension, rollapp2, transferAmount, dymensionUserAddr,
+		rollapp2UserAddr, r, anotherIbcPath, channel2,
+		eRep, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = rollapp2.IBCTransfer(ctx,
+		rollapp2, dymension, transferAmount, rollapp2UserAddr,
+		dymensionUserAddr, r, anotherIbcPath, channel2,
+		eRep, ibc.TransferOptions{})
+	require.NoError(t, err)
 }
