@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/decentrio/rollup-e2e-testing/dockerutil"
@@ -352,6 +353,8 @@ func (s *Setup) Build(ctx context.Context, rep *testreporter.RelayerExecReporter
 			}
 			return nil
 		})
+
+		time.Sleep(15 * time.Second)
 	}
 
 	return eg.Wait()
