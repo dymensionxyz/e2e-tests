@@ -85,7 +85,7 @@ var (
 		Bech32Prefix:        "cosmos",
 		Denom:               "uatom",
 		CoinType:            "118",
-		GasPrices:           "0.5uatom",
+		GasPrices:           "0uatom",
 		EncodingConfig:      defaultConfig(),
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",

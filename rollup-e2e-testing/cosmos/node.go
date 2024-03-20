@@ -785,7 +785,6 @@ func (node *Node) SendFunds(ctx context.Context, keyName string, toWallet ibc.Wa
 	_, err := node.ExecTx(ctx,
 		keyName, "bank", "send", keyName,
 		toWallet.Address, fmt.Sprintf("%s%s", toWallet.Amount.String(), toWallet.Denom),
-		"--broadcast-mode", "block",
 	)
 	return err
 }
