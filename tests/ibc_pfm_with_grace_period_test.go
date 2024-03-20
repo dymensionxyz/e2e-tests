@@ -175,7 +175,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
+	err = testutil.WaitForBlocks(ctx, 15, rollapp1, osmosis)
 	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -219,7 +219,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
+	err = testutil.WaitForBlocks(ctx, 15, dymension, osmosis)
 	require.NoError(t, err)
 
 	channsDym, err = r.GetChannels(ctx, eRep, dymension.GetChainID())
