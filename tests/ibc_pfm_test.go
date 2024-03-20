@@ -143,7 +143,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	err = r.LinkPath(ctx, eRep, pathHubToRollApp, channelOptions, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 25, rollapp1, gaia)
+	err = testutil.WaitForBlocks(ctx, 30, rollapp1, gaia)
 	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -169,7 +169,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 	err = r.LinkPath(ctx, eRep, pathDymToGaia, channelOptions, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 25, dymension, gaia)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
 	require.NoError(t, err)
 
 	channsDym, err = r.GetChannels(ctx, eRep, dymension.GetChainID())
