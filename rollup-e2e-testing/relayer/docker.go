@@ -198,18 +198,30 @@ func (r *DockerRelayer) GetWallet(chainID string) (ibc.Wallet, bool) {
 func (r *DockerRelayer) CreateChannel(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, opts ibc.CreateChannelOptions) error {
 	cmd := r.c.CreateChannel(pathName, opts, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
+	fmt.Println("CreateChannel res err: ", res.ExitCode)
+	fmt.Println("CreateChannel res err: ", res.Err)
+	fmt.Println("CreateChannel res stderr: ", string(res.Stderr))
+	fmt.Println("CreateChannel stdout: ", string(res.Stdout))
 	return res.Err
 }
 
 func (r *DockerRelayer) CreateClients(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, opts ibc.CreateClientOptions) error {
 	cmd := r.c.CreateClients(pathName, opts, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
+	fmt.Println("CreateClients res err: ", res.ExitCode)
+	fmt.Println("CreateClients res err: ", res.Err)
+	fmt.Println("CreateClients res stderr: ", string(res.Stderr))
+	fmt.Println("CreateClients stdout: ", string(res.Stdout))
 	return res.Err
 }
 
 func (r *DockerRelayer) CreateConnections(ctx context.Context, rep ibc.RelayerExecReporter, pathName string) error {
 	cmd := r.c.CreateConnections(pathName, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
+	fmt.Println("CreateConnections res err: ", res.ExitCode)
+	fmt.Println("CreateConnections res err: ", res.Err)
+	fmt.Println("CreateConnections res stderr: ", string(res.Stderr))
+	fmt.Println("CreateConnections stdout: ", string(res.Stdout))
 	return res.Err
 }
 
@@ -222,8 +234,10 @@ func (r *DockerRelayer) Flush(ctx context.Context, rep ibc.RelayerExecReporter, 
 func (r *DockerRelayer) GeneratePath(ctx context.Context, rep ibc.RelayerExecReporter, srcChainID, dstChainID, pathName string) error {
 	cmd := r.c.GeneratePath(srcChainID, dstChainID, pathName, r.HomeDir())
 	res := r.Exec(ctx, rep, cmd, nil)
-	fmt.Println("generate path resp: ", string(res.Stdout))
-
+	fmt.Println("GeneratePath res err: ", res.ExitCode)
+	fmt.Println("GeneratePath res err: ", res.Err)
+	fmt.Println("GeneratePath res stderr: ", string(res.Stderr))
+	fmt.Println("GeneratePath stdout: ", string(res.Stdout))
 	return res.Err
 }
 
@@ -271,7 +285,10 @@ func (r *DockerRelayer) GetClients(ctx context.Context, rep ibc.RelayerExecRepor
 func (r *DockerRelayer) LinkPath(ctx context.Context, rep ibc.RelayerExecReporter, pathName string, channelOpts ibc.CreateChannelOptions, clientOpts ibc.CreateClientOptions) error {
 	cmd := r.c.LinkPath(pathName, r.HomeDir(), channelOpts, clientOpts)
 	res := r.Exec(ctx, rep, cmd, nil)
-	fmt.Println("link path resp: ", string(res.Stdout))
+	fmt.Println("LinkPath res err: ", res.ExitCode)
+	fmt.Println("LinkPath res err: ", res.Err)
+	fmt.Println("LinkPath res stderr: ", string(res.Stderr))
+	fmt.Println("LinkPath stdout: ", string(res.Stdout))
 	return res.Err
 }
 
