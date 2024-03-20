@@ -149,30 +149,20 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		_ = ic.Close()
 	})
 
-	// Create relayer rollapp to dym
-	// Generate new path
-	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), rollapp1.GetChainID(), pathHubToRollApp)
-	require.NoError(t, err)
-	// Create client
-	err = r.CreateClients(ctx, eRep, pathHubToRollApp, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, gaia)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathHubToRollApp)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, gaia)
-	require.NoError(t, err)
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathHubToRollApp, ibc.CreateChannelOptions{
+	channelOptions := ibc.CreateChannelOptions{
 		SourcePortName: "transfer",
 		DestPortName:   "transfer",
 		Order:          ibc.Unordered,
 		Version:        "ics20-1",
-	})
+	}
+
+	// Create relayer rollapp to dym
+	// Generate new path
+	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), rollapp1.GetChainID(), pathHubToRollApp)
+	require.NoError(t, err)
+
+	// Link path
+	err = r.LinkPath(ctx, eRep, pathHubToRollApp, channelOptions, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 25, rollapp1, gaia)
@@ -196,27 +186,9 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	// Generate new path
 	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), gaia.GetChainID(), pathDymToGaia)
 	require.NoError(t, err)
-	// Create clients
-	err = r.CreateClients(ctx, eRep, pathDymToGaia, ibc.DefaultClientOpts())
-	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathDymToGaia)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
-	require.NoError(t, err)
-
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathDymToGaia, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	})
+	// Link path
+	err = r.LinkPath(ctx, eRep, pathDymToGaia, channelOptions, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 25, dymension, gaia)
