@@ -31,7 +31,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollapp_1234-1"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	modifyGenesisKV := append(
@@ -54,18 +54,18 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollapp_1234-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -77,7 +77,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{oldDymensionImage},
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -107,7 +107,7 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
@@ -210,8 +210,8 @@ func TestIBCGracePeriodCompliance(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
-	// Wait a 10 blocks
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+	// Wait a 40 blocks
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the Hub

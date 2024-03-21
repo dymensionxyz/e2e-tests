@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -16,14 +17,29 @@ import (
 	ethermint "github.com/evmos/ethermint/types"
 )
 
+type PacketMetadata struct {
+	Forward *ForwardMetadata `json:"forward"`
+}
+
+type ForwardMetadata struct {
+	Receiver       string        `json:"receiver"`
+	Port           string        `json:"port"`
+	Channel        string        `json:"channel"`
+	Timeout        time.Duration `json:"timeout"`
+	Retries        *uint8        `json:"retries,omitempty"`
+	Next           *string       `json:"next,omitempty"`
+	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
+}
+
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
+	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
-	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	IBCRelayerImage   = "ghcr.io/decentrio/relayer"
+	IBCRelayerVersion = "main"
 
-	dymensionVersion, rollappVersion, rollappEVMVersion = GetDockerImageVersion()
+	dymensionVersion, rollappVersion = GetDockerImageVersion()
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
@@ -31,21 +47,9 @@ var (
 		UidGid:     "1025:1025",
 	}
 
-	oldDymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "old",
-		UidGid:     "1025:1025",
-	}
-
 	rollappImage = ibc.DockerImage{
 		Repository: RollappMainRepo,
 		Version:    rollappVersion,
-		UidGid:     "1025:1025",
-	}
-
-	rollappEVMImage = ibc.DockerImage{
-		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -182,6 +186,10 @@ var (
 			Value: true,
 		},
 		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0",
+		},
+		{
 			Key:   "app_state.evm.params.evm_denom",
 			Value: "adym",
 		},
@@ -243,7 +251,7 @@ var (
 	}
 )
 
-func GetDockerImageVersion() (dymensionVersion, rollappVersion, rollappEVMVersion string) {
+func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
 		dymensionVersion = "latest"
@@ -253,12 +261,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappVersion, rollappEVMVersio
 	if !found {
 		rollappVersion = "latest"
 	}
-
-	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
-	if !found {
-		rollappEVMVersion = "latest"
-	}
-	return dymensionVersion, rollappVersion, rollappEVMVersion
+	return dymensionVersion, rollappVersion
 }
 
 func encodingConfig() *simappparams.EncodingConfig {

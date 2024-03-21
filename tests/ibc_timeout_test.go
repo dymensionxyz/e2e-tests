@@ -32,7 +32,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollapp_1234-1"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -55,18 +55,18 @@ func TestIBCTransferTimeout(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
-				ChainID:             "rollapp_1234-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -78,7 +78,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{oldDymensionImage},
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -106,7 +106,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
@@ -220,7 +220,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured

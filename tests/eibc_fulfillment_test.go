@@ -35,8 +35,8 @@ func TestEIBCFulfillment(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollapp_1234-1"
+	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestEIBCFulfillment:26657"
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -60,18 +60,18 @@ func TestEIBCFulfillment(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollapp_1234-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -83,7 +83,7 @@ func TestEIBCFulfillment(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{oldDymensionImage},
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -112,7 +112,7 @@ func TestEIBCFulfillment(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
@@ -185,10 +185,14 @@ func TestEIBCFulfillment(t *testing.T) {
 	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+20, dymension, rollapp1)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	expMmBalanceRollappDenom := transferData.Amount
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -206,6 +210,8 @@ func TestEIBCFulfillment(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	require.NoError(t, err)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 	zeroBalance := math.NewInt(0)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
@@ -243,9 +249,9 @@ func TestEIBCFulfillment(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
-	// we've waited 30 blocks already so we don't have to now wait the entire BLOCK_FINALITY_PERIOD blocks
-	err = testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD-30+5, dymension)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)

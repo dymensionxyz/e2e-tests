@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
+func TestIBCPFMWithGracePeriod(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -35,7 +35,13 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
+	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
+		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+		Value: "100",
+	})
+
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -45,12 +51,12 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 	numFullNodes := 0
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
-			Name: "rollapp-evm-1",
+			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
 				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -67,8 +73,24 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -89,14 +111,23 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+
+	r := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
+
+	r2 := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly,
+		zaptest.NewLogger(t),
+		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddChain(osmosis).
 		AddRelayer(r, "relayer").
+		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -106,7 +137,7 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  osmosis,
-			Relayer: r,
+			Relayer: r2,
 			Path:    pathDymToOsmos,
 		})
 
@@ -117,7 +148,7 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: true,
+		SkipPathCreation: false,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
@@ -127,101 +158,40 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 		_ = ic.Close()
 	})
 
-	// Create relayer rollapp to dym
-	// Generate new path
-	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), rollapp1.GetChainID(), pathHubToRollApp)
-	require.NoError(t, err)
-	// Create client
-	err = r.CreateClients(ctx, eRep, pathHubToRollApp, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathHubToRollApp)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathHubToRollApp, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 1)
+	require.Len(t, channsDym, 2)
 
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp, 1)
 
-	channDymRollApp := channsDym[0]
+	channDymRollApp := channsRollApp[0].Counterparty
 	require.NotEmpty(t, channDymRollApp.ChannelID)
 
 	channsRollAppDym := channsRollApp[0]
 	require.NotEmpty(t, channsRollAppDym.ChannelID)
 
-	// Create relayer dym to osmo
-	// Generate new path
-	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), osmosis.GetChainID(), pathDymToOsmos)
-	require.NoError(t, err)
-	// Create clients
-	err = r.CreateClients(ctx, eRep, pathDymToOsmos, ibc.DefaultClientOpts())
+	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathDymToOsmos)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathDymToOsmos, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	channsDym, err = r.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-
-	channsOsmosis, err := r.GetChannels(ctx, eRep, osmosis.GetChainID())
+	channsOsmosis, err := r2.GetChannels(ctx, eRep, osmosis.GetChainID())
 	require.NoError(t, err)
 
 	require.Len(t, channsDym, 2)
 	require.Len(t, channsOsmosis, 1)
 
-	var channDymOsmos ibc.ChannelOutput
-	for _, chann := range channsDym {
-		if chann.ChannelID != channDymRollApp.ChannelID {
-			channDymOsmos = chann
-		}
-	}
+	channDymOsmos := channsOsmosis[0].Counterparty
 	require.NotEmpty(t, channDymOsmos.ChannelID)
 
 	channOsmosDym := channsOsmosis[0]
 	require.NotEmpty(t, channOsmosDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp, pathDymToOsmos)
+	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	require.NoError(t, err)
+
+	err = r2.StartRelayer(ctx, eRep, pathDymToOsmos)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -229,6 +199,10 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 			err := r.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer2: %s", err)
 			}
 		},
 	)
@@ -262,7 +236,7 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, osmosisOrigBal)
 
-	t.Run("multihop rollapp->dym->osmosis", func(t *testing.T) {
+	t.Run("multihop rollapp->dym->osmosis, funds received on osmosis after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
 
@@ -299,11 +273,28 @@ func TestRollappEVM_IBCTransferMultiHop(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 40, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 50, rollapp1)
 		require.NoError(t, err)
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
-		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
-		testutil.AssertBalance(t, ctx, osmosis, osmosisUserAddr, secondHopIBCDenom, transferAmount)
+		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
+		require.NoError(t, err)
+
+		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
+		require.NoError(t, err)
+
+		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		require.NoError(t, err)
+
+		// Make sure that the transfer is not successful yet due to the grace period
+		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
+		require.True(t, dymBalance.Equal(zeroBal))
+		require.True(t, osmosisBalance.Equal(zeroBal))
+
+		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
+		require.NoError(t, err)
+
+		osmosisBalance, err = osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		require.NoError(t, err)
+		require.True(t, osmosisBalance.Equal(transferAmount))
 	})
 }
