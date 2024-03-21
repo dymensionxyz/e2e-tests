@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -15,6 +16,20 @@ import (
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
+
+type PacketMetadata struct {
+	Forward *ForwardMetadata `json:"forward"`
+}
+
+type ForwardMetadata struct {
+	Receiver       string        `json:"receiver"`
+	Port           string        `json:"port"`
+	Channel        string        `json:"channel"`
+	Timeout        time.Duration `json:"timeout"`
+	Retries        *uint8        `json:"retries,omitempty"`
+	Next           *string       `json:"next,omitempty"`
+	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
+}
 
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
@@ -108,6 +123,10 @@ var (
 			Key:   "app_state.feemarket.params.no_base_fee",
 			Value: true,
 		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0",
+		},
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
@@ -162,6 +181,10 @@ var (
 		{
 			Key:   "app_state.feemarket.params.no_base_fee",
 			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0",
 		},
 		{
 			Key:   "app_state.evm.params.evm_denom",

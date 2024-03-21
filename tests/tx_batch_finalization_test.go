@@ -4,24 +4,31 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
+	dymensiontypes "github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-
-	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
-// This test case verifies the system's behavior when an IBC packet sent from the rollapp to the hub times out.
-func TestIBCTransferTimeout(t *testing.T) {
+type ExtractedInfo struct {
+	CreationHeight string   `json:"creationHeight"` // hub height
+	StartHeight    string   `json:"startHeight"`    // rollap start height finalized
+	NumBlocks      string   `json:"numBlocks"`      // num of rollapp blocks finalized in a batch
+	Heights        []string `json:"heights"`        // rollapp heights finalized
+}
+
+// This test verifies the system's behavior for batch finalization with different dispute periods
+// Dispute period is updated with a gov proposal during the test
+func TestBatchFinalization(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -35,8 +42,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 10
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -44,6 +50,8 @@ func TestIBCTransferTimeout(t *testing.T) {
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -54,7 +62,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test",
+				Name:                "rollapp-temp",
 				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappImage},
 				Bin:                 "rollappd",
@@ -95,6 +103,7 @@ func TestIBCTransferTimeout(t *testing.T) {
 			NumFullNodes:  &numHubFullNodes,
 		},
 	})
+
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
@@ -104,19 +113,9 @@ func TestIBCTransferTimeout(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
-	const ibcPath = "ibc-path"
+
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
+		AddRollUp(dymension, rollapp1)
 
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
@@ -151,88 +150,64 @@ func TestIBCTransferTimeout(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// Compose an IBC transfer and send from rollapp -> dymension
-	var transferAmount = math.NewInt(1_000_000)
-
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	// rollapp height should be finalized in a batch processed > 50 hub blocks (dispute period)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	// Set a short timeout for IBC transfer
-	options := ibc.TransferOptions{
-		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
-		},
-	}
-
-	// Compose an IBC transfer and send from Rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
-	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
+	IsAnyRollappStateFinalized(ctx, dymension, rollapp1.GetChainID(), 300)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	lastFinalizedRollappHeight, err := dymension.FinalizedRollappStateHeight(ctx, rollapp1.GetChainID())
 	require.NoError(t, err)
 
-	// Stop relayer after relaying
-	err = r.StopRelayer(ctx, eRep)
-	require.NoError(t, err, "an error occurred while stopping the relayer")
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
-
-	channel, err = ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	currentFinalizedRollappDymHeight, err := dymension.FinalizedRollappDymHeight(ctx, rollapp1.GetChainID())
 	require.NoError(t, err)
 
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
+	// verify that the last creation height for finalized states on the hub is greater than dispute period
+	// also, last finalized rollapp state height needs to be greater than the rollapp height verified
+	require.True(t, (currentFinalizedRollappDymHeight > BLOCK_FINALITY_PERIOD) && (lastFinalizedRollappHeight > rollappHeight),
+		fmt.Sprintf("Mismatch in batch finalization check. Current finalization hub height: %d. Dispute period: %d. Last finalized rollapp height: %d. Rollapp height asserted: %d",
+			currentFinalizedRollappDymHeight, BLOCK_FINALITY_PERIOD, lastFinalizedRollappHeight, rollappHeight))
+}
 
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
-	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	// Get the IBC denom for dymension on roll app
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+func IsAnyRollappStateFinalized(ctx context.Context, dymension *dym_hub.DymHub, rollappChainID string, timeoutSecs int) (bool, error) {
+	var err error
+	startTime := time.Now()
+	timeout := time.Duration(timeoutSecs) * time.Second
 
-	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
-	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
-	require.NoError(t, err)
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-
-	t.Cleanup(
-		func() {
-			err := r.StopRelayer(ctx, eRep)
+	for {
+		select {
+		case <-time.After(timeout):
+			return false, fmt.Errorf("timeout reached without rollap state finalization")
+		default:
+			var rollappState *dymensiontypes.RollappState
+			rollappState, err = dymension.QueryRollappState(ctx, rollappChainID, true)
 			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
+				if time.Since(startTime) < timeout {
+					time.Sleep(2 * time.Second) // 2sec interval
+					continue
+				}
 			}
-		},
-	)
+
+			if rollappState.StateInfo.BlockDescriptors.BD != nil {
+				return true, nil
+			}
+		}
+	}
+}
+
+func ValidateAndExtract(state dymensiontypes.RollappState) (*ExtractedInfo, error) {
+	if state.StateInfo.Status != "FINALIZED" {
+		return nil, fmt.Errorf("No finalized status in the rollapp state info. The status was %s", state.StateInfo.Status)
+	}
+
+	var extracted ExtractedInfo
+	extracted.CreationHeight = state.StateInfo.CreationHeight
+	extracted.StartHeight = state.StateInfo.StartHeight
+	extracted.NumBlocks = state.StateInfo.NumBlocks
+	for _, bd := range state.StateInfo.BlockDescriptors.BD {
+		extracted.Heights = append(extracted.Heights, bd.Height)
+	}
+
+	return &extracted, nil
 }

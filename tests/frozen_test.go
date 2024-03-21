@@ -223,7 +223,7 @@ func TestRollAppFreeze(t *testing.T) {
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, targetIndex, "rollapp state index still increment")
+	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
