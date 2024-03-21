@@ -175,4 +175,35 @@ func TestRollappGenesisEvent(t *testing.T) {
 	require.Equal(t, recipient, validatorAddr)
 
 	testutil.AssertBalance(t, ctx, dymension, validatorAddr, coin.Denom, coin.Amount)
+
+	genesisTriggererWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, rollappUserAddr))
+	propTx, err = rollapp1.ParamChangeProposal(ctx, rollappUser.KeyName(), &utils.ParamChangeProposalJSON{
+		Title:       "Add new genesis_triggerer_whitelist",
+		Description: "Add current rollappUserAddr to the genesis_triggerer_whitelist",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("hubgenesis", "GenesisTriggererWhitelist", genesisTriggererWhitelistParams),
+		},
+		Deposit: "500000000000" + rollapp1.Config().Denom, // greater than min deposit
+	})
+	require.NoError(t, err)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err = rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	new_params, err = rollapp1.QueryParam(ctx, "hubgenesis", "GenesisTriggererWhitelist")
+	require.NoError(t, err)
+	require.Equal(t, new_params.Value, string(genesisTriggererWhitelistParams))
+
+	txHash, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	require.NoError(t, err)
+
+	tx, err = rollapp1.GetTransaction(txHash)
+	require.NoError(t, err)
+
+	fmt.Println("tx: ", *tx)
 }
