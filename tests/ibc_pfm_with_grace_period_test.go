@@ -162,11 +162,13 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
 
+
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp, 1)
 
 	channDymRollApp := channsRollApp[0].Counterparty
+
 	require.NotEmpty(t, channDymRollApp.ChannelID)
 
 	channsRollAppDym := channsRollApp[0]
@@ -192,6 +194,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r2.StartRelayer(ctx, eRep, pathDymToOsmos)
+
 	require.NoError(t, err)
 
 	t.Cleanup(
