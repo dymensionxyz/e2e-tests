@@ -5,8 +5,6 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 ARG TARGETARCH
 ARG BUILDARCH
 
-WORKDIR /app
-
 RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
     wget -c https://musl.cc/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
     elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
@@ -24,13 +22,12 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
 
 RUN if [ -d "/go/bin/linux_${TARGETARCH}" ]; then mv /go/bin/linux_${TARGETARCH}/* /go/bin/; fi
 
+# Build final image from scratch
 FROM alpine:3.17
-COPY --from=build-env /go/bin/rly /usr/local/bin/
 
-RUN adduser -D -u 1000 relayer
+# Install chain binaries
+COPY --from=build-env /bin/rly /bin
 
-WORKDIR /home/relayer
+WORKDIR /home
 
-RUN chown -R relayer:relayer /home/relayer
-
-USER relayer
+USER root
