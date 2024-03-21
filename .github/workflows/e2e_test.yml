@@ -33,6 +33,7 @@ jobs:
           - "e2e-test-pfm-with-grace-period"
           - "e2e-test-batch-finalization"
           - "e2e-test-rollapp-freeze"
+          - "e2e-test-other-rollapp-not-affected"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
