@@ -88,7 +88,7 @@ func TestRollAppFreeze(t *testing.T) {
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer1", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
@@ -343,11 +343,16 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer1", network)
+
+	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1, rollapp2).
-		AddRelayer(r, "relayer").
+		AddRelayer(r, "relayer1").
+		AddRelayer(s, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -357,7 +362,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp2,
-			Relayer: r,
+			Relayer: s,
 			Path:    anotherIbcPath,
 		})
 
@@ -505,7 +510,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	channel2, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
+	channel2, err := ibc.GetTransferChannel(ctx, s, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
@@ -524,7 +529,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
 
-	// Check other rollapp state index still increase 
+	// Check other rollapp state index still increase
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
@@ -535,13 +540,13 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	// IBC Transfer working between Dymension <-> rollapp2
 	err = dymension.IBCTransfer(ctx,
 		dymension, rollapp2, transferAmount, dymensionUserAddr,
-		rollapp2UserAddr, r, anotherIbcPath, channel2,
+		rollapp2UserAddr, s, anotherIbcPath, channel2,
 		eRep, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = rollapp2.IBCTransfer(ctx,
 		rollapp2, dymension, transferAmount, rollapp2UserAddr,
-		dymensionUserAddr, r, anotherIbcPath, channel2,
+		dymensionUserAddr, s, anotherIbcPath, channel2,
 		eRep, ibc.TransferOptions{})
 	require.NoError(t, err)
 }
