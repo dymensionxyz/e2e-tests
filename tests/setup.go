@@ -11,6 +11,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/icza/dyno"
 
+	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
@@ -126,6 +127,14 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0",
+		},
+		{
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
+		},
+		{
+			Key:   "app_state.gov.deposit_params.max_deposit_period",
+			Value: "30s",
 		},
 	}
 
@@ -268,6 +277,7 @@ func encodingConfig() *simappparams.EncodingConfig {
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
 	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
+	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
 
