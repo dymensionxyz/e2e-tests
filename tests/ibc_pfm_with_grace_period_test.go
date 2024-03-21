@@ -120,7 +120,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 	r2 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
