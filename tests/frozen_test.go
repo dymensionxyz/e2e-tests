@@ -507,27 +507,53 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
 	// IBC channel for rollapps
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym, 2)
 
-	channel2, err := ibc.GetTransferChannel(ctx, s, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
+	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channDymRollApp1 := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	channsRollApp1Dym := channsRollApp1[0]
+	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
+
+	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	channDymRollApp2 := channsRollApp2[0].Counterparty
+	require.NotEmpty(t, channDymRollApp2.ChannelID)
+
+	channsRollApp2Dym := channsRollApp2[0]
+	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
 
+	transferData := ibc.WalletData{
+		Address: rollapp1UserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
 	// Confirm IBC Transfer not working between Dymension <-> rollapp1
-	err = dymension.IBCTransfer(ctx,
-		dymension, rollapp1, transferAmount, dymensionUserAddr,
-		rollapp1UserAddr, r, ibcPath, channel,
-		eRep, ibc.TransferOptions{})
+	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
 
-	err = rollapp1.IBCTransfer(ctx,
-		rollapp1, dymension, transferAmount, rollapp1UserAddr,
-		dymensionUserAddr, r, ibcPath, channel,
-		eRep, ibc.TransferOptions{})
+	t.Log("errr--------------------------------", err)
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
+	t.Log("errr--------------------------------", err)
 
 	// Check other rollapp state index still increase
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
@@ -538,15 +564,20 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.NoError(t, err)
 
 	// IBC Transfer working between Dymension <-> rollapp2
-	err = dymension.IBCTransfer(ctx,
-		dymension, rollapp2, transferAmount, dymensionUserAddr,
-		rollapp2UserAddr, s, anotherIbcPath, channel2,
-		eRep, ibc.TransferOptions{})
+	transferData = ibc.WalletData{
+		Address: rollapp2UserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = rollapp2.IBCTransfer(ctx,
-		rollapp2, dymension, transferAmount, rollapp2UserAddr,
-		dymensionUserAddr, s, anotherIbcPath, channel2,
-		eRep, ibc.TransferOptions{})
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 }
