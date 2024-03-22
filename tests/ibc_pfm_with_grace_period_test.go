@@ -373,9 +373,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 			NumFullNodes:  &numHubFullNodes,
 		},
 		{
-			Name:          "osmosis",
-			Version:       "v17.0.0",
-			ChainConfig:   osmosisConfig,
+			Name:          "gaia",
+			Version:       "v15.1.0",
+			ChainConfig:   gaiaConfig,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFullNodes,
 		},
@@ -385,7 +385,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
-	osmosis := chains[2].(*cosmos.CosmosChain)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -403,7 +403,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
-		AddChain(osmosis).
+		AddChain(gaia).
 		AddRelayer(r, "relayer").
 		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
@@ -414,9 +414,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
-			Chain2:  osmosis,
+			Chain2:  gaia,
 			Relayer: r2,
-			Path:    pathDymToOsmos,
+			Path:    pathDymToGaia,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -453,23 +453,23 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 
-	channsOsmosis, err := r2.GetChannels(ctx, eRep, osmosis.GetChainID())
+	channsGaia, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
 
 	require.Len(t, channsDym, 2)
-	require.Len(t, channsOsmosis, 1)
+	require.Len(t, channsGaia, 1)
 
-	channDymOsmos := channsOsmosis[0].Counterparty
-	require.NotEmpty(t, channDymOsmos.ChannelID)
+	channDymGaia := channsGaia[0].Counterparty
+	require.NotEmpty(t, channDymGaia.ChannelID)
 
-	channOsmosDym := channsOsmosis[0]
-	require.NotEmpty(t, channOsmosDym.ChannelID)
+	channGaiaDym := channsGaia[0]
+	require.NotEmpty(t, channGaiaDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
 	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, pathDymToOsmos)
+	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -488,18 +488,18 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, osmosis)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser, osmosisUser := users[0], users[1], users[2]
+	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
-	osmosisUserAddr := osmosisUser.FormattedAddress()
+	gaiaUserAddr := gaiaUser.FormattedAddress()
 
 	// Get original account balances
 	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -510,13 +510,13 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	osmosisOrigBal, err := osmosis.GetBalance(ctx, osmosisUserAddr, osmosis.Config().Denom)
+	gaiaOrigBal, err := gaia.GetBalance(ctx, gaiaUserAddr, gaia.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, walletAmount, osmosisOrigBal)
+	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	t.Run("multihop rollapp->dym->osmosis, funds received on osmosis after grace period", func(t *testing.T) {
+	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
-		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
+		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
 
 		firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
@@ -527,7 +527,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		zeroBal := math.ZeroInt()
 		transferAmount := math.NewInt(100_000)
 
-		// Send packet from rollapp1 -> dym -> osmosis
+		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
 			Denom:   rollapp1.Config().Denom,
@@ -536,9 +536,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 		firstHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
-				Receiver: osmosisUserAddr,
-				Channel:  channDymOsmos.ChannelID,
-				Port:     channDymOsmos.PortID,
+				Receiver: gaiaUserAddr,
+				Channel:  channDymGaia.ChannelID,
+				Port:     channDymGaia.PortID,
 				Timeout:  5 * time.Minute,
 			},
 		}
@@ -560,19 +560,19 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
 		require.NoError(t, err)
 
-		osmosisBalance, err := osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		gaiaBalance, err := gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 
 		// Make sure that the transfer is not successful yet due to the grace period
 		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
 		require.True(t, dymBalance.Equal(zeroBal))
-		require.True(t, osmosisBalance.Equal(zeroBal))
+		require.True(t, gaiaBalance.Equal(zeroBal))
 
 		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
 		require.NoError(t, err)
 
-		osmosisBalance, err = osmosis.GetBalance(ctx, osmosisUserAddr, secondHopIBCDenom)
+		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, osmosisBalance.Equal(transferAmount))
+		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
