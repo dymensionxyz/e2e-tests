@@ -51,7 +51,7 @@ func TestRollappGenesisEvent(t *testing.T) {
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
 				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappImage},
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -88,7 +88,7 @@ func TestRollappGenesisEvent(t *testing.T) {
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, network)
+	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
