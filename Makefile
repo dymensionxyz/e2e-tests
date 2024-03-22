@@ -68,7 +68,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-grace-period-evm \
 	e2e-test-transfer-multi-hop-evm \
 	e2e-test-eibc-fulfillment-evm \
-	e2e-test-transfer-multi-hop-evm \
 	e2e-test-pfm-with-grace-period-evm \
 	e2e-test-batch-finalization-evm \
 	e2e-test-rollapp-freeze-evm \
@@ -77,7 +76,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-grace-period-wasm \
 	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-eibc-fulfillment-wasm \
-	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-rollapp-freeze-wasm
@@ -87,7 +85,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
-	e2e-test-transfer-multi-hop-evm \
 	e2e-test-eibc-fulfillment-evm \
 	e2e-test-transfer-multi-hop-evm \
 	e2e-test-pfm-with-grace-period-evm \
@@ -96,7 +93,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
-	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
