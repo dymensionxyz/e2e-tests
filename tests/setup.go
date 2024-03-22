@@ -34,12 +34,14 @@ type ForwardMetadata struct {
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+
+	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
 	IBCRelayerImage   = "ghcr.io/decentrio/relayer"
 	IBCRelayerVersion = "main"
 
-	dymensionVersion, rollappVersion = GetDockerImageVersion()
+	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
@@ -47,9 +49,15 @@ var (
 		UidGid:     "1025:1025",
 	}
 
-	rollappImage = ibc.DockerImage{
-		Repository: RollappMainRepo,
-		Version:    rollappVersion,
+	rollappEVMImage = ibc.DockerImage{
+		Repository: RollappEVMMainRepo,
+		Version:    rollappEVMVersion,
+		UidGid:     "1025:1025",
+	}
+
+	rollappWasmImage = ibc.DockerImage{
+		Repository: RollappWasmMainRepo,
+		Version:    rollappWasmVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -72,7 +80,7 @@ var (
 	}
 
 	// Setup for Osmosis
-	osmosisImageRepo = "ghcr.io/strangelove-ventures/heighliner/osmosis" //
+	osmosisImageRepo = "ghcr.io/strangelove-ventures/heighliner/osmosis"
 
 	osmosisImage = ibc.DockerImage{
 		Repository: osmosisImageRepo,
@@ -251,17 +259,22 @@ var (
 	}
 )
 
-func GetDockerImageVersion() (dymensionVersion, rollappVersion string) {
+func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
 		dymensionVersion = "latest"
 	}
 
-	rollappVersion, found = os.LookupEnv("ROLLAPP_CI")
+	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappVersion = "latest"
+		rollappEVMVersion = "latest"
 	}
-	return dymensionVersion, rollappVersion
+
+	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
+	if !found {
+		rollappWasmVersion = "latest"
+	}
+	return dymensionVersion, rollappEVMVersion, rollappWasmVersion
 }
 
 func encodingConfig() *simappparams.EncodingConfig {
