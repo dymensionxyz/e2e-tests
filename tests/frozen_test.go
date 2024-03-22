@@ -10,6 +10,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -380,6 +381,27 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// Start both relayers
+	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err := s.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
@@ -485,8 +507,11 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
 
+	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), "rollappevm_1234-1", fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
+	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1Clients[0].ClientID, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -544,23 +569,50 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
 
-	t.Log("errr--------------------------------", err)
-
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
+
+	// Get the IBC denom
+	rollapp1Denom := transfertypes.GetPrefixedDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollapp1IbcDenom := transfertypes.ParseDenomTrace(rollapp1Denom).IBCDenom()
+
+	// Get origin dym hub ibc denom balance
+	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
+
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
-	require.Error(t, err)
-	t.Log("errr--------------------------------", err)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	require.NoError(t, err)
+
+	// Get updated dym hub ibc denom balance
+	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
+
+	// IBC balance should not change
+	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
 
 	// Check other rollapp state index still increase
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	require.NoError(t, err)
+
+	// Get the IBC denom
+	rollapp2IbcDenom := GetIBCDenom(channsRollApp2Dym.Counterparty.PortID, channsRollApp2Dym.Counterparty.ChannelID, rollapp2.Config().Denom)
+	dymToRollapp2IbcDenom := GetIBCDenom(channsRollApp2Dym.PortID, channsRollApp2Dym.ChannelID, dymension.Config().Denom)
+
+	// Get origin dym hub ibc denom balance
+	dymUserOriginBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
+	require.NoError(t, err)
+
+	rollapp2OriginBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
 	// IBC Transfer working between Dymension <-> rollapp2
@@ -572,6 +624,14 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
+	require.NoError(t, err)
+
+	rollapp2UpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
+	require.NoError(t, err)
+
+	require.Equal(t, rollapp2UpdateBal.Sub(transferAmount), rollapp2OriginBal, "Dym hub balance did not change")
+
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp2.Config().Denom,
@@ -580,4 +640,19 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
+	require.NoError(t, err)
+
+	// Get updated dym hub ibc denom balance
+	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
+	require.NoError(t, err)
+
+	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount), dymUserOriginBal2, "Dym hub balance did not change")
+}
+
+func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
+	prefixDenom := transfertypes.GetPrefixedDenom(counterPartyPort, counterPartyChannel, denom)
+	ibcDenom := transfertypes.ParseDenomTrace(prefixDenom).IBCDenom()
+	return ibcDenom
 }
