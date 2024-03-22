@@ -167,14 +167,14 @@ func TestRollappGenesisEvent(t *testing.T) {
 	recipient, _ := cosmos.AttributeValue(tx.Events, "transfer", "recipient")
 	coinStr, _ := cosmos.AttributeValue(tx.Events, "transfer", "amount")
 
-	coin, err := sdk.ParseCoinNormalized(coinStr)
+	genesisCoin, err := sdk.ParseCoinNormalized(coinStr)
 	require.NoError(t, err)
 
 	validatorAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
 	require.Equal(t, recipient, validatorAddr)
 
-	testutil.AssertBalance(t, ctx, dymension, validatorAddr, coin.Denom, coin.Amount)
+	testutil.AssertBalance(t, ctx, dymension, validatorAddr, genesisCoin.Denom, genesisCoin.Amount)
 
 	genesisTriggererWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, rollappUserAddr))
 	propTx, err = rollapp1.ParamChangeProposal(ctx, rollappUser.KeyName(), &utils.ParamChangeProposalJSON{
