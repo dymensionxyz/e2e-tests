@@ -36,6 +36,9 @@ var (
 
 	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
+	IBCRelayerImage   = "ghcr.io/decentrio/relayer"
+	IBCRelayerVersion = "main"
+
 	dymensionVersion, rollappVersion = GetDockerImageVersion()
 
 	dymensionImage = ibc.DockerImage{

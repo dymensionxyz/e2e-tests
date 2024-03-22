@@ -111,14 +111,23 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+
+	r := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, "relayer1", network)
+	).Build(t, client, "relayer", network)
+
+	r2 := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly,
+		zaptest.NewLogger(t),
+		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddChain(osmosis).
 		AddRelayer(r, "relayer").
+		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -128,7 +137,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  osmosis,
-			Relayer: r,
+			Relayer: r2,
 			Path:    pathDymToOsmos,
 		})
 
@@ -139,7 +148,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: true,
+		SkipPathCreation: false,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
@@ -149,101 +158,40 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		_ = ic.Close()
 	})
 
-	// Create relayer rollapp to dym
-	// Generate new path
-	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), rollapp1.GetChainID(), pathHubToRollApp)
-	require.NoError(t, err)
-	// Create client
-	err = r.CreateClients(ctx, eRep, pathHubToRollApp, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathHubToRollApp)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathHubToRollApp, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1, osmosis)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 1)
+	require.Len(t, channsDym, 2)
 
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp, 1)
 
-	channDymRollApp := channsDym[0]
+	channDymRollApp := channsRollApp[0].Counterparty
 	require.NotEmpty(t, channDymRollApp.ChannelID)
 
 	channsRollAppDym := channsRollApp[0]
 	require.NotEmpty(t, channsRollAppDym.ChannelID)
 
-	// Create relayer dym to osmo
-	// Generate new path
-	err = r.GeneratePath(ctx, eRep, dymension.GetChainID(), osmosis.GetChainID(), pathDymToOsmos)
-	require.NoError(t, err)
-	// Create clients
-	err = r.CreateClients(ctx, eRep, pathDymToOsmos, ibc.DefaultClientOpts())
+	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	// Create connection
-	err = r.CreateConnections(ctx, eRep, pathDymToOsmos)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	// Create channel
-	err = r.CreateChannel(ctx, eRep, pathDymToOsmos, ibc.CreateChannelOptions{
-		SourcePortName: "transfer",
-		DestPortName:   "transfer",
-		Order:          ibc.Unordered,
-		Version:        "ics20-1",
-	})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, osmosis)
-	require.NoError(t, err)
-
-	channsDym, err = r.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-
-	channsOsmosis, err := r.GetChannels(ctx, eRep, osmosis.GetChainID())
+	channsOsmosis, err := r2.GetChannels(ctx, eRep, osmosis.GetChainID())
 	require.NoError(t, err)
 
 	require.Len(t, channsDym, 2)
 	require.Len(t, channsOsmosis, 1)
 
-	var channDymOsmos ibc.ChannelOutput
-	for _, chann := range channsDym {
-		if chann.ChannelID != channDymRollApp.ChannelID {
-			channDymOsmos = chann
-		}
-	}
+	channDymOsmos := channsOsmosis[0].Counterparty
 	require.NotEmpty(t, channDymOsmos.ChannelID)
 
 	channOsmosDym := channsOsmosis[0]
 	require.NotEmpty(t, channOsmosDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp, pathDymToOsmos)
+	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	require.NoError(t, err)
+
+	err = r2.StartRelayer(ctx, eRep, pathDymToOsmos)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -251,6 +199,10 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 			err := r.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer2: %s", err)
 			}
 		},
 	)
