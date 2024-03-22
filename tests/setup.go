@@ -71,24 +71,24 @@ var (
 		ConfigFileOverrides: nil,
 	}
 
-	// Setup for Osmosis
-	osmosisImageRepo = "ghcr.io/strangelove-ventures/heighliner/osmosis" //
+	// Setup for gaia
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
 
-	osmosisImage = ibc.DockerImage{
-		Repository: osmosisImageRepo,
+	gaiaImage = ibc.DockerImage{
+		Repository: gaiaImageRepo,
 		UidGid:     "1025:1025",
 	}
 
-	osmosisConfig = ibc.ChainConfig{
+	gaiaConfig = ibc.ChainConfig{
 		Type:                "cosmos",
-		Name:                "osmosis",
-		ChainID:             "osmosis-1",
-		Images:              []ibc.DockerImage{osmosisImage},
-		Bin:                 "osmosisd",
-		Bech32Prefix:        "osmo",
-		Denom:               "uosmo",
+		Name:                "gaia",
+		ChainID:             "gaia-1",
+		Images:              []ibc.DockerImage{gaiaImage},
+		Bin:                 "gaiad",
+		Bech32Prefix:        "cosmos",
+		Denom:               "uatom",
 		CoinType:            "118",
-		GasPrices:           "0.5uosmo",
+		GasPrices:           "0uatom",
 		EncodingConfig:      defaultConfig(),
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
@@ -99,7 +99,7 @@ var (
 
 	// IBC Path
 	pathHubToRollApp = "hub-path"
-	pathDymToOsmos   = "dym-osmo"
+	pathDymToGaia    = "dym-gaia"
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
