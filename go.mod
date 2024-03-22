@@ -1,8 +1,8 @@
 module github.com/dymensionxyz/e2e-tests
 
-go 1.21
+go 1.22
 
-toolchain go1.21.4
+toolchain go1.22.1
 
 replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
@@ -17,11 +17,11 @@ replace (
 )
 
 require (
-	cosmossdk.io/math v1.2.0
-	github.com/cosmos/cosmos-sdk v0.46.16-0.20231025193730-41d2a21c1348
+	cosmossdk.io/math v1.3.0
+	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.2.1
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240318080057-2e6f34226148
-	github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240303211023-54fb68d347da
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240321041707-926750305d26
+	github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240321090214-067a132551ab
 	github.com/evmos/ethermint v0.22.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/stretchr/testify v1.8.4
@@ -34,7 +34,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
-	cosmossdk.io/errors v1.0.0-beta.7 // indirect
+	cosmossdk.io/errors v1.0.1 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -159,7 +159,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/zondax/hid v0.9.2 // indirect
 	github.com/zondax/ledger-go v0.14.3 // indirect
-	go.etcd.io/bbolt v1.3.6 // indirect
+	go.etcd.io/bbolt v1.3.8 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
@@ -167,8 +167,8 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0 // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
@@ -196,5 +196,5 @@ require (
 	modernc.org/sqlite v1.23.1 // indirect
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
