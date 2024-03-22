@@ -35,7 +35,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestEIBCFulfillment:26657"
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
@@ -61,7 +61,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
 				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappImage},
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -278,8 +278,8 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = "http://dymension_100-1-val-0-TestEIBCFulfillment:26657"
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -303,12 +303,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappImage},
+				ChainID:             "rollappwasm_1234-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
