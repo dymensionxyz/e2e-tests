@@ -214,7 +214,7 @@ func TestIBCTransferMultiHop(t *testing.T) {
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
-		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
+		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
 
 		firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
@@ -235,8 +235,8 @@ func TestIBCTransferMultiHop(t *testing.T) {
 		firstHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: gaiaUserAddr,
-				Channel:  channDymOsmos.ChannelID,
-				Port:     channDymOsmos.PortID,
+				Channel:  channDymGaia.ChannelID,
+				Port:     channDymGaia.PortID,
 				Timeout:  5 * time.Minute,
 			},
 		}

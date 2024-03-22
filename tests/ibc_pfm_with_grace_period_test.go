@@ -238,7 +238,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 
 	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
-		secondHopDenom := transfertypes.GetPrefixedDenom(channOsmosDym.PortID, channOsmosDym.ChannelID, firstHopDenom)
+		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
 
 		firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
@@ -259,8 +259,8 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		firstHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: gaiaUserAddr,
-				Channel:  channDymOsmos.ChannelID,
-				Port:     channDymOsmos.PortID,
+				Channel:  channDymGaia.ChannelID,
+				Port:     channDymGaia.PortID,
 				Timeout:  5 * time.Minute,
 			},
 		}
@@ -293,7 +293,7 @@ func TestIBCPFMWithGracePeriod(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
 		require.NoError(t, err)
 
-		gaiaBalance, err := gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
+		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
