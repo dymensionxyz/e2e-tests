@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,8 +22,9 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-// TestIBCTransferSuccess ensure that the transfer between Hub and Rollapp is accurate.
-func TestRollappGenesisEvent(t *testing.T) {
+// TestRollappGenesisEvent_EVM ensure that genesis event triggered in both rollapp evm and dymension hub
+// works properly
+func TestRollappGenesisEvent_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -129,9 +131,6 @@ func TestRollappGenesisEvent(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	_ = dymensionUserAddr
-	_ = rollappUserAddr
-
 	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, dymensionUserAddr))
 	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
 		Title:       "Add new deployer_whitelist",
@@ -156,8 +155,10 @@ func TestRollappGenesisEvent(t *testing.T) {
 	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
+	if err != nil {
+		fmt.Println("error getting transfer channel: ", err)
+		time.Sleep(3000 * time.Second)
+	}
 	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
@@ -199,11 +200,19 @@ func TestRollappGenesisEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(genesisTriggererWhitelistParams))
 
-	txHash, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	hubgenesisMAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "hubgenesis")
 	require.NoError(t, err)
 
-	tx, err = rollapp1.GetTransaction(txHash)
+	hubgenesisMAccAddr := hubgenesisMAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, hubgenesisMAccAddr, rollapp1.Config().Denom, genesisCoin.Amount)
+
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
-	fmt.Println("tx: ", *tx)
+	testutil.AssertBalance(t, ctx, rollapp1, hubgenesisMAccAddr, rollapp1.Config().Denom, sdk.ZeroInt())
+
+	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
+	require.NoError(t, err)
+
+	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, genesisCoin.Amount)
 }

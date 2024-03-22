@@ -34,6 +34,9 @@ e2e-test-batch-finalization-evm:
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_EVM .
 
+e2e-test-rollapp-genesis-event-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollappGenesisEvent_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
