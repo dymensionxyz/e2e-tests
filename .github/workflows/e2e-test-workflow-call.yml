@@ -31,6 +31,7 @@ jobs:
           - "e2e-test-pfm-with-grace-period-evm"
           - "e2e-test-batch-finalization-evm"
           - "e2e-test-rollapp-freeze-evm"
+          - "e2e-test-rollapp-genesis-event-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
