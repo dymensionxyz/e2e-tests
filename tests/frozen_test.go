@@ -137,7 +137,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Access the index value
@@ -178,7 +178,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// Loop until the latest index updates
 	for {
-		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 		require.NoError(t, err)
 
 		index := oldLatestIndex.StateIndex.Index
@@ -197,12 +197,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
+	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(rollapp1Clients), 1)
+
 	err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
-		"rollappevm_1234-1",
+		rollapp1.Config().ChainID,
 		fmt.Sprint(rollappHeight-2),
 		sequencerAddr,
-		"07-tendermint-0",
+		rollapp1Clients[0].ClientID,
 		"fraud",
 		"fraud",
 		"500000000000"+dymension.Config().Denom,
@@ -217,12 +221,12 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if rollapp has frozen or not
-	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
+	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
-	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
@@ -371,7 +375,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Access the index value
@@ -412,7 +416,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// Loop until the latest index updates
 	for {
-		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 		require.NoError(t, err)
 
 		index := oldLatestIndex.StateIndex.Index
@@ -437,7 +441,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 2)
 
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), "rollappevm_1234-1", fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
+	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -448,12 +452,12 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if rollapp has frozen or not
-	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
+	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
-	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, "2", "rollapp state index still increment")
 
@@ -703,7 +707,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(disputeblock))
 
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Access the index value
@@ -713,12 +717,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	targetIndex := oldUintIndex + 1
 
-	rollapp2Index, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
+	rollapp2Index, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Loop until the latest index updates
 	for {
-		latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+		latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 		require.NoError(t, err)
 
 		index := latestIndex.StateIndex.Index
@@ -756,12 +760,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if rollapp1 has frozen or not
-	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
+	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
-	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
@@ -1121,7 +1125,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(disputeblock))
 
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Access the index value
@@ -1136,7 +1140,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	// Loop until the latest index updates
 	for {
-		latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+		latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 		require.NoError(t, err)
 
 		index := latestIndex.StateIndex.Index
@@ -1174,12 +1178,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if rollapp1 has frozen or not
-	rollappParams, err := dymension.QueryRollappParams(ctx, "rollappevm_1234-1")
+	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
-	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_1234-1")
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
