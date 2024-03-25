@@ -7,57 +7,104 @@
 clean-e2e:
 	sh clean.sh
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-ibc-success: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess .
+e2e-test-ibc-success-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-ibc-timeout: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout .
+e2e-test-ibc-timeout-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-fulfillment:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment .
+e2e-test-eibc-fulfillment-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
   
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-ibc-grace-period:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance .
+e2e-test-ibc-grace-period-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_EVM .
 
-e2e-test-transfer-multi-hop:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop .
+e2e-test-transfer-multi-hop-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop_EVM .
 
-e2e-test-pfm-with-grace-period: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCPFMWithGracePeriod .
- 
-e2e-test-batch-finalization:
-	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization .
+e2e-test-pfm-with-grace-period-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFMWithGracePeriod_EVM .
 
-e2e-test-rollapp-freeze:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze .
+e2e-test-batch-finalization-evm:
+	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_EVM .
+
+e2e-test-rollapp-freeze-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_EVM .
   
-e2e-test-other-rollapp-not-affected:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected .
+e2e-test-other-rollapp-not-affected-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_EVM .
+
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-ibc-success-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
+
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-ibc-timeout-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_Wasm .
+
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-eibc-fulfillment-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_Wasm .
+  
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-ibc-grace-period-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_Wasm .
+
+e2e-test-transfer-multi-hop-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop_Wasm .
+
+e2e-test-pfm-with-grace-period-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFMWithGracePeriod_Wasm .
+	
+e2e-test-batch-finalization-wasm:
+	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_Wasm .
+
+e2e-test-rollapp-freeze-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_Wasm .
+  
+e2e-test-other-rollapp-not-affected-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
   
 # Executes all tests via rollup-e2e-testing
-e2e-test-all: e2e-test-ibc-success \
-	e2e-test-ibc-timeout \
-	e2e-test-ibc-grace-period \
-	e2e-test-transfer-multi-hop \
-	e2e-test-eibc-fulfillment \
-	e2e-test-transfer-multi-hop \
-	e2e-test-pfm-with-grace-period \
-	e2e-test-batch-finalization \
-	e2e-test-rollapp-freeze \
-  e2e-test-other-rollapp-not-affected
+e2e-test-all: e2e-test-ibc-success-evm \
+	e2e-test-ibc-timeout-evm \
+	e2e-test-ibc-grace-period-evm \
+	e2e-test-transfer-multi-hop-evm \
+	e2e-test-eibc-fulfillment-evm \
+	e2e-test-pfm-with-grace-period-evm \
+	e2e-test-batch-finalization-evm \
+	e2e-test-rollapp-freeze-evm \
+  e2e-test-other-rollapp-not-affected-evm \
+	e2e-test-ibc-success-wasm \
+	e2e-test-ibc-timeout-wasm \
+	e2e-test-ibc-grace-period-wasm \
+	e2e-test-transfer-multi-hop-wasm \
+	e2e-test-eibc-fulfillment-wasm \
+	e2e-test-pfm-with-grace-period-wasm \
+	e2e-test-batch-finalization-wasm \
+	e2e-test-rollapp-freeze-wasm \
+  e2e-test-other-rollapp-not-affected-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
-	e2e-test-ibc-success \
-	e2e-test-ibc-timeout \
-	e2e-test-ibc-grace-period \
-	e2e-test-transfer-multi-hop \
-	e2e-test-eibc-fulfillment \
-	e2e-test-transfer-multi-hop \
-	e2e-test-pfm-with-grace-period \
-	e2e-test-batch-finalization \
-	e2e-test-rollapp-freeze \
-  e2e-test-other-rollapp-not-affected
+	e2e-test-ibc-success-evm \
+	e2e-test-ibc-timeout-evm \
+	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-fulfillment-evm \
+	e2e-test-transfer-multi-hop-evm \
+	e2e-test-pfm-with-grace-period-evm \
+	e2e-test-batch-finalization-evm \
+	e2e-test-rollapp-freeze-evm \
+  e2e-test-other-rollapp-not-affected-evm \
+	e2e-test-ibc-success-wasm \
+	e2e-test-ibc-timeout-wasm \
+	e2e-test-ibc-grace-period-wasm \
+	e2e-test-eibc-fulfillment-wasm \
+	e2e-test-transfer-multi-hop-wasm \
+	e2e-test-pfm-with-grace-period-wasm \
+	e2e-test-batch-finalization-wasm \
+	e2e-test-rollapp-freeze-wasm \
+  e2e-test-other-rollapp-not-affected-wasm
