@@ -2,14 +2,12 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -24,6 +22,14 @@ import (
 )
 
 const anotherIbcPath = "dymension-demo2"
+
+var dymModifyGenesisKV = append(
+	dymensionGenesisKV,
+	cosmos.GenesisKV{
+		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+		Value: "20",
+	},
+)
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
 func TestRollAppFreeze_EVM(t *testing.T) {
@@ -70,8 +76,24 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -115,6 +137,22 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// Start relayer
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
@@ -134,7 +172,13 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+
+	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
+	require.NoError(t, err)
+	require.Equal(t, len(channsDym), 1)
+
+	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", dymension.Config().ChainID, channsDym[0].ChannelID, keyDir)
 	require.NoError(t, err)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -146,35 +190,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	targetIndex := uintIndex + 1
-
-	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 20)
-
-	// Create a JSON string with the uint value quoted
-	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
-
-	disputeblock := json.RawMessage(jsonData)
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DisputePeriodInBlocks", disputeblock),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(disputeblock))
 
 	// Loop until the latest index updates
 	for {
@@ -190,7 +205,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		}
 	}
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
@@ -213,7 +227,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
@@ -297,8 +311,24 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -342,6 +372,22 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Start relayer
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
@@ -384,35 +430,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	targetIndex := uintIndex + 1
-
-	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 50)
-
-	// Create a JSON string with the uint value quoted
-	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
-
-	disputeblock := json.RawMessage(jsonData)
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DisputePeriodInBlocks", disputeblock),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(disputeblock))
 
 	// Loop until the latest index updates
 	for {
@@ -558,8 +575,24 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -677,35 +710,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
-
-	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 20)
-
-	// Create a JSON string with the uint value quoted
-	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
-
-	disputeblock := json.RawMessage(jsonData)
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DisputePeriodInBlocks", disputeblock),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(disputeblock))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -976,8 +980,24 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "118",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -1095,35 +1115,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
-
-	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 20)
-
-	// Create a JSON string with the uint value quoted
-	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
-
-	disputeblock := json.RawMessage(jsonData)
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DisputePeriodInBlocks", disputeblock),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(disputeblock))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
