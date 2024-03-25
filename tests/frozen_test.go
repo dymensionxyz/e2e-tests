@@ -346,13 +346,14 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
-	// s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-	// 	relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	// ).Build(t, client, "relayer2", network)
+	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddRelayer(r, "relayer1").
+		AddRelayer(s, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -362,7 +363,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp2,
-			Relayer: r,
+			Relayer: s,
 			Path:    anotherIbcPath,
 		})
 
@@ -380,22 +381,30 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
 	// Start both relayers
-	// err = s.StartRelayer(ctx, eRep, anotherIbcPath)
-	// require.NoError(t, err)
+	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	t.Cleanup(
-		func() {
+	// t.Cleanup(
+	// 	func() {
 
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
+	// 		err = s.StopRelayer(ctx, eRep)
+	// 		if err != nil {
+	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
+	// 		}
+
+	// 		err = r.StopRelayer(ctx, eRep)
+	// 		if err != nil {
+	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
+	// 		}
+	// 	},
+	// )
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -527,9 +536,13 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
 	// IBC channel for rollapps
-	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
+	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 2)
+	require.Len(t, channsDym1, 2)
+
+	channsDym2, err := s.GetChannels(ctx, eRep, dymension.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsDym2, 2)
 
 	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -541,7 +554,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	channsRollApp2, err := r.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp2, 1)
 
@@ -607,10 +620,13 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	dymUserOriginBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	rollapp2OriginBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
+	res, err := rollapp2.GetNode().QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 
-	t.Log("dymToRollapp2IbcDenom:", dymToRollapp2IbcDenom)
+	erc20Addr := res.Account.BaseAccount.Address
+
+	rollapp2Erc20OriginBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
+	require.NoError(t, err)
 
 	// IBC Transfer working between Dymension <-> rollapp2
 	transferData = ibc.WalletData{
@@ -618,19 +634,20 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
+
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp2)
 	require.NoError(t, err)
 
-	rollapp2UpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
+	rollapp2Erc20UpdateBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	t.Log("rollapp2UpdateBal:", rollapp2UpdateBal)
-	t.Log("rollapp2OriginBal:", rollapp2OriginBal)
+	t.Log("rollapp2Erc20OriginBal:", rollapp2Erc20OriginBal)
+	t.Log("rollapp2Erc20UpdateBal:", rollapp2Erc20UpdateBal)
 
-	require.Equal(t, rollapp2UpdateBal.Sub(transferAmount), rollapp2OriginBal, "rollapp balance did not change")
+	require.Equal(t, rollapp2Erc20UpdateBal.Sub(transferAmount).Equal(rollapp2Erc20OriginBal), true, "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -638,8 +655,9 @@ func TestOtherRollappNotAffected(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
+	tx, err := rollapp2.SendIBCTransfer(ctx, channsRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
 	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp2)
 	require.NoError(t, err)
@@ -648,7 +666,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount), dymUserOriginBal2, "Dym hub balance did not change")
+	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
