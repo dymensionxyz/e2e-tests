@@ -148,7 +148,7 @@ func TestRollAppFreeze(t *testing.T) {
 	targetIndex := uintIndex + 1
 
 	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 50)
+	myUintStr := fmt.Sprintf("%d", 20)
 
 	// Create a JSON string with the uint value quoted
 	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
@@ -169,7 +169,7 @@ func TestRollAppFreeze(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
@@ -213,7 +213,7 @@ func TestRollAppFreeze(t *testing.T) {
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Check if rollapp has frozen or not
@@ -391,20 +391,20 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	// t.Cleanup(
-	// 	func() {
+	t.Cleanup(
+		func() {
 
-	// 		err = s.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
+			err = s.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
 
-	// 		err = r.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 	},
-	// )
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -445,7 +445,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.NoError(t, err)
 
 	// Convert the uint to string
-	myUintStr := fmt.Sprintf("%d", 50)
+	myUintStr := fmt.Sprintf("%d", 20)
 
 	// Create a JSON string with the uint value quoted
 	jsonData := fmt.Sprintf(`"%s"`, myUintStr)
@@ -466,7 +466,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	new_params, err := dymension.QueryParam(ctx, "rollapp", "DisputePeriodInBlocks")
@@ -522,7 +522,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Check if rollapp1 has frozen or not
@@ -638,14 +638,11 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
 	require.NoError(t, err)
 
 	rollapp2Erc20UpdateBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
-
-	t.Log("rollapp2Erc20OriginBal:", rollapp2Erc20OriginBal)
-	t.Log("rollapp2Erc20UpdateBal:", rollapp2Erc20UpdateBal)
 
 	require.Equal(t, rollapp2Erc20UpdateBal.Sub(transferAmount).Equal(rollapp2Erc20OriginBal), true, "rollapp balance did not change")
 
@@ -659,7 +656,7 @@ func TestOtherRollappNotAffected(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 100, dymension)
 	require.NoError(t, err)
 
 	// Get updated dym hub ibc denom balance
