@@ -711,24 +711,25 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start both relayers
-	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
+	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
+
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
 
 			err = s.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
 		},
 	)
 
@@ -792,17 +793,36 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
 
-	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	// IBC channel for rollapps
+	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 2)
+	require.Len(t, channsDym1, 2)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
+	channsDym2, err := s.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym2, 2)
 
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp2.Config().ChainID, dymChannel[1].ChannelID, keyDir)
+	channDymRollApp1 := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	channsRollApp1Dym := channsRollApp1[0]
+	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
+
+	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	channDymRollApp2 := channsRollApp2[0].Counterparty
+	require.NotEmpty(t, channDymRollApp2.ChannelID)
+
+	channsRollApp2Dym := channsRollApp2[0]
+	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
+
+	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
@@ -843,11 +863,20 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
 
-	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
+	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
+	require.Equal(t, len(dymClients), 2)
+
+	var rollapp1ClientOnDym string
+
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			rollapp1ClientOnDym = client.ClientID
+		}
+	}
 
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1Clients[0].ClientID, submitFraudStr, submitFraudStr, deposit)
+	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -866,35 +895,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
-
-	// IBC channel for rollapps
-	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsDym1, 2)
-
-	channsDym2, err := s.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsDym2, 2)
-
-	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channDymRollApp1 := channsRollApp1[0].Counterparty
-	require.NotEmpty(t, channDymRollApp1.ChannelID)
-
-	channsRollApp1Dym := channsRollApp1[0]
-	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
-
-	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
-	channDymRollApp2 := channsRollApp2[0].Counterparty
-	require.NotEmpty(t, channDymRollApp2.ChannelID)
-
-	channsRollApp2Dym := channsRollApp2[0]
-	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
@@ -952,12 +952,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymUserOriginBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	res, err := rollapp2.GetNode().QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-
-	erc20Addr := res.Account.BaseAccount.Address
-
-	rollapp2Erc20OriginBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
+	rollapp2UserOriginBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
 	// IBC Transfer working between Dymension <-> rollapp2
@@ -973,10 +968,10 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
 	require.NoError(t, err)
 
-	rollapp2Erc20UpdateBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
+	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2Erc20UpdateBal.Sub(transferAmount).Equal(rollapp2Erc20OriginBal), true, "rollapp balance did not change")
+	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1152,24 +1147,25 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Start both relayers
-	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
+	err = s.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
+
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
 
 			err = s.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
 		},
 	)
 
@@ -1233,17 +1229,36 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
 
-	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	// IBC channel for rollapps
+	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 2)
+	require.Len(t, channsDym1, 2)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
+	channsDym2, err := s.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym2, 2)
 
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp2.Config().ChainID, dymChannel[1].ChannelID, keyDir)
+	channDymRollApp1 := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	channsRollApp1Dym := channsRollApp1[0]
+	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
+
+	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	channDymRollApp2 := channsRollApp2[0].Counterparty
+	require.NotEmpty(t, channDymRollApp2.ChannelID)
+
+	channsRollApp2Dym := channsRollApp2[0]
+	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
+
+	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
@@ -1284,11 +1299,19 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
 
-	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
+	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
+	require.Equal(t, len(dymClients), 2)
 
+	var rollapp1ClientOnDym string
+
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			rollapp1ClientOnDym = client.ClientID
+		}
+	}
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1Clients[0].ClientID, submitFraudStr, submitFraudStr, deposit)
+	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -1307,35 +1330,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
-
-	// IBC channel for rollapps
-	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsDym1, 2)
-
-	channsDym2, err := s.GetChannels(ctx, eRep, dymension.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsDym2, 2)
-
-	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channDymRollApp1 := channsRollApp1[0].Counterparty
-	require.NotEmpty(t, channDymRollApp1.ChannelID)
-
-	channsRollApp1Dym := channsRollApp1[0]
-	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
-
-	channsRollApp2, err := s.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
-	channDymRollApp2 := channsRollApp2[0].Counterparty
-	require.NotEmpty(t, channDymRollApp2.ChannelID)
-
-	channsRollApp2Dym := channsRollApp2[0]
-	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
@@ -1393,12 +1387,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymUserOriginBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	res, err := rollapp2.GetNode().QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-
-	erc20Addr := res.Account.BaseAccount.Address
-
-	rollapp2Erc20OriginBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
+	rollapp2UserOriginBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
 	// IBC Transfer working between Dymension <-> rollapp2
@@ -1414,10 +1403,10 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
 	require.NoError(t, err)
 
-	rollapp2Erc20UpdateBal, err := rollapp2.GetBalance(ctx, erc20Addr, dymToRollapp2IbcDenom)
+	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2Erc20UpdateBal.Sub(transferAmount).Equal(rollapp2Erc20OriginBal), true, "rollapp balance did not change")
+	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
