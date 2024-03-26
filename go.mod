@@ -18,8 +18,8 @@ require (
 	cosmossdk.io/math v1.3.0
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.2.1
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240322082923-3521e6d2958d
-	github.com/dymensionxyz/dymension-rdk v1.0.0-beta.0.20240319112419-906d5ea30648
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240325145032-14e272cd9ada
+	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240321090214-067a132551ab
 	github.com/evmos/ethermint v0.22.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
@@ -76,7 +76,7 @@ require (
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
-	github.com/go-logr/logr v1.2.4 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/gateway v1.1.0 // indirect
