@@ -52,7 +52,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Version:    "7df6696f",
 		UidGid:     "1025:1025",
 	}
 
@@ -153,7 +153,7 @@ var (
 		// gov params
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
-			Value: "30s",
+			Value: "20s",
 		},
 		// staking params
 		{
