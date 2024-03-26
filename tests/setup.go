@@ -79,7 +79,6 @@ var (
 		ConfigFileOverrides: nil,
 	}
 
-
 	// Setup for gaia
 	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
 
@@ -268,7 +267,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "latest"
+		rollappEVMVersion = "7df6696f"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
