@@ -34,6 +34,7 @@ jobs:
           - "e2e-test-batch-finalization-evm"
           - "e2e-test-rollapp-freeze-evm"
           - "e2e-test-other-rollapp-not-affected-evm"
+          - "e2e-test-rollapp-genesis-event-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:

@@ -11,6 +11,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/icza/dyno"
 
+	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
@@ -79,24 +80,24 @@ var (
 		ConfigFileOverrides: nil,
 	}
 
-	// Setup for Osmosis
-	osmosisImageRepo = "ghcr.io/strangelove-ventures/heighliner/osmosis"
+	// Setup for gaia
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
 
-	osmosisImage = ibc.DockerImage{
-		Repository: osmosisImageRepo,
+	gaiaImage = ibc.DockerImage{
+		Repository: gaiaImageRepo,
 		UidGid:     "1025:1025",
 	}
 
-	osmosisConfig = ibc.ChainConfig{
+	gaiaConfig = ibc.ChainConfig{
 		Type:                "cosmos",
-		Name:                "osmosis",
-		ChainID:             "osmosis-1",
-		Images:              []ibc.DockerImage{osmosisImage},
-		Bin:                 "osmosisd",
-		Bech32Prefix:        "osmo",
-		Denom:               "uosmo",
+		Name:                "gaia",
+		ChainID:             "gaia-1",
+		Images:              []ibc.DockerImage{gaiaImage},
+		Bin:                 "gaiad",
+		Bech32Prefix:        "cosmos",
+		Denom:               "uatom",
 		CoinType:            "118",
-		GasPrices:           "0.5uosmo",
+		GasPrices:           "0uatom",
 		EncodingConfig:      defaultConfig(),
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
@@ -107,7 +108,7 @@ var (
 
 	// IBC Path
 	pathHubToRollApp = "hub-path"
-	pathDymToOsmos   = "dym-osmo"
+	pathDymToGaia    = "dym-gaia"
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
@@ -137,6 +138,14 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0",
+		},
+		{
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
+		},
+		{
+			Key:   "app_state.gov.deposit_params.max_deposit_period",
+			Value: "30s",
 		},
 	}
 
@@ -267,7 +276,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "latest"
+		rollappEVMVersion = "7df6696f"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
@@ -284,6 +293,7 @@ func encodingConfig() *simappparams.EncodingConfig {
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
 	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
+	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
 
