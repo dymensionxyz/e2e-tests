@@ -937,7 +937,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
 
 	// Check other rollapp state index still increase
-	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
+	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
 
@@ -1259,7 +1259,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	targetIndex := oldUintIndex + 1
 
-	rollapp2Index, err := dymension.GetNode().QueryLatestStateIndex(ctx, "rollappevm_12345-1")
+	rollapp2Index, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
 	// Loop until the latest index updates
