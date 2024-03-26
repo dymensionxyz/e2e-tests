@@ -18,7 +18,7 @@ require (
 	cosmossdk.io/math v1.3.0
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.2.1
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240325145032-14e272cd9ada
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240325161106-405e71f46e86
 	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240321090214-067a132551ab
 	github.com/evmos/ethermint v0.22.0
