@@ -78,7 +78,6 @@ jobs:
 
   rollapp-evm-status:
     runs-on: ubuntu-latest
-    needs: [rollapp-evm]
     steps:
       - name: Set status
         if: always()
