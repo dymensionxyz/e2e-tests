@@ -75,3 +75,12 @@ jobs:
 
       - name: Rollapp-Wasm E2E Tests
         run: make ${{ matrix.tests }}
+
+  rollapp-evm-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set status
+        if: always()
+        uses: srt32/set-status-action@v2
+        with:
+          status: ${{ job.status }}
