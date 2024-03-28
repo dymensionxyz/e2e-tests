@@ -52,7 +52,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "7df6696f",
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -276,7 +276,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "7df6696f"
+		rollappEVMVersion = "latest"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")

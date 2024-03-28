@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -155,18 +154,18 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	if err != nil {
-		fmt.Println("error getting transfer channel: ", err)
-		time.Sleep(3000 * time.Second)
-	}
-	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channel.ChannelID)
+	require.NoError(t, err)
+
+	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channel.ChannelID, "--gas=auto")
 	require.NoError(t, err)
 
 	tx, err := dymension.GetTransaction(txHash)
 	require.NoError(t, err)
 
-	recipient, _ := cosmos.AttributeValue(tx.Events, "transfer", "recipient")
-	coinStr, _ := cosmos.AttributeValue(tx.Events, "transfer", "amount")
+	recipient, ok := cosmos.AttributeValue(tx.Events, "transfer", "recipient")
+	require.True(t, ok, "failed to retrieve transfer recipient")
+	coinStr, ok := cosmos.AttributeValue(tx.Events, "transfer", "amount")
+	require.True(t, ok, "failed to retrieve transfer amount")
 
 	genesisCoin, err := sdk.ParseCoinNormalized(coinStr)
 	require.NoError(t, err)
@@ -215,4 +214,26 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, genesisCoin.Amount)
+
+	denommetadata, err := dymension.GetNode().QueryDenomMetadata(ctx, genesisCoin.Denom)
+	require.NoError(t, err)
+
+	require.Equal(t, denommetadata.Description, fmt.Sprintf("auto-generated metadata for %s from rollapp %s", genesisCoin.Denom, rollapp1.GetChainID()))
+	require.Equal(t, denommetadata.Base, genesisCoin.Denom)
+	denomUnits := []cosmos.DenomUnit{
+		{
+			Denom:    genesisCoin.Denom,
+			Exponent: 0,
+			Aliases:  []string{rollapp1.Config().Denom},
+		},
+		{
+			Denom:    "rax",
+			Exponent: 6,
+			Aliases:  []string{},
+		},
+	}
+	require.Equal(t, denommetadata.DenomUnits, denomUnits)
+	require.Equal(t, denommetadata.Display, "rax")
+	require.Equal(t, denommetadata.Symbol, "URAX")
+	require.Equal(t, denommetadata.Name, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom))
 }
