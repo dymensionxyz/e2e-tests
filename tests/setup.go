@@ -52,7 +52,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "7df6696f",
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -146,6 +146,14 @@ var (
 		{
 			Key:   "app_state.gov.deposit_params.max_deposit_period",
 			Value: "30s",
+		},
+		{
+			Key: "app_state.erc20.params.enable_erc20",
+			Value: false,
+		},
+		{
+			Key: "app_state.erc20.params.enable_evm_hook",
+			Value: false,
 		},
 	}
 
@@ -276,7 +284,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "7df6696f"
+		rollappEVMVersion = "latest"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
