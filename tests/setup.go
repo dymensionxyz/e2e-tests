@@ -147,6 +147,14 @@ var (
 			Key:   "app_state.gov.deposit_params.max_deposit_period",
 			Value: "30s",
 		},
+		{
+			Key: "app_state.erc20.params.enable_erc20",
+			Value: false,
+		},
+		{
+			Key: "app_state.erc20.params.enable_evm_hook",
+			Value: false,
+		},
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
