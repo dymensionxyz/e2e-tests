@@ -330,8 +330,8 @@ github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240328055918-5b56c88e4d97 h1:yeDJDmx4ybiQ7ITVHSP0WyJa8HAnnOOvcJAe5kqHYMI=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240328055918-5b56c88e4d97/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240401062200-380e8b9d21f4 h1:VR2rKvHs7T8zql2cmZts6PEbdWEzeRVODtOwaNS0ZkM=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240401062200-380e8b9d21f4/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
