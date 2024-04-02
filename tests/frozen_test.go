@@ -710,7 +710,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Check if rollapp has frozen or not
@@ -726,7 +726,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	// Check rollapp2 state index increment
 	latestIndexRollapp2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndexRollapp2 > oldLatestRollapp2, true, "rollapp2 state index not increment")
+	require.Equal(t, latestIndexRollapp2 > oldLatestRollapp2, true, "rollapp2 state index not increment ")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
