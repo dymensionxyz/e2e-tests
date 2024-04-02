@@ -293,7 +293,8 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	oldLatestRollapp2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
-	var targetHeight string
+	var fraudHeight string
+	var fraudProposer string
 
 	// Loop until the latest index updates
 	for {
@@ -305,7 +306,8 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
-			targetHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+			fraudHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+			fraudProposer = res.StateInfo.Sequencer
 			break
 		}
 	}
@@ -322,11 +324,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		}
 	}
 
-	err = dymension.SubmitFraudProposal(
+	propTx, err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
 		rollapp1.Config().ChainID,
-		targetHeight,
-		sequencerAddr,
+		fraudHeight,
+		fraudProposer,
 		rollapp1ClientOnDym,
 		"fraud",
 		"fraud",
@@ -336,6 +338,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
+
+	height, err = dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
 	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
@@ -615,7 +622,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+40, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
@@ -654,15 +661,22 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
 	require.NoError(t, err)
 
+	currentHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.Config().ChainID, currentHeight, 120)
+	require.NoError(t, err)
+
 	oldLatestRollapp1, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	oldLatestRollapp2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
-	var targetHeight string
+	var fraudHeight string
+	var fraudProposer string
 
-	// Loop until the latest index updates
+	// Loop until the next pending state index appears
 	for {
 		res, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, false)
 		require.NoError(t, err)
@@ -672,15 +686,14 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
-			targetHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+			fraudHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+			fraudProposer = res.StateInfo.Sequencer
 			break
 		}
 	}
 
 	submitFraudStr := "fraud"
 	deposit := "500000000000" + dymension.Config().Denom
-
-	t.Log("deposit:", deposit)
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
@@ -694,11 +707,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		}
 	}
 
-	err = dymension.SubmitFraudProposal(
+	propTx, err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
 		rollapp1.Config().ChainID,
-		targetHeight,
-		sequencerAddr,
+		fraudHeight,
+		fraudProposer,
 		rollapp1ClientOnDym,
 		submitFraudStr,
 		submitFraudStr,
@@ -706,8 +719,14 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
+
+	height, err = dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
 	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
@@ -1088,10 +1107,10 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
@@ -1523,7 +1542,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		}
 	}
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
