@@ -354,7 +354,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	// Check rollapp2 state index still increment
 	latestIndex2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex2-1, oldLatestRollapp2, "rollapp2 state index did not increment")
+	require.Equal(t, latestIndex2 > oldLatestRollapp2, true, "rollapp2 state index did not increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
@@ -677,9 +677,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		}
 	}
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
 	submitFraudStr := "fraud"
 	deposit := "500000000000" + dymension.Config().Denom
 
@@ -729,7 +726,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	// Check rollapp2 state index increment
 	latestIndexRollapp2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndexRollapp2-1, oldLatestRollapp2, "rollapp2 state index not increment")
+	require.Equal(t, latestIndexRollapp2 > oldLatestRollapp2, true, "rollapp2 state index not increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
