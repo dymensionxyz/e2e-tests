@@ -148,11 +148,11 @@ var (
 			Value: "30s",
 		},
 		{
-			Key: "app_state.erc20.params.enable_erc20",
+			Key:   "app_state.erc20.params.enable_erc20",
 			Value: false,
 		},
 		{
-			Key: "app_state.erc20.params.enable_evm_hook",
+			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
 		},
 	}

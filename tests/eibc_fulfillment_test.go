@@ -182,7 +182,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	var options ibc.TransferOptions
-	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -425,7 +425,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	var options ibc.TransferOptions
-	//market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
