@@ -1,15 +1,20 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"testing"
 	"time"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/icza/dyno"
+	"github.com/stretchr/testify/require"
 
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -386,4 +391,40 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 
 		return cosmos.ModifyGenesis(genesisKV)(chainConfig, outputGenBz)
 	}
+}
+
+func registerGenesisEventTriggerer(t *testing.T, dymension *dym_hub.DymHub, user ibc.Wallet, module, param string) {
+	ctx := context.Background()
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	require.NoError(t, err)
+	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
+	propTx, err := dymension.ParamChangeProposal(ctx, user.KeyName(), &utils.ParamChangeProposalJSON{
+		Title:       "Add new deployer to whitelist",
+		Description: "Add current user addr to the deployer whitelist",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
+		},
+		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+	})
+	require.NoError(t, err)
+
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
+	require.NoError(t, err)
+	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
+}
+
+func triggerGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollappID, channelID string, user ibc.Wallet) {
+	registerGenesisEventTriggerer(t, dymension, user, "rollapp", "DeployerWhitelist")
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	err := dymension.GetNode().TriggerGenesisEvent(context.Background(), "sequencer", rollappID, channelID, keyDir)
+	require.NoError(t, err)
 }

@@ -2,14 +2,12 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -182,35 +180,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(dymChannel), 1)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
-	require.NoError(t, err)
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -445,35 +419,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(dymChannel), 1)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
-	require.NoError(t, err)
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
@@ -768,29 +718,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -820,8 +747,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
-	require.NoError(t, err)
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1202,29 +1128,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -1254,8 +1157,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
-	require.NoError(t, err)
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
 
 	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)

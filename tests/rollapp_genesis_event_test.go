@@ -2,13 +2,11 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -130,28 +128,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, dymensionUserAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
+	registerGenesisEventTriggerer(t, dymension, dymensionUser, "rollapp", "DeployerWhitelist")
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -176,28 +153,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, validatorAddr, genesisCoin.Denom, genesisCoin.Amount)
 
-	genesisTriggererWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, rollappUserAddr))
-	propTx, err = rollapp1.ParamChangeProposal(ctx, rollappUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new genesis_triggerer_whitelist",
-		Description: "Add current rollappUserAddr to the genesis_triggerer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("hubgenesis", "GenesisTriggererWhitelist", genesisTriggererWhitelistParams),
-		},
-		Deposit: "500000000000" + rollapp1.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = rollapp1.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err = rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err = rollapp1.QueryParam(ctx, "hubgenesis", "GenesisTriggererWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(genesisTriggererWhitelistParams))
+	registerGenesisEventTriggerer(t, dymension, dymensionUser, "hubgenesis", "GenesisTriggererWhitelist")
 
 	hubgenesisMAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "hubgenesis")
 	require.NoError(t, err)

@@ -149,6 +149,8 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 		},
 	)
 
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
 
@@ -327,6 +329,8 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)

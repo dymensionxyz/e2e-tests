@@ -212,6 +212,8 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp.ChannelID, dymensionUser)
+
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
@@ -448,6 +450,8 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	gaiaOrigBal, err := gaia.GetBalance(ctx, gaiaUserAddr, gaia.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
+
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp.ChannelID, dymensionUser)
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
