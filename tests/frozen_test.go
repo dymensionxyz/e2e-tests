@@ -277,7 +277,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	err = dymension.IBCTransfer(ctx,
 		dymension, rollapp1, transferAmount, dymensionUserAddr,
@@ -541,7 +541,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	err = dymension.IBCTransfer(ctx,
 		dymension, rollapp1, transferAmount, dymensionUserAddr,
@@ -719,7 +719,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	t.Cleanup(
 		func() {
-
 			err = r.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
@@ -729,7 +728,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
-
 		},
 	)
 
@@ -897,7 +895,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
@@ -1155,7 +1153,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	t.Cleanup(
 		func() {
-
 			err = r.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
@@ -1165,7 +1162,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
-
 		},
 	)
 
@@ -1332,7 +1328,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,

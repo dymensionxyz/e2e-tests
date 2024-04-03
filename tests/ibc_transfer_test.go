@@ -150,7 +150,7 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
@@ -329,7 +329,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
