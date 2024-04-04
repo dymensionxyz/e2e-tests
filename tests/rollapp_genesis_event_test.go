@@ -30,14 +30,8 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	configFileOverrides := overridesDymintToml("dymension", t.Name(), "rollappevm_1234-1", "0adym")
+	configFileOverrides2 := overridesDymintToml("dymension", t.Name(), "rollappevm_12345-1", "0adym")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 	// Create chain factory with dymension
@@ -69,6 +63,28 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
+			Name: "rollapp2",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp1",
+				ChainID:             "rollappevm_12345-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides2,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
 			Name:          "dymension-hub",
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
@@ -82,23 +98,34 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
+	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+	dymension := chains[2].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, "relayer", network)
+	).Build(t, client, "relayer1", network)
+	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
+		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRelayer(r, "relayer1").
+		AddRelayer(s, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
 			Path:    ibcPath,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp2,
+			Relayer: s,
+			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()

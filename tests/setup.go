@@ -11,6 +11,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/icza/dyno"
 
+	"github.com/decentrio/rollup-e2e-testing/testutil"
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -148,11 +149,11 @@ var (
 			Value: "30s",
 		},
 		{
-			Key: "app_state.erc20.params.enable_erc20",
+			Key:   "app_state.erc20.params.enable_erc20",
 			Value: false,
 		},
 		{
-			Key: "app_state.erc20.params.enable_evm_hook",
+			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
 		},
 	}
@@ -386,4 +387,18 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 
 		return cosmos.ModifyGenesis(genesisKV)(chainConfig, outputGenBz)
 	}
+}
+
+func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices string) map[string]any {
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+
+	dymintTomlOverrides["settlement_layer"] = settlement_layer
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", node_address)
+	dymintTomlOverrides["rollapp_id"] = rollappId
+	dymintTomlOverrides["gas_prices"] = gas_prices
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	return configFileOverrides
 }

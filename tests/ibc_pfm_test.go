@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -28,14 +27,9 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
+	configFileOverrides := overridesDymintToml("dymension", t.Name(), "rollappevm_1234-1", "0adym")
+	configFileOverrides2 := overridesDymintToml("dymension", t.Name(), "rollappevm_12345-1", "0adym")
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -67,6 +61,28 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
+			Name: "rollapp2",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp1",
+				ChainID:             "rollappevm_12345-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides2,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
 			Name:          "dymension-hub",
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
@@ -84,8 +100,9 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-	gaia := chains[2].(*cosmos.CosmosChain)
+	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+	dymension := chains[2].(*dym_hub.DymHub)
+	gaia := chains[3].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -99,11 +116,18 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
+	r3 := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly,
+		zaptest.NewLogger(t),
+		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+	).Build(t, client, "relayer3", network)
+
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
+		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r, "relayer").
 		AddRelayer(r2, "relayer2").
+		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -115,6 +139,12 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 			Chain2:  gaia,
 			Relayer: r2,
 			Path:    pathDymToGaia,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp2,
+			Relayer: r3,
+			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -136,7 +166,7 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 2)
+	require.Len(t, channsDym, 3)
 
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -150,11 +180,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 
 	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym, 3)
 
 	channsGaia, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, channsDym, 2)
 	require.Len(t, channsGaia, 1)
 
 	channDymGaia := channsGaia[0].Counterparty
@@ -170,6 +199,9 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
 	require.NoError(t, err)
 
+	err = r3.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -177,6 +209,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer2: %s", err)
+			}
+			err = r3.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer2: %s", err)
 			}
@@ -265,14 +301,9 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
+	configFileOverrides := overridesDymintToml("dymension", t.Name(), "rollappwasm_1234-1", "0adym")
+	configFileOverrides2 := overridesDymintToml("dymension", t.Name(), "rollappwasm_12345-1", "0adym")
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -304,6 +335,28 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
+			Name: "rollapp2",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappwasm_12345-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "rol",
+				Denom:               "urax",
+				CoinType:            "118",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       nil,
+				ConfigFileOverrides: configFileOverrides2,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
 			Name:          "dymension-hub",
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
@@ -320,8 +373,9 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-	gaia := chains[2].(*cosmos.CosmosChain)
+	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+	dymension := chains[2].(*dym_hub.DymHub)
+	gaia := chains[3].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -335,11 +389,18 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
+	r3 := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly,
+		zaptest.NewLogger(t),
+		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+	).Build(t, client, "relayer3", network)
+
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
+		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r, "relayer").
 		AddRelayer(r2, "relayer2").
+		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -351,6 +412,12 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 			Chain2:  gaia,
 			Relayer: r2,
 			Path:    pathDymToGaia,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp2,
+			Relayer: r3,
+			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -372,7 +439,7 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 2)
+	require.Len(t, channsDym, 3)
 
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -386,11 +453,10 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 
 	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym, 3)
 
 	channsGaia, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, channsDym, 2)
 	require.Len(t, channsGaia, 1)
 
 	channDymGaia := channsGaia[0].Counterparty
@@ -406,6 +472,9 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
 	require.NoError(t, err)
 
+	err = r3.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -413,6 +482,10 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer2: %s", err)
+			}
+			err = r3.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer2: %s", err)
 			}
