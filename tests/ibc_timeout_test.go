@@ -266,8 +266,10 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
 	// Assert at least finalized state index surpass 2
-	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
@@ -523,8 +525,10 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
 	// Assert at least finalized state index surpass 2
-	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {

@@ -294,8 +294,10 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// Assert at least finalized state index surpass 2
-	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
@@ -582,8 +584,10 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// Assert at least finalized state index surpass 2
-	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {

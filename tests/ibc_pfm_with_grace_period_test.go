@@ -333,8 +333,10 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		require.True(t, gaiaBalance.Equal(transferAmount))
 
 		// Assert at least finalized state index surpass 2
-		dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-		dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+		_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+		require.NoError(t, err)
+		_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+		require.NoError(t, err)
 	})
 }
 
@@ -506,7 +508,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 2)
+	require.Len(t, channsDym, 3)
 
 	channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -520,11 +522,10 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 	channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym, 3)
 
 	channsGaia, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, channsDym, 2)
 	require.Len(t, channsGaia, 1)
 
 	channDymGaia := channsGaia[0].Counterparty
@@ -651,7 +652,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		require.True(t, gaiaBalance.Equal(transferAmount))
 
 		// Assert at least finalized state index surpass 2
-		dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
-		dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+		_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+		require.NoError(t, err)
+		_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+		require.NoError(t, err)
 	})
 }
