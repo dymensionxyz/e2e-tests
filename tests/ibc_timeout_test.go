@@ -258,9 +258,6 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -514,12 +511,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
-	require.NoError(t, err)
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
