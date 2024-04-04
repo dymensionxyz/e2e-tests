@@ -260,6 +260,10 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -517,6 +521,10 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	// Assert balance was updated on the Hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 
 	t.Cleanup(
 		func() {

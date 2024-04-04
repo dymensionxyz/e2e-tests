@@ -234,6 +234,10 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount)
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 }
 
 // TestIBCTransferSuccess ensure that the transfer between Hub and Rollapp is accurate.
@@ -453,4 +457,8 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount)
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 }

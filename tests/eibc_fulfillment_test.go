@@ -293,6 +293,10 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -576,6 +580,10 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 
 	t.Cleanup(
 		func() {

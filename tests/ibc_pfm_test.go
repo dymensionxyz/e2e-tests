@@ -291,6 +291,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
+
+		// Assert at least finalized state index surpass 2
+		dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+		dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 	})
 }
 
@@ -565,5 +569,9 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
+
+		// Assert at least finalized state index surpass 2
+		dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+		dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 	})
 }

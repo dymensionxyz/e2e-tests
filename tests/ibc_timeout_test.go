@@ -265,6 +265,10 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -517,6 +521,10 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 
 	t.Cleanup(
 		func() {

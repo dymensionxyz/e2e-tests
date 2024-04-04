@@ -264,4 +264,8 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.Equal(t, denommetadata.Display, "rax")
 	require.Equal(t, denommetadata.Symbol, "URAX")
 	require.Equal(t, denommetadata.Name, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom))
+
+	// Assert at least finalized state index surpass 2
+	dymension.AssertFinalization(t, ctx, rollapp1.Config().ChainID, 2)
+	dymension.AssertFinalization(t, ctx, rollapp2.Config().ChainID, 2)
 }
