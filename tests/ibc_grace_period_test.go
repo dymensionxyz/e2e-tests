@@ -166,6 +166,8 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, rollapp1)
+	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
 
@@ -376,6 +378,8 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	}
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)

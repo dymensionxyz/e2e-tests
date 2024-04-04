@@ -422,15 +422,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(dymChannel), 1)
-
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
-
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
+	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -748,9 +744,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
-
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1158,9 +1151,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
-
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)

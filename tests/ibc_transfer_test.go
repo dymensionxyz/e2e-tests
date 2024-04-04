@@ -140,6 +140,9 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+	require.NoError(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -321,6 +324,9 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+	require.NoError(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)

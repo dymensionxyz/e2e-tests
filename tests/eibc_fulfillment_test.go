@@ -170,6 +170,8 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
 
@@ -414,6 +416,8 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)

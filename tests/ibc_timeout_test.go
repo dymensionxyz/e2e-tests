@@ -138,8 +138,8 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	// Wait a few blocks for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
@@ -159,6 +159,9 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+	// Wait a few blocks for relayer to start
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
@@ -193,8 +196,8 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
 	require.NoError(t, err)
@@ -379,6 +382,8 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, dymension)
+	require.NoError(t, err)
 
 	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
 
@@ -399,9 +404,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	// Stop relayer after relaying
 	err = r.StopRelayer(ctx, eRep)
