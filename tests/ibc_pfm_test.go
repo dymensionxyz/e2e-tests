@@ -213,7 +213,12 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -452,7 +457,12 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)

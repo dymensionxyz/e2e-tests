@@ -170,7 +170,12 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, rollapp1)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
@@ -383,7 +388,12 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})

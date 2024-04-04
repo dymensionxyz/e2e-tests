@@ -183,9 +183,14 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 1)
+	require.Equal(t, 1, len(dymChannel))
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, dymChannel[0].ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: dymChannel[0].ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -216,7 +221,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(rollapp1Clients), 1)
+	require.Equal(t, 1, len(rollapp1Clients))
 
 	err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
@@ -240,12 +245,12 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -259,7 +264,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		rollappUserAddr, r, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
-	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	// Compose an IBC transfer and send from rollapp -> dymension
 	err = rollapp1.IBCTransfer(ctx,
@@ -422,12 +427,17 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 1)
+	require.Equal(t, 1, len(dymChannel))
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, dymChannel[0].ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: dymChannel[0].ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -476,12 +486,12 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, "2", "rollapp state index still increment")
+	require.Equal(t, "2", latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -495,7 +505,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		rollappUserAddr, r, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
-	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	err = rollapp1.IBCTransfer(ctx,
 		rollapp1, dymension, transferAmount, rollappUserAddr,
@@ -744,7 +754,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp1.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -783,7 +798,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -807,12 +822,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -889,7 +904,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
+	require.Equal(t, true, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -908,7 +923,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), "dym hub balance did not change")
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1151,7 +1166,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp1.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1190,7 +1210,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1213,12 +1233,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -1295,7 +1315,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
+	require.Equal(t, true, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1314,7 +1334,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), "dym hub balance did not change")
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {

@@ -237,7 +237,12 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -517,7 +522,12 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)

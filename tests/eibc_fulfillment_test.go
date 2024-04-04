@@ -173,7 +173,12 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -420,7 +425,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,

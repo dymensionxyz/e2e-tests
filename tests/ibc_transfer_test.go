@@ -153,7 +153,12 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 		},
 	)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -337,7 +342,12 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 		},
 	)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)

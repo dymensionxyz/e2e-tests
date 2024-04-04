@@ -175,7 +175,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	denommetadata, err := dymension.GetNode().QueryDenomMetadata(ctx, genesisCoin.Denom)
 	require.NoError(t, err)
 
-	require.Equal(t, denommetadata.Description, fmt.Sprintf("auto-generated metadata for %s from rollapp %s", genesisCoin.Denom, rollapp1.GetChainID()))
+	require.Equal(t, fmt.Sprintf("auto-generated metadata for %s from rollapp %s", genesisCoin.Denom, rollapp1.GetChainID()), denommetadata.Description)
 	require.Equal(t, denommetadata.Base, genesisCoin.Denom)
 	denomUnits := []cosmos.DenomUnit{
 		{
@@ -189,8 +189,8 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 			Aliases:  []string{},
 		},
 	}
-	require.Equal(t, denommetadata.DenomUnits, denomUnits)
-	require.Equal(t, denommetadata.Display, "rax")
-	require.Equal(t, denommetadata.Symbol, "URAX")
-	require.Equal(t, denommetadata.Name, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom))
+	require.Equal(t, denomUnits, denommetadata.DenomUnits)
+	require.Equal(t, "rax", denommetadata.Display)
+	require.Equal(t, "URAX", denommetadata.Symbol)
+	require.Equal(t, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom), denommetadata.Name)
 }

@@ -160,7 +160,12 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -379,7 +384,12 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	triggerHubGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser.KeyName())
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,

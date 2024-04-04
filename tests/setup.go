@@ -394,14 +394,20 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 	}
 }
 
-func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollappID, channelID, userKey string) {
+type rollappParam struct {
+	rollappID, channelID, userKey string
+}
+
+func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
 	ctx := context.Background()
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
-	registerGenesisEventTriggerer(t, dymension.CosmosChain, userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollappID, channelID, keyDir)
-	require.NoError(t, err)
+	for i, r := range rollapps {
+		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
+		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+		require.NoError(t, err)
+		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
+		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
+		require.NoError(t, err)
+	}
 }
 
 func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
@@ -427,5 +433,5 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 
 	new_params, err := targetChain.QueryParam(ctx, module, param)
 	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
+	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
 }
