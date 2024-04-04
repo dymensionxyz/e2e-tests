@@ -361,7 +361,8 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
-		}, {
+		},
+		{
 			Name:          "gaia",
 			Version:       "v15.1.0",
 			ChainConfig:   gaiaConfig,
