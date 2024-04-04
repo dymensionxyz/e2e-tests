@@ -180,10 +180,11 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
 
-	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channel.ChannelID, "--gas=auto")
+	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channsRollApp1[0].ChannelID, "--gas=auto")
 	require.NoError(t, err)
 
 	tx, err := dymension.GetTransaction(txHash)
@@ -232,12 +233,12 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	hubgenesisMAccAddr := hubgenesisMAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, hubgenesisMAccAddr, rollapp1.Config().Denom, genesisCoin.Amount)
 
-	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channsRollApp1[0].ChannelID)
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, rollapp1, hubgenesisMAccAddr, rollapp1.Config().Denom, sdk.ZeroInt())
 
-	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
+	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channsRollApp1[0].PortID, channsRollApp1[0].ChannelID)
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, genesisCoin.Amount)
