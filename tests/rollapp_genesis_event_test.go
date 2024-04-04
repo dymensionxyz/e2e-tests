@@ -184,7 +184,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channsRollApp1[0].ChannelID, "--gas=auto")
+	txHash, err := dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, "rollapp", "genesis-event", rollapp1.GetChainID(), channsRollApp1[0].Counterparty.ChannelID, "--gas=auto")
 	require.NoError(t, err)
 
 	tx, err := dymension.GetTransaction(txHash)
