@@ -180,7 +180,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	// IBC channel for rollapp
 	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
@@ -439,7 +439,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	var transferAmount = math.NewInt(1_000_000)
+	transferAmount := math.NewInt(1_000_000)
 
 	// IBC channel for rollapp
 	channsRollApp1, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
