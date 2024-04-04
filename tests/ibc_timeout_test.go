@@ -7,17 +7,19 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the hub times out.
@@ -158,13 +160,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	// Wait a few blocks for relayer to start
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
-
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -183,6 +179,9 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -380,12 +379,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
-	require.NoError(t, err)
-
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser.KeyName())
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -404,6 +398,12 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	// Stop relayer after relaying
 	err = r.StopRelayer(ctx, eRep)

@@ -7,6 +7,9 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -15,8 +18,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 // TestIBCGracePeriodCompliance ensures that the grace period for transaction finalization is correctly enforced on hub and rollapp.
@@ -169,7 +170,7 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, rollapp1)
 	require.NoError(t, err)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
@@ -382,7 +383,7 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})

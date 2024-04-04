@@ -7,6 +7,9 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
@@ -14,8 +17,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 const ibcPath = "dymension-demo"
@@ -152,7 +153,7 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 		},
 	)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -336,7 +337,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 		},
 	)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channel.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channel.ChannelID, dymensionUser.KeyName())
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)

@@ -9,6 +9,9 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -17,8 +20,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 const anotherIbcPath = "dymension-demo2"
@@ -184,7 +185,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(dymChannel), 1)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, dymChannel[0].ChannelID, dymensionUser.KeyName())
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -426,7 +427,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), dymChannel[0].ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, dymChannel[0].ChannelID, dymensionUser.KeyName())
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -743,7 +744,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymensionUser.KeyName())
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1150,7 +1151,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerGenesisEvent(t, dymension, rollapp1.GetChainID(), channDymRollApp1.ChannelID, dymensionUser)
+	triggerHubGenesisEvent(t, dymension, rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymensionUser.KeyName())
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)

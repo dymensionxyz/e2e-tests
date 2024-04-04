@@ -7,6 +7,9 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -15,8 +18,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 // TestRollappGenesisEvent_EVM ensure that genesis event triggered in both rollapp evm and dymension hub
@@ -128,7 +129,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	registerGenesisEventTriggerer(t, dymension, dymensionUser, "rollapp", "DeployerWhitelist")
+	registerGenesisEventTriggerer(t, dymension.CosmosChain, dymensionUser.KeyName(), dymensionUserAddr, "rollapp", "DeployerWhitelist")
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -153,7 +154,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, validatorAddr, genesisCoin.Denom, genesisCoin.Amount)
 
-	registerGenesisEventTriggerer(t, dymension, dymensionUser, "hubgenesis", "GenesisTriggererWhitelist")
+	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererWhitelist")
 
 	hubgenesisMAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "hubgenesis")
 	require.NoError(t, err)
