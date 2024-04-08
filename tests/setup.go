@@ -1,15 +1,21 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"testing"
 	"time"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/icza/dyno"
+	"github.com/stretchr/testify/require"
+
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/ibc"
 
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -386,4 +392,46 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 
 		return cosmos.ModifyGenesis(genesisKV)(chainConfig, outputGenBz)
 	}
+}
+
+type rollappParam struct {
+	rollappID, channelID, userKey string
+}
+
+func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
+	ctx := context.Background()
+	for i, r := range rollapps {
+		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
+		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+		require.NoError(t, err)
+		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
+		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
+		require.NoError(t, err)
+	}
+}
+
+func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
+	ctx := context.Background()
+	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
+	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
+		Title:       "Add new deployer to whitelist",
+		Description: "Add current user addr to the deployer whitelist",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
+		},
+		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
+	})
+	require.NoError(t, err)
+
+	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := targetChain.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	new_params, err := targetChain.QueryParam(ctx, module, param)
+	require.NoError(t, err)
+	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
 }
