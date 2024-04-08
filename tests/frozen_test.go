@@ -916,14 +916,16 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1327,14 +1329,19 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension)
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
