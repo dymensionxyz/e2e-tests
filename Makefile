@@ -71,13 +71,13 @@ e2e-test-rollapp-freeze-wasm:  clean-e2e
 e2e-test-other-rollapp-not-affected-wasm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
   
-e2e-test-dym-finalize-block-on-recv-packet:
+e2e-test-dym-finalize-block-on-recv-packet: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDymFinalizeBlock_OnRecvPacket .
 
-e2e-test-dym-finalize-block-on-timeout-packet:
+e2e-test-dym-finalize-block-on-timeout-packet: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDymFinalizeBlock_OnTimeOutPacket .
 
-e2e-test-dym-finalize-block-on-ack-packet:
+e2e-test-dym-finalize-block-on-ack-packet: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDymFinalizeBlock_OnAckPacket .
 
 # Executes all tests via rollup-e2e-testing
