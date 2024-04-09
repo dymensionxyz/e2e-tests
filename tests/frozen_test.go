@@ -916,6 +916,9 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
+	rollappHeight, err = rollapp2.Height(ctx)
+	require.NoError(t, err)
+
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
@@ -1329,7 +1332,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	rollappHeight, err = rollapp2.GetNode().Height(ctx)
+	rollappHeight, err = rollapp2.Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
