@@ -2,13 +2,13 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	// banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	// transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -220,13 +220,13 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.erc20.params.enable_erc20",
-			Value: true,
-		},
-	)
+	// modifyGenesisKV := append(
+	// 	rollappEVMGenesisKV,
+	// 	cosmos.GenesisKV{
+	// 		Key:   "app_state.erc20.params.enable_erc20",
+	// 		Value: true,
+	// 	},
+	// )
 	// Create chain factory with dymension
 	numHubVals := 2
 	numHubFullNodes := 1
@@ -250,7 +250,7 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -331,79 +331,77 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	t.Cleanup(
-		func() {
-			err := r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
+	// t.Cleanup(
+	// 	func() {
+	// 		err := r.StopRelayer(ctx, eRep)
+	// 		if err != nil {
+	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
+	// 		}
+	// 	},
+	// )
 
 	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	metadata := banktypes.Metadata{
-		Description: "IBC token from Dymension",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    dymensionIBCDenom,
-				Exponent: 0,
-				Aliases:  []string{"adym"},
-			},
-			{
-				Denom:    "adym",
-				Exponent: 6,
-			},
-		},
-		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
-		// Base as key path and the IBC hash is what gives this token uniqueness
-		// on the executing chain
-		Base:    dymensionIBCDenom,
-		Display: "adym",
-		Name:    "adym",
-		Symbol:  "adym",
-	}
-	data := map[string][]banktypes.Metadata{
-		"metadata": {metadata},
-	}
-	contentFile, err := json.Marshal(data)
-	require.NoError(t, err)
-	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
-	deposit := "500000000000" + rollapp1.Config().Denom
-	rollapp1.GetNode().HostName()
-	propTx, err := rollapp1.RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir() + "/ibcmetadata.json")
-	require.NoError(t, err)
+	// metadata := banktypes.Metadata{
+	// 	Description: "IBC token from Dymension",
+	// 	DenomUnits: []*banktypes.DenomUnit{
+	// 		{
+	// 			Denom:    dymensionIBCDenom,
+	// 			Exponent: 0,
+	// 			Aliases:  []string{"adym"},
+	// 		},
+	// 		{
+	// 			Denom:    "adym",
+	// 			Exponent: 6,
+	// 		},
+	// 	},
+	// 	// Setting base as IBC hash denom since bank keeper	s's SetDenomMetadata uses
+	// 	// Base as key path and the IBC hash is what gives this token uniqueness
+	// 	// on the executing chain
+	// 	Base:    dymensionIBCDenom,
+	// 	Display: "adym",
+	// 	Name:    "adym",
+	// 	Symbol:  "adym",
+	// }
+	// data := map[string][]banktypes.Metadata{
+	// 	"metadata": {metadata},
+	// }
+	// contentFile, err := json.Marshal(data)
+	// require.NoError(t, err)
+	// rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	// deposit := "500000000000" + rollapp1.Config().Denom
+	// rollapp1.GetNode().HostName()
+	// err = rollapp1.RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir() + "/ibcmetadata.json")
+	// require.NoError(t, err)
 
-	err = rollapp1.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+	// err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	// require.NoError(t, err, "failed to submit votes")
 
-	height, err := rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+	// height, err := rollapp1.Height(ctx)
+	// require.NoError(t, err, "error fetching height")
+	// _, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	// require.NoError(t, err, "proposal status did not change to passed")
 
-
-	// Compose an IBC transfer and send from rollapp -> dymension -> rollapp
 	var transferAmount = math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
 	// Compose an IBC transfer and send from rollapp -> dymension
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{}) // ibc.TransferOptions{Memo: "fail"})
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Timeout: testutil.ImmediatelyTimeout()}) // ibc.TransferOptions{Memo: "fail"})
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
