@@ -154,7 +154,7 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	IsAnyRollappStateFinalized(ctx, dymension, rollapp1.GetChainID(), 300)
+	_, err = IsAnyRollappStateFinalized(ctx, dymension, rollapp1.GetChainID(), 300)
 	require.NoError(t, err)
 
 	lastFinalizedRollappHeight, err := dymension.FinalizedRollappStateHeight(ctx, rollapp1.GetChainID())
@@ -296,7 +296,7 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	IsAnyRollappStateFinalized(ctx, dymension, rollapp1.GetChainID(), 300)
+	_, err = IsAnyRollappStateFinalized(ctx, dymension, rollapp1.GetChainID(), 300)
 	require.NoError(t, err)
 
 	lastFinalizedRollappHeight, err := dymension.FinalizedRollappStateHeight(ctx, rollapp1.GetChainID())
