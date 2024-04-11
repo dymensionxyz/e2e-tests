@@ -402,6 +402,12 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// IBC balance should not change
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
+
+	// Assert at least finalized state index surpass 2
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 }
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
@@ -786,6 +792,12 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// IBC balance should not change
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
+
+	// Assert at least finalized state index surpass 2
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 }
 
 // TestOtherRollappNotAffected_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1220,6 +1232,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+
+	// Assert at least finalized state index surpass 2
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1653,6 +1671,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+
+	// Assert at least finalized state index surpass 2
+	_, err = dymension.AssertFinalization(ctx, rollapp1.Config().ChainID, 2, 120)
+	require.NoError(t, err)
+	_, err = dymension.AssertFinalization(ctx, rollapp2.Config().ChainID, 2, 120)
+	require.NoError(t, err)
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
