@@ -39,7 +39,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 
 	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
 		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "100",
+		Value: "60",
 	})
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -324,7 +324,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -341,8 +341,13 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		require.True(t, dymBalance.Equal(zeroBal))
 		require.True(t, gaiaBalance.Equal(zeroBal))
 
-		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
@@ -652,7 +657,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -669,8 +674,13 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		require.True(t, dymBalance.Equal(zeroBal))
 		require.True(t, gaiaBalance.Equal(zeroBal))
 
-		err = testutil.WaitForBlocks(ctx, 100, rollapp1)
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)

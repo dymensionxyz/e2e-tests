@@ -206,8 +206,13 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Stop relayer after relaying
 	err = r.StopRelayer(ctx, eRep)
@@ -242,14 +247,17 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
-	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
@@ -449,8 +457,13 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Stop relayer after relaying
 	err = r.StopRelayer(ctx, eRep)
@@ -485,14 +498,17 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 5, rollapp1)
-	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
