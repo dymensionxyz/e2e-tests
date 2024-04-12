@@ -178,6 +178,30 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	require.NoError(t, err)
+
+	r2.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -479,6 +503,30 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	require.NoError(t, err)
+
+	r2.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())

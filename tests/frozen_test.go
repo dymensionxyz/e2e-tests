@@ -46,6 +46,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -304,6 +305,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -395,6 +397,24 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
@@ -544,6 +564,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -553,6 +574,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappevm_12345-1"
 	dymintTomlOverrides2["gas_prices"] = "0adym"
+	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -696,6 +718,27 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	s.UpdateClients(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
@@ -979,6 +1022,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -988,6 +1032,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappwasm_12345-1"
 	dymintTomlOverrides2["gas_prices"] = "0adym"
+	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -1134,6 +1179,24 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	s.UpdateClients(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	// Start both relayers
