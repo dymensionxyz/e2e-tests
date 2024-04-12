@@ -19,8 +19,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-const ibcPath = "dymension-demo"
-
 // TestIBCTransferSuccess ensure that the transfer between Hub and Rollapp is accurate.
 func TestIBCTransferSuccess_EVM(t *testing.T) {
 	if testing.Short() {
@@ -323,7 +321,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 	require.NoError(t, err)
 
-	err = r.CreateClients(ctx, eRep, pathHubToRollApp, ibc.DefaultClientOpts())
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 30, dymension)

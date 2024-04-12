@@ -22,8 +22,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-const anotherIbcPath = "dymension-demo2"
-
 var dymModifyGenesisKV = append(
 	dymensionGenesisKV,
 	cosmos.GenesisKV{

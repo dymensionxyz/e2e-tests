@@ -110,13 +110,13 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
-			Path:    pathHubToRollApp,
+			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  gaia,
 			Relayer: r2,
-			Path:    pathDymToGaia,
+			Path:    ibcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -184,10 +184,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
+	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -372,13 +372,13 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
-			Path:    pathHubToRollApp,
+			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  gaia,
 			Relayer: r2,
-			Path:    pathDymToGaia,
+			Path:    ibcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -446,10 +446,10 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
+	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(

@@ -111,7 +111,6 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer", network)
 
-	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
@@ -353,7 +352,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer", network)
-	const ibcPath = "ibc-path"
+
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
