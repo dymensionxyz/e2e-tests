@@ -747,6 +747,9 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
 	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -1216,6 +1219,9 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
 
 	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())

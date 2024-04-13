@@ -175,6 +175,9 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	err = r2.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -471,6 +474,9 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r2.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
