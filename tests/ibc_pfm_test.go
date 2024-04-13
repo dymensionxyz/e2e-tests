@@ -308,6 +308,9 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
+		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
