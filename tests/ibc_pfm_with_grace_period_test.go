@@ -175,6 +175,9 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -509,6 +512,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())

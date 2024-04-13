@@ -126,6 +126,9 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -344,8 +347,30 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+
+	// done := make(chan bool)
+	// go func() {
+	// 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	// 	require.NoError(t, err)
+
+	// 	done <- true
+	// }()
+
+	// select {
+	// case <-done:
+	// 	fmt.Println("Channel created")
+	// case <-time.After(1 * time.Minute):
+	// 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	// 	require.NoError(t, err)
+	// }
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
