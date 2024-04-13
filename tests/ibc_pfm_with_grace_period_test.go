@@ -349,6 +349,9 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
+		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		require.NoError(t, err)
+
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 		require.True(t, gaiaBalance.Equal(transferAmount))
@@ -372,7 +375,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
 		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "100",
+		Value: "60",
 	})
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -681,6 +684,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		require.NoError(t, err)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
