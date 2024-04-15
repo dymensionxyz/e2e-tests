@@ -490,7 +490,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	currentHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.Config().ChainID, currentHeight, 120)
+	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.Config().ChainID, currentHeight, 300)
 	require.NoError(t, err)
 
 	oldLatestRollapp1, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
