@@ -38,6 +38,9 @@ type ForwardMetadata struct {
 	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
 }
 
+const ibcPath = "dymension-demo"
+const anotherIbcPath = "dymension-demo2"
+
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
@@ -111,10 +114,6 @@ var (
 		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
-
-	// IBC Path
-	pathHubToRollApp = "hub-path"
-	pathDymToGaia    = "dym-gaia"
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
@@ -436,7 +435,7 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
 }
 
-func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices string) map[string]any {
+func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices, emptyBlocksMaxTime string) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -444,6 +443,7 @@ func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices s
 	dymintTomlOverrides["node_address"] = node_address
 	dymintTomlOverrides["rollapp_id"] = rollappId
 	dymintTomlOverrides["gas_prices"] = gas_prices
+	dymintTomlOverrides["empty_blocks_max_time"] = emptyBlocksMaxTime
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
