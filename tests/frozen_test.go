@@ -141,26 +141,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, r, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
@@ -402,29 +383,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, r, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 
 	// Start relayer
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -708,50 +667,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, r, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
 
-	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	s.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, s, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
@@ -1182,50 +1103,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, r, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
 
-	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	s.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	SetupRelayer(ctx, t, eRep, dymension, s, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
 
 	// Start both relayers
 	err = r.StartRelayer(ctx, eRep, ibcPath)

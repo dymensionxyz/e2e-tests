@@ -16,6 +16,8 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/testreporter"
+	"github.com/decentrio/rollup-e2e-testing/testutil"
 
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -403,6 +405,10 @@ func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ..
 		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 30, dymension)
+		require.NoError(t, err)
+
 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
 		require.NoError(t, err)
@@ -433,4 +439,27 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	new_params, err := targetChain.QueryParam(ctx, module, param)
 	require.NoError(t, err)
 	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
+}
+
+func SetupRelayer(ctx context.Context, t *testing.T, eRep *testreporter.RelayerExecReporter, dymension *dym_hub.DymHub, r ibc.Relayer, chainAID, chainBID, path string) {
+	err := r.GeneratePath(ctx, eRep, chainAID, chainBID, path)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, path, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, path)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, path)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, path, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 }
