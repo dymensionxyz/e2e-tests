@@ -38,6 +38,9 @@ type ForwardMetadata struct {
 	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
 }
 
+const ibcPath = "dymension-demo"
+const anotherIbcPath = "dymension-demo2"
+
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
@@ -111,10 +114,6 @@ var (
 		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
-
-	// IBC Path
-	pathHubToRollApp = "hub-path"
-	pathDymToGaia    = "dym-gaia"
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
