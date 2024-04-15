@@ -875,12 +875,17 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	rollapp := rollappParam{
+	triggerHubGenesisEvent(t, dymension, rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channDymRollApp1.ChannelID,
 		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	})
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
+		rollappID: rollapp2.Config().ChainID,
+		channelID: channDymRollApp2.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -930,10 +935,10 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
@@ -1251,7 +1256,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
-  
+
 	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -1342,12 +1347,17 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	rollapp := rollappParam{
+	triggerHubGenesisEvent(t, dymension, rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channDymRollApp1.ChannelID,
 		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	})
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
+		rollappID: rollapp2.Config().ChainID,
+		channelID: channDymRollApp2.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1396,10 +1406,10 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		}
 	}
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
