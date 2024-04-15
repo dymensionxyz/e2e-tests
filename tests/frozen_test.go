@@ -984,6 +984,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 40, dymension)
 	require.NoError(t, err)
 
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
 	require.NoError(t, err)
@@ -1251,7 +1256,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
-
+  
 	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -1449,6 +1454,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Wait a few blocks
 	err = testutil.WaitForBlocks(ctx, 40, dymension)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
