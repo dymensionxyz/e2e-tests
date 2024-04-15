@@ -33,6 +33,9 @@ jobs:
           - "e2e-test-rollapp-freeze-evm"
           - "e2e-test-other-rollapp-not-affected-evm"
           - "e2e-test-rollapp-genesis-event-evm"
+          - "e2e-test-dym-finalize-block-on-recv-packet"
+	        - "e2e-test-dym-finalize-block-on-timeout-packet"
+	        - e2e-test-dym-finalize-block-on-ack-packet
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
