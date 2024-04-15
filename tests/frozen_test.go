@@ -33,13 +33,385 @@ var dymModifyGenesisKV = append(
 var extraFlags = map[string]interface{}{"genesis-accounts-path": true}
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
+// func TestRollAppFreeze_EVM(t *testing.T) {
+// 	if testing.Short() {
+// 		t.Skip()
+// 	}
+
+// 	ctx := context.Background()
+
+// 	// setup config for rollapp 1
+// 	settlement_layer_rollapp1 := "dymension"
+// 	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+// 	rollapp1_id := "rollappevm_1234-1"
+// 	gas_price_rollapp1 := "0adym"
+// 	emptyBlocksMaxTime := "3s"
+// 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
+	
+// 	// setup config for rollapp 2
+// 	settlement_layer_rollapp2 := "dymension"
+// 	rollapp2_id := "rollappevm_12345-1"
+// 	gas_price_rollapp2 := "0adym"
+// 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
+	
+// 	// Create chain factory with dymension
+// 	numHubVals := 1
+// 	numHubFullNodes := 1
+// 	numRollAppFn := 0
+// 	numRollAppVals := 1
+
+// 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+// 		{
+// 			Name: "rollapp1",
+// 			ChainConfig: ibc.ChainConfig{
+// 				Type:                "rollapp-dym",
+// 				Name:                "rollapp-temp1",
+// 				ChainID:             "rollappevm_1234-1",
+// 				Images:              []ibc.DockerImage{rollappEVMImage},
+// 				Bin:                 "rollappd",
+// 				Bech32Prefix:        "ethm",
+// 				Denom:               "urax",
+// 				CoinType:            "60",
+// 				GasPrices:           "0.0urax",
+// 				GasAdjustment:       1.1,
+// 				TrustingPeriod:      "112h",
+// 				EncodingConfig:      encodingConfig(),
+// 				NoHostMount:         false,
+// 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+// 				ConfigFileOverrides: configFileOverrides1,
+// 			},
+// 			NumValidators: &numRollAppVals,
+// 			NumFullNodes:  &numRollAppFn,
+// 		},
+// 		{
+// 			Name: "rollapp2",
+// 			ChainConfig: ibc.ChainConfig{
+// 				Type:                "rollapp-dym",
+// 				Name:                "rollapp-temp2",
+// 				ChainID:             "rollappevm_12345-1",
+// 				Images:              []ibc.DockerImage{rollappEVMImage},
+// 				Bin:                 "rollappd",
+// 				Bech32Prefix:        "ethm",
+// 				Denom:               "urax",
+// 				CoinType:            "60",
+// 				GasPrices:           "0.0urax",
+// 				GasAdjustment:       1.1,
+// 				TrustingPeriod:      "112h",
+// 				EncodingConfig:      encodingConfig(),
+// 				NoHostMount:         false,
+// 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+// 				ConfigFileOverrides: configFileOverrides2,
+// 			},
+// 			NumValidators: &numRollAppVals,
+// 			NumFullNodes:  &numRollAppFn,
+// 		},
+// 		{
+// 			Name: "dymension-hub",
+// 			ChainConfig: ibc.ChainConfig{
+// 				Type:                "hub-dym",
+// 				Name:                "dymension",
+// 				ChainID:             "dymension_100-1",
+// 				Images:              []ibc.DockerImage{dymensionImage},
+// 				Bin:                 "dymd",
+// 				Bech32Prefix:        "dym",
+// 				Denom:               "adym",
+// 				CoinType:            "118",
+// 				GasPrices:           "0.0adym",
+// 				EncodingConfig:      encodingConfig(),
+// 				GasAdjustment:       1.1,
+// 				TrustingPeriod:      "112h",
+// 				NoHostMount:         false,
+// 				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+// 				ConfigFileOverrides: nil,
+// 			},
+// 			NumValidators: &numHubVals,
+// 			NumFullNodes:  &numHubFullNodes,
+// 			ExtraFlags:    extraFlags,
+// 		},
+// 	})
+
+// 	// Get chains from the chain factory
+// 	chains, err := cf.Chains(t.Name())
+// 	require.NoError(t, err)
+
+// 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+// 	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+// 	dymension := chains[2].(*dym_hub.DymHub)
+
+// 	// Relayer Factory
+// 	client, network := test.DockerSetup(t)
+// 	// relayer for rollapp 1
+// 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+// 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+// 	).Build(t, client, "relayer1", network)
+// 	// relayer for rollapp 2
+// 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+// 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+// 	).Build(t, client, "relayer2", network)
+
+// 	ic := test.NewSetup().
+// 		AddRollUp(dymension, rollapp1, rollapp2).
+// 		AddRelayer(r1, "relayer1").
+// 		AddRelayer(r2, "relayer2").
+// 		AddLink(test.InterchainLink{
+// 			Chain1:  dymension,
+// 			Chain2:  rollapp1,
+// 			Relayer: r1,
+// 			Path:    ibcPath,
+// 		}).
+// 		AddLink(test.InterchainLink{
+// 			Chain1:  dymension,
+// 			Chain2:  rollapp2,
+// 			Relayer: r2,
+// 			Path:    anotherIbcPath,
+// 		})
+
+// 	rep := testreporter.NewNopReporter()
+// 	eRep := rep.RelayerExecReporter(t)
+
+// 	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+// 		TestName:         t.Name(),
+// 		Client:           client,
+// 		NetworkID:        network,
+// 		SkipPathCreation: true,
+
+// 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+// 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+// 	})
+// 	require.NoError(t, err)
+	
+// 	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+// 	require.NoError(t, err)
+// 	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
+// 	require.NoError(t, err)
+
+// 	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+// 	require.NoError(t, err)
+// 	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+// 	require.NoError(t, err)
+
+// 	err = testutil.WaitForBlocks(ctx, 30, dymension)
+// 	require.NoError(t, err)
+
+// 	r1.UpdateClients(ctx, eRep, ibcPath)
+// 	require.NoError(t, err)
+// 	r2.UpdateClients(ctx, eRep, anotherIbcPath)
+// 	require.NoError(t, err)
+
+// 	err = r1.CreateConnections(ctx, eRep, ibcPath)
+// 	require.NoError(t, err)
+// 	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
+// 	require.NoError(t, err)
+
+// 	err = testutil.WaitForBlocks(ctx, 10, dymension)
+// 	require.NoError(t, err)
+
+// 	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+// 	require.NoError(t, err)
+// 	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+// 	require.NoError(t, err)
+
+// 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
+// 	require.NoError(t, err)
+
+// 	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), 5, 1)
+// 	// require.NoError(t, err)
+
+// 	// Start both relayers
+// 	err = r1.StartRelayer(ctx, eRep, ibcPath)
+// 	require.NoError(t, err)
+
+// 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+// 	require.NoError(t, err)
+
+// 	t.Cleanup(
+// 		func() {
+// 			err = r1.StopRelayer(ctx, eRep)
+// 			if err != nil {
+// 				t.Logf("an error occurred while stopping the relayer: %s", err)
+// 			}
+		
+// 			err = r2.StopRelayer(ctx, eRep)
+// 			if err != nil {
+// 				t.Logf("an error occurred while stopping the relayer: %s", err)
+// 			}
+// 		},
+// 	)
+
+// 	walletAmount := math.NewInt(1_000_000_000_000)
+
+// 	// Create some user accounts on both chains
+// 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
+
+// 	// Wait a few blocks for relayer to start and for user accounts to be created
+// 	// err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1, rollapp2)
+// 	// require.NoError(t, err)
+// 	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), 3, 1)
+// 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+// 	require.NoError(t, err)
+
+// 	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), 3, 1)
+// 	// require.NoError(t, err)
+
+// 	// Get our Bech32 encoded user addresses
+// 	dymensionUser, rollappUser := users[0], users[1]
+
+// 	dymensionUserAddr := dymensionUser.FormattedAddress()
+// 	rollappUserAddr := rollappUser.FormattedAddress()
+
+// 	// Wait a few blocks for relayer to start and for user accounts to be created
+// 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+// 	require.NoError(t, err)
+
+// 	dym1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, 1, len(dym1Channel))
+
+// 	dym2Channel, err := r2.GetChannels(ctx, eRep, rollapp2.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, 1, len(dym2Channel))
+
+// 	rollapp1Pram := rollappParam{
+// 		rollappID: rollapp1.Config().ChainID,
+// 		channelID: dym1Channel[0].Counterparty.ChannelID,
+// 		userKey:   dymensionUser.KeyName(),
+// 	}
+
+// 	rollapp2Pram := rollappParam{
+// 		rollappID: rollapp2.Config().ChainID,
+// 		channelID: dym2Channel[0].Counterparty.ChannelID,
+// 		userKey:   dymensionUser.KeyName(),
+// 	}
+// 	triggerHubGenesisEvent(t, dymension, []rollappParam{rollapp1Pram, rollapp2Pram}...)
+
+// 	oldLatestRollapp1, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
+// 	require.NoError(t, err)
+
+// 	oldLatestRollapp2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
+// 	require.NoError(t, err)
+
+// 	var fraudHeight string
+// 	var fraudProposer string
+
+// 	// Loop until the latest index updates
+// 	for {
+// 		res, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, false)
+// 		require.NoError(t, err)
+
+// 		latestIndex := res.StateInfo.StateInfoIndex.Index
+// 		parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
+// 		require.NoError(t, err)
+
+// 		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
+// 			fraudHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+// 			fraudProposer = res.StateInfo.Sequencer
+// 			break
+// 		}
+// 	}
+
+// 	dymClients, err := r1.GetClients(ctx, eRep, dymension.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, len(dymClients), 2)
+
+// 	var rollapp1ClientOnDym string
+
+// 	for _, client := range dymClients {
+// 		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+// 			rollapp1ClientOnDym = client.ClientID
+// 		}
+// 	}
+
+// 	propTx, err := dymension.SubmitFraudProposal(
+// 		ctx, dymensionUser.KeyName(),
+// 		rollapp1.Config().ChainID,
+// 		fraudHeight,
+// 		fraudProposer,
+// 		rollapp1ClientOnDym,
+// 		"fraud",
+// 		"fraud",
+// 		"500000000000"+dymension.Config().Denom,
+// 	)
+// 	require.NoError(t, err)
+
+// 	err = dymension.VoteOnProposalAllValidators(ctx, "3", cosmos.ProposalVoteYes)
+// 	require.NoError(t, err, "failed to submit votes")
+
+// 	height, err := dymension.Height(ctx)
+// 	require.NoError(t, err, "error fetching height")
+// 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+// 	require.NoError(t, err, "proposal status did not change to passed")
+
+// 	// Wait a few blocks for the gov to pass and to verify if the state index increment
+// 	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+// 	require.NoError(t, err)
+
+// 	// Check if rollapp has frozen or not
+// 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+
+// 	// Check rollapp1 state index not increment
+// 	latestIndex, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, latestIndex, oldLatestRollapp1, "rollapp state index still increment")
+
+// 	// Check rollapp2 state index still increment
+// 	latestIndex2, err := dymension.FinalizedRollappStateIndex(ctx, rollapp2.Config().ChainID)
+// 	require.NoError(t, err)
+// 	require.Equal(t, latestIndex2 > oldLatestRollapp2, true, "rollapp2 state index did not increment")
+
+// 	// Compose an IBC transfer and send from dymension -> rollapp
+// 	transferAmount := math.NewInt(1_000_000)
+ 
+// 	transferData := ibc.WalletData{
+// 		Address: rollappUserAddr,
+// 		Denom:   dymension.Config().Denom,
+// 		Amount:  transferAmount,
+// 	}
+
+// 	// IBC Transfer not working
+// 	channel1, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+// 	require.NoError(t, err)
+
+// 	err = dymension.IBCTransfer(ctx,
+// 		dymension, rollapp1, transferAmount, dymensionUserAddr,
+// 		rollappUserAddr, r1, ibcPath, channel1,
+// 		eRep, ibc.TransferOptions{})
+// 	println("check error:", err.Error())
+// 	require.Error(t, err)
+// 	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
+
+// 	// Get the IBC denom
+// 	rollapp1Denom := transfertypes.GetPrefixedDenom(dym1Channel[0].Counterparty.PortID, dym1Channel[0].Counterparty.ChannelID, rollapp1.Config().Denom)
+// 	rollapp1IbcDenom := transfertypes.ParseDenomTrace(rollapp1Denom).IBCDenom()
+
+// 	// Get origin dym hub ibc denom balance
+// 	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+// 	require.NoError(t, err)
+
+// 	_, err = rollapp1.SendIBCTransfer(ctx, dym1Channel[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+// 	require.NoError(t, err)
+
+// 	err = testutil.WaitForBlocks(ctx, 20, dymension)
+// 	require.NoError(t, err)
+
+// 	// Get updated dym hub ibc denom balance
+// 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+// 	require.NoError(t, err)
+
+// 	// IBC balance should not change
+// 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
+
+// 	// Assert at least finalized state index surpass 2
+// 	dymension.AssertFinalization(t, ctx, rollapp1.Config().Name, 2)
+// 	dymension.AssertFinalization(t, ctx, rollapp2.Config().Name, 2)
+// }
+
 func TestRollAppFreeze_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-
 	ctx := context.Background()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -47,7 +419,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	emptyBlocksMaxTime := "3s"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
-	
+
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappevm_12345-1"
@@ -59,7 +431,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
-
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -104,7 +475,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
-		},
+		},		
 		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
@@ -129,15 +500,12 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			ExtraFlags:    extraFlags,
 		},
 	})
-
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
-
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
 	dymension := chains[2].(*dym_hub.DymHub)
-
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
@@ -168,18 +536,15 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
-
 	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
-	
 	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 	require.NoError(t, err)
 	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
@@ -213,14 +578,9 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
-
-	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), 5, 1)
-	// require.NoError(t, err)
-
-	// Start both relayers
+	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
@@ -237,218 +597,126 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			}
 		},
 	)
-
 	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
-
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 	// Wait a few blocks for relayer to start and for user accounts to be created
-	// err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1, rollapp2)
-	// require.NoError(t, err)
-	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), 3, 1)
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
-
-	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), 3, 1)
-	// require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
-
+	dymensionUser, rollapp1User := users[0], users[1]
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollapp1UserAddr := rollapp1User.FormattedAddress()
-	rollapp2UserAddr := rollapp2User.FormattedAddress()
-
 	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+	require.NoError(t, err)
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencer1Addr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir1)
+	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, rollApp1Channel, 1)
 
-	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
-	sequencer2Addr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir2)
+	channDymRollApp1 := rollApp1Channel[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	dymChannel, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
+	require.Equal(t, 2, len(dymChannel))
 
-	dym1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(dym1Channel))
-
-	dym2Channel, err := r2.GetChannels(ctx, eRep, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(dym2Channel))
-
-	rollapp1Pram := rollappParam{
+	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: dym1Channel[0].Counterparty.ChannelID,
+		channelID: dymChannel[0].ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
-
-	rollapp2Pram := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: dym2Channel[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, []rollappParam{rollapp1Pram, rollapp2Pram}...)
-
-	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), 3, 1)
-	// require.NoError(t, err)
-
-	// _, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), 3, 1)
-	// require.NoError(t, err)
-
-	oldLatestIndex1, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+	triggerHubGenesisEvent(t, dymension, rollapp)
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-
-	oldLatestIndex2, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-
 	// Access the index value
-	index1 := oldLatestIndex1.StateIndex.Index
-	uintIndex1, err := strconv.ParseUint(index1, 10, 64)
+	index := oldLatestIndex.StateIndex.Index
+	uintIndex, err := strconv.ParseUint(index, 10, 64)
 	require.NoError(t, err)
-
-	index2 := oldLatestIndex2.StateIndex.Index
-	uintIndex2, err := strconv.ParseUint(index2, 10, 64)
-	require.NoError(t, err)
-
-	targetIndex1 := uintIndex1 + 1
-	targetIndex2 := uintIndex2 + 1
-
-	// Loop until the latest index updates for both roll app
-	// roll app 1
+	targetIndex := uintIndex + 1
+	// Loop until the latest index updates
 	for {
-		oldLatestIndex1, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 		require.NoError(t, err)
-
-		index1 := oldLatestIndex1.StateIndex.Index
-		uintIndex1, err := strconv.ParseUint(index1, 10, 64)
-
+		index := oldLatestIndex.StateIndex.Index
+		uintIndex, err := strconv.ParseUint(index, 10, 64)
 		require.NoError(t, err)
-		if uintIndex1 >= targetIndex1 {
+		if uintIndex >= targetIndex {
 			break
 		}
 	}
-	// roll app 2
-	for {
-		oldLatestIndex2, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
-		require.NoError(t, err)
-
-		index2 := oldLatestIndex2.StateIndex.Index
-		uintIndex2, err := strconv.ParseUint(index2, 10, 64)
-
-		require.NoError(t, err)
-		if uintIndex2 >= targetIndex2 {
-			break
-		}
-	}
-
-	rollapp1Height, err := rollapp1.Height(ctx)
+	rollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
-
-	rollapp2Height, err := rollapp2.Height(ctx)
-	require.NoError(t, err)
-
 	rollapp1Clients, err := r1.GetClients(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rollapp1Clients))
-
-	rollapp2Clients, err := r2.GetClients(ctx, eRep, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(rollapp2Clients))
-
 	_, err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
 		rollapp1.Config().ChainID,
-		fmt.Sprint(rollapp1Height-2),
-		sequencer1Addr,
+		fmt.Sprint(rollappHeight-2),
+		sequencerAddr,
 		rollapp1Clients[0].ClientID,
 		"fraud",
 		"fraud",
 		"500000000000"+dymension.Config().Denom,
 	)
 	require.NoError(t, err)
-
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
-
-	_, err = dymension.SubmitFraudProposal(
-		ctx, dymensionUser.KeyName(),
-		rollapp2.Config().ChainID,
-		fmt.Sprint(rollapp2Height-2),
-		sequencer2Addr,
-		rollapp2Clients[0].ClientID,
-		"fraud",
-		"fraud",
-		"500000000000"+dymension.Config().Denom,
-	)
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, "3", cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
-
-	// Check if rollapp1 and rollapp2 have frozen or not
-	rollapp1Params, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
+	// Check if rollapp has frozen or not
+	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, true, rollapp1Params.Rollapp.Frozen, "rollapp1 does not frozen")
-
-	rollapp2Params, err := dymension.QueryRollappParams(ctx, rollapp2.Config().ChainID)
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
+	// Check rollapp state index not increment
+	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, true, rollapp2Params.Rollapp.Frozen, "rollapp2 does not frozen")
-
-	// Check rollapp1 and rollapp2 state index not increment
-	latestIndex1, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, fmt.Sprint(targetIndex1), latestIndex1.StateIndex.Index, "rollapp1 state index still increment")
-
-	latestIndex2, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, fmt.Sprint(targetIndex2), latestIndex2.StateIndex.Index, "rollapp2 state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// IBC Transfer not working
-	channel1, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	channel2, err := ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from dymension -> rollapp1
+	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
 
-	err = dymension.IBCTransfer(ctx,
-		dymension, rollapp1, transferAmount, dymensionUserAddr,
-		rollapp1UserAddr, r1, ibcPath, channel1,
-		eRep, ibc.TransferOptions{})
+	transferDataDym2RollApp := ibc.WalletData{
+		Address: rollapp1UserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataDym2RollApp, ibc.TransferOptions{})
 	require.Error(t, err)
 	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
-	// Compose an IBC transfer and send from rollapp1 -> dymension
-	err = rollapp1.IBCTransfer(ctx,
-		rollapp1, dymension, transferAmount, rollapp1UserAddr,
-		dymensionUserAddr, r1, ibcPath, channel1,
-		eRep, ibc.TransferOptions{})
-	require.Error(t, err)
+	// Get the IBC denom
+	rollapp1Denom := transfertypes.GetPrefixedDenom(dymChannel[0].Counterparty.PortID, dymChannel[0].Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollapp1IbcDenom := transfertypes.ParseDenomTrace(rollapp1Denom).IBCDenom()
 
-	// Compose an IBC transfer and send from dymension -> rollapp2
-	err = dymension.IBCTransfer(ctx,
-		dymension, rollapp2, transferAmount, dymensionUserAddr,
-		rollapp2UserAddr, r2, anotherIbcPath, channel2,
-		eRep, ibc.TransferOptions{})
-	require.Error(t, err)
-	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
+	// Get origin dym hub ibc denom balance
+	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
 
-	// Compose an IBC transfer and send from rollapp2 -> dymension
-	err = rollapp2.IBCTransfer(ctx,
-		rollapp2, dymension, transferAmount, rollapp2UserAddr,
-		dymensionUserAddr, r2, anotherIbcPath, channel2,
-		eRep, ibc.TransferOptions{})
-	require.Error(t, err)
+	// Compose an IBC transfer and send from rollapp -> dymension
+	transferDataRollApp2Dym := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferDataRollApp2Dym, ibc.TransferOptions{})
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	require.NoError(t, err)
+
+	// Get updated dym hub ibc denom balance
+	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
+
+	// IBC balance should not change
+	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
 }
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
