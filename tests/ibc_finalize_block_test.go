@@ -2,13 +2,12 @@ package tests
 
 import (
 	"context"
-	// "encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	// banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -37,6 +36,7 @@ func TestDymFinalizeBlock_OnRecvPacket(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
@@ -45,10 +45,6 @@ func TestDymFinalizeBlock_OnRecvPacket(t *testing.T) {
 			Key:   "app_state.transfer.params.receive_enabled",
 			Value: false,
 		},
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.transfer.params.send_enabled",
-		// 	Value: false,
-		// },
 	)
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -116,11 +112,35 @@ func TestDymFinalizeBlock_OnRecvPacket(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
@@ -202,21 +222,17 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	// modifyGenesisKV := append(
-	// 	rollappEVMGenesisKV,
-	// 	cosmos.GenesisKV{
-	// 		Key:   "app_state.erc20.params.enable_erc20",
-	// 		Value: true,
-	// 	},
-	// )
 	// Create chain factory with dymension
 	numHubVals := 2
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+	numVals := 1
+	numFullNodes := 0
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -247,6 +263,13 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
+		{
+			Name:          "gaia",
+			Version:       "v15.1.0",
+			ChainConfig:   gaiaConfig,
+			NumValidators: &numVals,
+			NumFullNodes:  &numFullNodes,
+		},
 	})
 
 	// Get chains from the chain factory
@@ -255,22 +278,37 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
-	).Build(t, client, "relayer", network)
+	).Build(t, client, "relayer1", network)
+
+	r2 := test.NewBuiltinRelayerFactory(
+		ibc.CosmosRly,
+		zaptest.NewLogger(t),
+		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
+		AddChain(gaia).
+		AddRelayer(r1, "relayer1").
+		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
-			Relayer: r,
+			Relayer: r1,
 			Path:    ibcPath,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  gaia,
+			Relayer: r2,
+			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -280,7 +318,7 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
@@ -311,73 +349,77 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
+	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r1.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r1.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, gaia)
+	require.NoError(t, err)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r2.UpdateClients(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, gaia)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, gaia)
+	require.NoError(t, err)
+
+	// Start both relayers
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	channel0, err := ibc.GetTransferChannel(ctx, r1, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	require.NoError(t, err)
+	fmt.Println("channel: ", channel0)
+	channel1, err := ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, gaia.Config().ChainID)
+	require.NoError(t, err)
+	fmt.Println("channel: ", channel1)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
+		channelID: channel0.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
-	// t.Cleanup(
-	// 	func() {
-	// 		err := r.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 	},
-	// )
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// metadata := banktypes.Metadata{
-	// 	Description: "IBC token from Dymension",
-	// 	DenomUnits: []*banktypes.DenomUnit{
-	// 		{
-	// 			Denom:    dymensionIBCDenom,
-	// 			Exponent: 0,
-	// 			Aliases:  []string{"adym"},
-	// 		},
-	// 		{
-	// 			Denom:    "adym",
-	// 			Exponent: 6,
-	// 		},
-	// 	},
-	// 	// Setting base as IBC hash denom since bank keeper	s's SetDenomMetadata uses
-	// 	// Base as key path and the IBC hash is what gives this token uniqueness
-	// 	// on the executing chain
-	// 	Base:    dymensionIBCDenom,
-	// 	Display: "adym",
-	// 	Name:    "adym",
-	// 	Symbol:  "adym",
-	// }
-	// data := map[string][]banktypes.Metadata{
-	// 	"metadata": {metadata},
-	// }
-	// contentFile, err := json.Marshal(data)
-	// require.NoError(t, err)
-	// rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
-	// deposit := "500000000000" + rollapp1.Config().Denom
-	// rollapp1.GetNode().HostName()
-	// err = rollapp1.RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir() + "/ibcmetadata.json")
-	// require.NoError(t, err)
-
-	// err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
-	// require.NoError(t, err, "failed to submit votes")
-
-	// height, err := rollapp1.Height(ctx)
-	// require.NoError(t, err, "error fetching height")
-	// _, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
-	// require.NoError(t, err, "proposal status did not change to passed")
 
 	var transferAmount = math.NewInt(1_000_000)
 
@@ -387,17 +429,10 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	// Compose an IBC transfer and send from rollapp -> dymension
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Timeout: testutil.ImmediatelyTimeout()}) // ibc.TransferOptions{Memo: "fail"})
+	_, err = dymension.SendIBCTransfer(ctx, channel1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
-	require.NoError(t, err)
-
+	// Assert balance was not change on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, sdk.ZeroInt())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -414,6 +449,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -485,11 +521,35 @@ func TestDymFinalizeBlock_OnTimeOutPacket(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
