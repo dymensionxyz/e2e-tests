@@ -463,10 +463,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
-
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(dymChannel))
@@ -491,16 +487,30 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	targetIndex := uintIndex + 1
 
-	// Loop until the latest index updates
+	currentHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.Config().ChainID, currentHeight, 120)
+	require.NoError(t, err)
+
+	oldLatestRollapp1, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	var fraudHeight string
+	var fraudProposer string
+
+	// Loop until the next pending state index appears
 	for {
-		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+		res, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, false)
 		require.NoError(t, err)
 
-		index := oldLatestIndex.StateIndex.Index
-		uintIndex, err := strconv.ParseUint(index, 10, 64)
-
+		latestIndex := res.StateInfo.StateInfoIndex.Index
+		parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
 		require.NoError(t, err)
-		if uintIndex >= targetIndex {
+
+		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
+			fraudHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
+			fraudProposer = res.StateInfo.Sequencer
 			break
 		}
 	}
@@ -510,19 +520,41 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	t.Log("deposit:", deposit)
 
-	rollappHeight, err := rollapp1.Height(ctx)
+	var rollapp1ClientOnDym string
+
+	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(dymClients), 1)
+
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			rollapp1ClientOnDym = client.ClientID
+		}
+	}
+
+	propTx, err := dymension.SubmitFraudProposal(
+		ctx, dymensionUser.KeyName(),
+		rollapp1.Config().ChainID,
+		fraudHeight,
+		fraudProposer,
+		rollapp1ClientOnDym,
+		submitFraudStr,
+		submitFraudStr,
+		deposit,
+	)
 	require.NoError(t, err)
 
-	fraudHeight := fmt.Sprint(rollappHeight - 2)
-
-	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Check if rollapp has frozen or not
@@ -531,9 +563,9 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
-	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+	latestFinalizedIndex, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, "2", latestIndex.StateIndex.Index, "rollapp state index still increment")
+	require.Equal(t, targetIndex, latestFinalizedIndex, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -948,13 +980,9 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 40, dymension)
 	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -996,7 +1024,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1418,13 +1446,9 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 40, dymension)
 	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1466,7 +1490,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
