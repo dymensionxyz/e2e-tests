@@ -8,19 +8,19 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
-	"github.com/decentrio/rollup-e2e-testing/ibc"
-
 	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
+	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -38,6 +38,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
@@ -113,7 +114,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer", network)
-	const ibcPath = "ibc-path"
+
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
@@ -131,11 +132,32 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
@@ -170,6 +192,15 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -281,6 +312,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	const BLOCK_FINALITY_PERIOD = 80
@@ -356,7 +388,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer", network)
-	const ibcPath = "ibc-path"
+
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
@@ -374,11 +406,32 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
@@ -413,6 +466,15 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 3, dymension)
+	require.NoError(t, err)
+
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,

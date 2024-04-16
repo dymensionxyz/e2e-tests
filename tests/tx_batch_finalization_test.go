@@ -41,6 +41,7 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
@@ -124,7 +125,7 @@ func TestBatchFinalization_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
@@ -183,6 +184,7 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
@@ -266,7 +268,7 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),

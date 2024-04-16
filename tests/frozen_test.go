@@ -2,15 +2,16 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -19,11 +20,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
-
-const anotherIbcPath = "dymension-demo2"
 
 var dymModifyGenesisKV = append(
 	dymensionGenesisKV,
@@ -49,6 +46,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -136,11 +134,32 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
@@ -182,35 +201,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 1)
+	require.Equal(t, 1, len(dymChannel))
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
-	require.NoError(t, err)
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: dymChannel[0].ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -241,9 +241,9 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rollapp1Clients, err := r.GetClients(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(rollapp1Clients), 1)
+	require.Equal(t, 1, len(rollapp1Clients))
 
-	err = dymension.SubmitFraudProposal(
+	_, err = dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
 		rollapp1.Config().ChainID,
 		fmt.Sprint(rollappHeight-2),
@@ -265,12 +265,12 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -284,7 +284,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		rollappUserAddr, r, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
-	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	// Compose an IBC transfer and send from rollapp -> dymension
 	err = rollapp1.IBCTransfer(ctx,
@@ -308,6 +308,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -394,11 +395,32 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
@@ -445,42 +467,19 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	dymChannel, err := r.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymChannel), 1)
-
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, dymChannel[0].ChannelID, keyDir)
-	require.NoError(t, err)
-
+	require.Equal(t, 1, len(dymChannel))
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: dymChannel[0].ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -516,7 +515,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	fraudHeight := fmt.Sprint(rollappHeight - 2)
 
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
+	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, "07-tendermint-0", submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -529,12 +528,12 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, "2", "rollapp state index still increment")
+	require.Equal(t, "2", latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// IBC Transfer not working
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -548,7 +547,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		rollappUserAddr, r, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.Error(t, err)
-	require.Equal(t, strings.Contains(err.Error(), "status Frozen"), true)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	err = rollapp1.IBCTransfer(ctx,
 		rollapp1, dymension, transferAmount, rollappUserAddr,
@@ -571,6 +570,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -580,6 +580,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappevm_12345-1"
 	dymintTomlOverrides2["gas_prices"] = "0adym"
+	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -700,11 +701,56 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	s.UpdateClients(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
@@ -768,29 +814,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -820,11 +843,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp1.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -863,7 +887,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -874,7 +898,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -887,12 +911,12 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -924,8 +948,13 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -963,13 +992,18 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
+	require.Equal(t, true, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -981,14 +1015,19 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension)
+	rollappHeight, err = rollapp2.Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1005,6 +1044,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1014,6 +1054,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappwasm_12345-1"
 	dymintTomlOverrides2["gas_prices"] = "0adym"
+	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -1134,14 +1175,56 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
 
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	s.UpdateClients(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
+
+	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	// Start both relayers
@@ -1202,29 +1285,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, sequencerAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
-
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -1254,11 +1314,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, keyDir)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-	require.NoError(t, err)
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp1.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1297,7 +1358,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1307,7 +1368,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		}
 	}
 	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
-	err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
@@ -1320,12 +1381,12 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, rollappParams.Rollapp.Frozen, true, "rollapp does not frozen")
+	require.Equal(t, true, rollappParams.Rollapp.Frozen, "rollapp does not frozen")
 
 	// Check rollapp1 state index not increment
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, latestIndex.StateIndex.Index, fmt.Sprint(targetIndex), "rollapp state index still increment")
+	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
@@ -1357,8 +1418,13 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1396,13 +1462,18 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), true, "rollapp balance did not change")
+	require.Equal(t, true, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), "rollapp balance did not change")
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1414,14 +1485,19 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension)
+	rollappHeight, err = rollapp2.Height(ctx)
 	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, dymUserUpdateBal2.Sub(transferAmount).Equal(dymUserOriginBal2), true, "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {

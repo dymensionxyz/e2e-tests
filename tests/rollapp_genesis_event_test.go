@@ -2,13 +2,14 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -17,8 +18,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 // TestRollappGenesisEvent_EVM ensure that genesis event triggered in both rollapp evm and dymension hub
@@ -36,6 +35,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -108,11 +108,32 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
@@ -130,28 +151,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, dymensionUserAddr))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer_whitelist",
-		Description: "Add current dymensionUserAddr to the deployer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollapp", "DeployerWhitelist", deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err := dymension.QueryParam(ctx, "rollapp", "DeployerWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(deployerWhitelistParams))
+	registerGenesisEventTriggerer(t, dymension.CosmosChain, dymensionUser.KeyName(), dymensionUserAddr, "rollapp", "DeployerWhitelist")
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -176,28 +176,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, validatorAddr, genesisCoin.Denom, genesisCoin.Amount)
 
-	genesisTriggererWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, rollappUserAddr))
-	propTx, err = rollapp1.ParamChangeProposal(ctx, rollappUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Add new genesis_triggerer_whitelist",
-		Description: "Add current rollappUserAddr to the genesis_triggerer_whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("hubgenesis", "GenesisTriggererWhitelist", genesisTriggererWhitelistParams),
-		},
-		Deposit: "500000000000" + rollapp1.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = rollapp1.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err = rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
-	new_params, err = rollapp1.QueryParam(ctx, "hubgenesis", "GenesisTriggererWhitelist")
-	require.NoError(t, err)
-	require.Equal(t, new_params.Value, string(genesisTriggererWhitelistParams))
+	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererAllowlist")
 
 	hubgenesisMAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "hubgenesis")
 	require.NoError(t, err)
@@ -218,7 +197,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	denommetadata, err := dymension.GetNode().QueryDenomMetadata(ctx, genesisCoin.Denom)
 	require.NoError(t, err)
 
-	require.Equal(t, denommetadata.Description, fmt.Sprintf("auto-generated metadata for %s from rollapp %s", genesisCoin.Denom, rollapp1.GetChainID()))
+	require.Equal(t, fmt.Sprintf("auto-generated metadata for %s from rollapp %s", genesisCoin.Denom, rollapp1.GetChainID()), denommetadata.Description)
 	require.Equal(t, denommetadata.Base, genesisCoin.Denom)
 	denomUnits := []cosmos.DenomUnit{
 		{
@@ -232,8 +211,8 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 			Aliases:  []string{},
 		},
 	}
-	require.Equal(t, denommetadata.DenomUnits, denomUnits)
-	require.Equal(t, denommetadata.Display, "rax")
-	require.Equal(t, denommetadata.Symbol, "URAX")
-	require.Equal(t, denommetadata.Name, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom))
+	require.Equal(t, denomUnits, denommetadata.DenomUnits)
+	require.Equal(t, "rax", denommetadata.Display)
+	require.Equal(t, "URAX", denommetadata.Symbol)
+	require.Equal(t, fmt.Sprintf("%s %s", rollapp1.GetChainID(), rollapp1.Config().Denom), denommetadata.Name)
 }

@@ -330,8 +330,8 @@ github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnG
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240401062200-380e8b9d21f4 h1:VR2rKvHs7T8zql2cmZts6PEbdWEzeRVODtOwaNS0ZkM=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240401062200-380e8b9d21f4/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240412081042-4e7422935539 h1:gZlOCdIqYIPq6sl97RJGpwaQDv9Nijgo8p6ygZqP8L8=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240412081042-4e7422935539/go.mod h1:Hy/8P41OEKrlAatPG5NcD/BOWTa2s+laECwpZpmA9f0=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
@@ -368,8 +368,8 @@ github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQx
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/dymension-rdk v1.1.0-beta h1:vvKB6Y65aOOyS6inUCmRrSnlph0MmeLAz6EyXzsdbg4=
 github.com/dymensionxyz/dymension-rdk v1.1.0-beta/go.mod h1:WnmIZVAFUjwsLSWlhPu3VtOHeBinLYAK9s5t1OPOL3o=
-github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240321090214-067a132551ab h1:7w0Hohobe8l+Xa305T4dU2fp4UsubEu2q7/WcPt/VBE=
-github.com/dymensionxyz/dymension/v3 v3.0.0-rc02.0.20240321090214-067a132551ab/go.mod h1:iX4Lsbk0IH+t1RA1WgT9bNNyGqM6blVL5aYwwoKxaCY=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc01.0.20240404003005-53ccf8a922fd h1:P7Ku9WRopjY7sKSIx4ahwnHjRYOiUDu8hv4uM+Rzyek=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc01.0.20240404003005-53ccf8a922fd/go.mod h1:3Pfrr8j/BR9ztNKztGfC5PqDiO6CcrzMLCJtFtPEVW4=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3 h1:iAtAivMtJh2Ublnq2KasC7EIa5/gfsff5EJ7kUlnd9A=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
 github.com/edsrzf/mmap-go v1.0.0 h1:CEBF7HpRnUCSJgGUb5h1Gm7e3VkmVDrR8lvWVLtrOFw=
@@ -580,8 +580,8 @@ github.com/gtank/ristretto255 v0.1.2/go.mod h1:Ph5OpO6c7xKUGROZfWVLiJf9icMDwUeIv
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
 github.com/hashicorp/go-cleanhttp v0.5.2 h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9neXJWAZQ=
 github.com/hashicorp/go-cleanhttp v0.5.2/go.mod h1:kO/YDlP8L1346E6Sodw+PrpBSV4/SoxCXGY6BqNFT48=
-github.com/hashicorp/go-getter v1.7.0 h1:bzrYP+qu/gMrL1au7/aDvkoOVGUJpeKBgbqRHACAFDY=
-github.com/hashicorp/go-getter v1.7.0/go.mod h1:W7TalhMmbPmsSMdNjD0ZskARur/9GJ17cfHTRtXV744=
+github.com/hashicorp/go-getter v1.7.1 h1:SWiSWN/42qdpR0MdhaOc/bLR48PLuP1ZQtYLRlM69uY=
+github.com/hashicorp/go-getter v1.7.1/go.mod h1:W7TalhMmbPmsSMdNjD0ZskARur/9GJ17cfHTRtXV744=
 github.com/hashicorp/go-immutable-radix v1.0.0/go.mod h1:0y9vanUI8NX6FsYoO3zeMjhV/C5i9g4Q3DwcSNZ4P60=
 github.com/hashicorp/go-immutable-radix v1.3.1 h1:DKHmCUm2hRBK510BaiZlwvpD40f8bJFeZnpfm2KLowc=
 github.com/hashicorp/go-immutable-radix v1.3.1/go.mod h1:0y9vanUI8NX6FsYoO3zeMjhV/C5i9g4Q3DwcSNZ4P60=

@@ -9,6 +9,9 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -17,8 +20,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 func TestIBCTransferMultiHop_EVM(t *testing.T) {
@@ -34,6 +35,7 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -108,13 +110,13 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
-			Path:    pathHubToRollApp,
+			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  gaia,
 			Relayer: r2,
-			Path:    pathDymToGaia,
+			Path:    ibcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -124,7 +126,7 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
@@ -133,6 +135,54 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	t.Cleanup(func() {
 		_ = ic.Close()
 	})
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	require.NoError(t, err)
+
+	r2.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -164,10 +214,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
+	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -212,6 +262,13 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
@@ -249,7 +306,15 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 40, rollapp1, gaia)
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
@@ -271,6 +336,7 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -345,13 +411,13 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
-			Path:    pathHubToRollApp,
+			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  gaia,
 			Relayer: r2,
-			Path:    pathDymToGaia,
+			Path:    ibcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -361,7 +427,7 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false,
+		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
@@ -370,6 +436,54 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	t.Cleanup(func() {
 		_ = ic.Close()
 	})
+
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	require.NoError(t, err)
+
+	r2.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
@@ -401,10 +515,10 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
 	// Start the relayer and set the cleanup function.
-	err = r.StartRelayer(ctx, eRep, pathHubToRollApp)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, pathDymToGaia)
+	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -449,6 +563,13 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channDymRollApp.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(channGaiaDym.PortID, channGaiaDym.ChannelID, firstHopDenom)
@@ -486,7 +607,15 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 40, rollapp1, gaia)
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
