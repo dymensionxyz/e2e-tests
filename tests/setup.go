@@ -80,7 +80,7 @@ var (
 		Bin:                 "dymd",
 		Bech32Prefix:        "dym",
 		Denom:               "adym",
-		CoinType:            "118",
+		CoinType:            "60",
 		GasPrices:           "0.0adym",
 		EncodingConfig:      encodingConfig(),
 		GasAdjustment:       1.1,
@@ -91,7 +91,7 @@ var (
 	}
 
 	// Setup for gaia
-	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia"
 
 	gaiaImage = ibc.DockerImage{
 		Repository: gaiaImageRepo,
