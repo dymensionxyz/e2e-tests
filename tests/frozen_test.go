@@ -245,16 +245,46 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
 
-	dymChannel, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	// IBC channel for rollapps
+	channsDym1, err := r1.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymChannel))
+	require.Len(t, channsDym1, 2)
 
-	rollapp := rollappParam{
+	channsDym2, err := r2.GetChannels(ctx, eRep, dymension.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsDym2, 2)
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channDymRollApp1 := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	channsRollApp1Dym := channsRollApp1[0]
+	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	channDymRollApp2 := channsRollApp2[0].Counterparty
+	require.NotEmpty(t, channDymRollApp2.ChannelID)
+
+	channsRollApp2Dym := channsRollApp2[0]
+	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
+		channelID: channDymRollApp1.ChannelID,
 		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	})
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
+		rollappID: rollapp2.Config().ChainID,
+		channelID: channDymRollApp2.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -551,19 +581,50 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	dymChannel, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(dymChannel))
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
+	// IBC channel for rollapps
+	channsDym1, err := r1.GetChannels(ctx, eRep, dymension.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsDym1, 2)
+
+	channsDym2, err := r2.GetChannels(ctx, eRep, dymension.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsDym2, 2)
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channDymRollApp1 := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, channDymRollApp1.ChannelID)
+
+	channsRollApp1Dym := channsRollApp1[0]
+	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	channDymRollApp2 := channsRollApp2[0].Counterparty
+	require.NotEmpty(t, channDymRollApp2.ChannelID)
+
+	channsRollApp2Dym := channsRollApp2[0]
+	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
+		channelID: channDymRollApp1.ChannelID,
 		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	})
+
+	triggerHubGenesisEvent(t, dymension, rollappParam{
+		rollappID: rollapp2.Config().ChainID,
+		channelID: channDymRollApp2.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
