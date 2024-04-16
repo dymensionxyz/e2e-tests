@@ -1,0 +1,11 @@
+# Test Handling Table
+
+## From ROLLAPP to HUB
+
+| Scenario | Pre-condition | Pre-condition check | Expected result | Expected result check | Covered By |
+|----------|---------------|---------------------|-----------------|-----------------------|------------|
+| IBC transfer from rollapp to hub succeeds when rollapp has NO FINALIZED STATES AT ALL | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) has no finalized state. Rollapp B has height > Rollapp A height. Rollapp B has a channel-id different from the hub-channel-id. | - [ ] | Rollapp tokens successfully transferred to hub despite no finalized states. | - [ ] | TODO |
+| Rollapp token transfer should only be received on the hub upon rollapp finalized state (assume no eIBC packet, i.e no memo) | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. | - [ ] | Rollapp tokens received on hub only after Rollapp B reaches finalized state. | - [ ] | TODO |
+| Rollapp token Demand order is created upon memo submission and fulfilled | User interacts with UI; At least 2 rollapps running, Rollapp A and B. Rollapp B is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. | - [ ] | Demand order for Rollapp tokens created and fulfilled upon memo submission. | - [ ] | TODO |
+| DYM Demand order is created upon memo submission and fulfilled | User interaction via CLI; Same as the case above | - [ ] | Timeout triggered for EIBC transaction from hub to rollapp due to non-finalization. | - [ ] | TODO |
+| 3rd party token (i.e blumbus) Demand order is created upon memo submission and fulfilled | User interaction via CLI; Same as the case above | - [ ] | - Eibc demand order created  \ - Fulfill the eibc demand order  \ - Verify the originator gets the funds minus the fee right away  \ - Verify the fulfiller gets the full amount after the grace period is finalized  \ - No packet commitment left on the rollapp (i.e. ack received). Can be queried using the CLI rollapp-evm q ibc channel packet-commitments transfer \<channel-id> | - [ ] | TODO |
