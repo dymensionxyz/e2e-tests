@@ -317,7 +317,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rollapp1Clients))
 
-	_, err = dymension.SubmitFraudProposal(
+	propTx, err := dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
 		rollapp1.Config().ChainID,
 		fmt.Sprint(rollappHeight-2),
@@ -329,8 +329,14 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "2", cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Wait a few blocks for the gov to pass and to verify if the state index increment
 	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
