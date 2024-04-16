@@ -10,12 +10,11 @@ make docker-build-e2e
 make e2e-test-ibc
 ```
 
-## Tests handle
+## Tests
 
-| Scenario | Actor | Where | Pre-condition |
-|----------|-------|-------|---------------|
-| IBC transfer from rollapp to hub succeeds when rollapp has NO FINALIZED STATES AT ALL (just pending) | | | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) has no finalized state. Rollapp B has height > Rollapp A height. Rollapp B has a channel-id different from the hub-channel-id. |
-| Rollapp token transfer should only be received on the hub upon rollapp finalized state | | | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. |
-| Rollapp token Demand order is created upon memo submission and fulfilled | User | UI | At least 2 rollapps running, Rollapp A and B. Rollapp B is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. |
-| EIBC Timeout from hub to rollapp | User | CLI | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. |
-| EIBC + PFM | User | CLI | At least 2 rollapps running, Rollapp A and B. Rollapp B (our rollapp) is at finalized height < Rollapp A finalized height. Rollapp B has a channel-id different from the hub-channel-id. |
+1. [TestDelayedAck](tests_spec/delayedack.md)
+2. [Add additional test cases here with the same format]
+
+## Contributing
+
+We welcome contributions to this repository. If you would like to add more test cases or improve existing ones, please feel free to fork this repository, make your changes, and submit a pull request.
