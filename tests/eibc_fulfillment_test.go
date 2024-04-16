@@ -558,8 +558,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
+	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
 	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
