@@ -646,9 +646,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channDymRollApp1.ChannelID,
 		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
+	}, rollappParam{
 		rollappID: rollapp2.Config().ChainID,
 		channelID: channDymRollApp2.ChannelID,
 		userKey:   dymensionUser.KeyName(),
@@ -695,13 +693,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	submitFraudStr := "fraud"
 	deposit := "500000000000" + dymension.Config().Denom
 
-	t.Log("deposit:", deposit)
-
 	var rollapp1ClientOnDym string
 
 	dymClients, err := r1.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 1)
+	require.Equal(t, len(dymClients), 2)
 
 	for _, client := range dymClients {
 		if client.ClientState.ChainID == rollapp1.Config().ChainID {
@@ -745,24 +741,47 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.Equal(t, targetIndex, latestFinalizedIndex, "rollapp state index still increment")
 
 	// IBC Transfer not working
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferAmount := math.NewInt(1_000_000)
 
-	err = dymension.IBCTransfer(ctx,
-		dymension, rollapp1, transferAmount, dymensionUserAddr,
-		rollappUserAddr, r1, ibcPath, channel,
-		eRep, ibc.TransferOptions{})
+	transferData := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
 	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
-	err = rollapp1.IBCTransfer(ctx,
-		rollapp1, dymension, transferAmount, rollappUserAddr,
-		dymensionUserAddr, r1, ibcPath, channel,
-		eRep, ibc.TransferOptions{})
-	require.Error(t, err)
+	// Compose an IBC transfer and send from rollapp -> dymension
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Get the IBC denom
+	rollapp1Denom := transfertypes.GetPrefixedDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollapp1IbcDenom := transfertypes.ParseDenomTrace(rollapp1Denom).IBCDenom()
+
+	// Get origin dym hub ibc denom balance
+	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 40, dymension)
+	require.NoError(t, err)
+
+	// Get updated dym hub ibc denom balance
+	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
+	require.NoError(t, err)
+
+	// IBC balance should not change
+	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
 }
 
 // TestOtherRollappNotAffected_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
