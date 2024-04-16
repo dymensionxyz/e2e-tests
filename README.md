@@ -13,7 +13,9 @@ make e2e-test-ibc
 ## Tests
 
 1. [TestDelayedAck](tests_spec/delayedack.md)
-2. [Add additional test cases here with the same format]
+2. [TestEIBC](tests_spec/eibc.md)
+3. [TestPFM](tests_spec/pfm.md)
+4. [TestRollapp](tests_spec/rollapp.md)
 
 ## Contributing
 
