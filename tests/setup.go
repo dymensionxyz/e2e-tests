@@ -15,6 +15,7 @@ import (
 
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -161,6 +162,15 @@ var (
 		{
 			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
+		},
+		{
+			Key: "app_state.hubgenesis.state.genesis_tokens",
+			Value: []interface{}{
+				map[string]interface{}{
+					"denom":  "urax",
+					"amount": dymension.GenesisEventAmount.String(),
+				},
+			},
 		},
 	}
 
