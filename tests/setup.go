@@ -10,12 +10,13 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
-	"github.com/icza/dyno"
-	"github.com/stretchr/testify/require"
-
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/icza/dyno"
+	"github.com/stretchr/testify/require"
 
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -79,7 +80,7 @@ var (
 		Bin:                 "dymd",
 		Bech32Prefix:        "dym",
 		Denom:               "adym",
-		CoinType:            "118",
+		CoinType:            "60",
 		GasPrices:           "0.0adym",
 		EncodingConfig:      encodingConfig(),
 		GasAdjustment:       1.1,
@@ -90,7 +91,7 @@ var (
 	}
 
 	// Setup for gaia
-	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia" //
+	gaiaImageRepo = "ghcr.io/strangelove-ventures/heighliner/gaia"
 
 	gaiaImage = ibc.DockerImage{
 		Repository: gaiaImageRepo,
@@ -159,6 +160,15 @@ var (
 		{
 			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
+		},
+		{
+			Key: "app_state.hubgenesis.state.genesis_tokens",
+			Value: []interface{}{
+				map[string]interface{}{
+					"denom":  "urax",
+					"amount": dymension.GenesisEventAmount.String(),
+				},
+			},
 		},
 	}
 
@@ -433,4 +443,19 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	new_params, err := targetChain.QueryParam(ctx, module, param)
 	require.NoError(t, err)
 	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
+}
+
+func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices, emptyBlocksMaxTime string) map[string]any {
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+
+	dymintTomlOverrides["settlement_layer"] = settlement_layer
+	dymintTomlOverrides["node_address"] = node_address
+	dymintTomlOverrides["rollapp_id"] = rollappId
+	dymintTomlOverrides["gas_prices"] = gas_prices
+	dymintTomlOverrides["empty_blocks_max_time"] = emptyBlocksMaxTime
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	return configFileOverrides
 }
