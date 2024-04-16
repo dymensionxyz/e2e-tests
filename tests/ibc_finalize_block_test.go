@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -194,10 +195,19 @@ func TestDymFinalizeBlock_OnRecvPacket(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	// Compose an IBC transfer and send from rollapp -> dymension
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
+
+	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
+	require.NoError(t, err)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
@@ -429,10 +439,20 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	// Compose an IBC transfer and send from rollapp -> dymension
-	_, err = dymension.SendIBCTransfer(ctx, channel1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channel1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
 	// Assert balance was not change on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
+
+	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
+	require.NoError(t, err)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -603,10 +623,19 @@ func TestDymFinalizeBlock_OnTimeOutPacket(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	// Compose an IBC transfer and send from rollapp -> dymension
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Timeout: testutil.ImmediatelyTimeout()})
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Timeout: testutil.ImmediatelyTimeout()})
 	require.NoError(t, err)
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
+
+	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
+	require.NoError(t, err)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
