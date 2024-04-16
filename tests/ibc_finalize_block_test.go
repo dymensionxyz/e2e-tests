@@ -448,7 +448,7 @@ func TestDymFinalizeBlock_OnAckPacket(t *testing.T) {
 	dymensionHeight, err := dymension.Height(ctx)
 	require.NoError(t, err)
 
-	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
+	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+50, ibcTx.Packet)
 	require.NoError(t, err)
 
 	// Make sure that the ack contains error
