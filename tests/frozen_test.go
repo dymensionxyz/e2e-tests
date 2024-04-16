@@ -1581,7 +1581,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			rollapp1ClientOnDym = client.ClientID
 		}
 	}
-  
+
 	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
