@@ -104,7 +104,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -467,7 +467,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -1111,7 +1111,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 		}
 	}
 
-	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
 	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
@@ -1327,7 +1326,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -1582,7 +1581,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			rollapp1ClientOnDym = client.ClientID
 		}
 	}
-	// Submit fraud proposal and all votes yes so the gov will pass and got executed.
+  
 	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
 
