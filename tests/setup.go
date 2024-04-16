@@ -10,15 +10,15 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
-	"github.com/icza/dyno"
-	"github.com/stretchr/testify/require"
-
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/icza/dyno"
+	"github.com/stretchr/testify/require"
 
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -472,4 +472,18 @@ func SetupRelayer(ctx context.Context, t *testing.T, eRep *testreporter.RelayerE
 
 	err = r.CreateChannel(ctx, eRep, path, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+
+func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices, emptyBlocksMaxTime string) map[string]any {
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+
+	dymintTomlOverrides["settlement_layer"] = settlement_layer
+	dymintTomlOverrides["node_address"] = node_address
+	dymintTomlOverrides["rollapp_id"] = rollappId
+	dymintTomlOverrides["gas_prices"] = gas_prices
+	dymintTomlOverrides["empty_blocks_max_time"] = emptyBlocksMaxTime
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	return configFileOverrides
 }
