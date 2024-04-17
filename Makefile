@@ -24,18 +24,18 @@ e2e-test-ibc-grace-period-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-fulfill-no-balance: clean-e2e
+e2e-test-eibc-fulfill-no-balance-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNoBalanceToFulfillOrder .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-corrupted-memo: clean-e2e
+e2e-test-eibc-corrupted-memo-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCCorruptedMemoNegative .
 
 # Executes IBC tests via rollup-e2e-testing
-e2e-test-eibc-excessive-fee: clean-e2e
+e2e-test-eibc-excessive-fee-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeTooHigh .
 
-e2e-test-eibc-timeout: clean-e2e
+e2e-test-eibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutHubToRollapp .
 	
 e2e-test-transfer-multi-hop-evm:  clean-e2e
