@@ -83,7 +83,7 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,

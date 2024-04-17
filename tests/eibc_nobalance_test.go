@@ -39,7 +39,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 80
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -86,7 +86,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -214,7 +214,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
