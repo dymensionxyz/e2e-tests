@@ -18,6 +18,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -352,7 +353,58 @@ func TestHardFork_EVM(t *testing.T) {
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	_, err = rollapp1.ExportState(ctx, int64(curHeight))
+	exportedState, err := rollapp1.ExportState(ctx, int64(curHeight))
+	require.NoError(t, err)
+
+	configFileOverrides3 := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_123456-1", "0adym", "3s")
+
+	cf2 := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp3",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp3",
+				ChainID:             "rollappevm_123456-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides3,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+	})
+	// Get chains from the chain factory
+	chains2, err := cf2.Chains(t.Name())
+	require.NoError(t, err)
+	rollapp3 := chains2[0].(*dym_rollapp.DymRollApp)
+
+	chainsss := make([]ibc.Chain, 0, 1)
+	chainsss = append(chainsss, rollapp3)
+	chainSet := test.NewChainSet(zap.NewNop(), chainsss)
+
+	// Initialize the chains (pull docker images, etc.).
+	err = chainSet.Initialize(ctx, t.Name(), client, network)
+	require.NoError(t, err)
+
+	err = chainSet.Configuration(ctx, t.Name(), nil)
+	require.NoError(t, err)
+
+	rollapp3Nodes := rollapp3.Nodes()
+	for _, node := range rollapp3Nodes {
+		err = node.OverwriteGenesisFile(ctx, []byte(exportedState))
+		require.NoError(t, err)
+	}
+
+	err = chainSet.Start(ctx, t.Name(), nil)
 	require.NoError(t, err)
 
 }
