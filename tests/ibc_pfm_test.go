@@ -815,7 +815,7 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 	// channGaiaDym := channsGaia[0]
 	// require.NotEmpty(t, channGaiaDym.ChannelID)
 
-	gaiaDymChan, err := ibc.GetTransferChannel(ctx, r, eRep, gaia.GetChainID(), dymension.GetChainID())
+	gaiaDymChan, err := ibc.GetTransferChannel(ctx, r2, eRep, gaia.GetChainID(), dymension.GetChainID())
 	require.NoError(t, err)
 
 	dymGaiaChan := gaiaDymChan.Counterparty
@@ -908,7 +908,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 				Channel:  rollappDymChan.ChannelID,
 				Port:     rollappDymChan.PortID,
 				Timeout:  5 * time.Minute,
-			
 			},
 		}
 
