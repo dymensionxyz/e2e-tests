@@ -70,7 +70,10 @@ e2e-test-rollapp-freeze-wasm:  clean-e2e
   
 e2e-test-other-rollapp-not-affected-wasm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
-  
+
+e2e-test-transfer-gaia-to-rollapp:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
