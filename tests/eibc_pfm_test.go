@@ -305,18 +305,16 @@ func TestEIBCPFM_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	packetMetadata := &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: rollapp2UserAddr,
-			Channel:  channDymRollApp2.ChannelID,
-			Port:     channDymRollApp2.PortID,
-			Timeout:  5 * time.Minute,
-		},
+	forwardMetadata := &ForwardMetadata{
+		Receiver: rollapp2UserAddr,
+		Channel:  channDymRollApp2.ChannelID,
+		Port:     channDymRollApp2.PortID,
+		Timeout:  5 * time.Minute,
 	}
 
-	forwardMetadata, err := json.Marshal(packetMetadata)
+	forwardMetadataJson, err := json.Marshal(forwardMetadata)
 	require.NoError(t, err)
-	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, %s}`, eibcFee.String(), string(forwardMetadata))
+	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, %s}`, eibcFee.String(), string(forwardMetadataJson))
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1User.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
 	require.NoError(t, err)
