@@ -678,7 +678,7 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		},
 		{
 			Name:          "gaia-1",
-			Version:       "v15.1.0",
+			Version:       "v14.2.0",
 			ChainConfig:   gaiaConfig,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFullNodes,
@@ -786,44 +786,29 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
 	require.NoError(t, err)
 
-	// channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
-	// require.NoError(t, err)
-	// require.Len(t, channsDym, 2)
-
-	// channsRollApp, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
-	// require.NoError(t, err)
-	// require.Len(t, channsRollApp, 1)
-
-	// channDymRollApp := channsRollApp[0].Counterparty
-	// require.NotEmpty(t, channDymRollApp.ChannelID)
-
-	// channsRollAppDym := channsRollApp[0]
-	// require.NotEmpty(t, channsRollAppDym.ChannelID)
-
-	// channsDym, err = r2.GetChannels(ctx, eRep, dymension.GetChainID())
-	// require.NoError(t, err)
-
-	// channsGaia, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
-	// require.NoError(t, err)
-
-	// require.Len(t, channsDym, 2)
-	// require.Len(t, channsGaia, 1)
-
-	// channDymGaia := channsGaia[0].Counterparty
-	// require.NotEmpty(t, channDymGaia.ChannelID)
-
-	// channGaiaDym := channsGaia[0]
-	// require.NotEmpty(t, channGaiaDym.ChannelID)
-
-	gaiaDymChan, err := ibc.GetTransferChannel(ctx, r, eRep, gaia.GetChainID(), dymension.GetChainID())
+	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, channsDym, 2)
 
-	dymGaiaChan := gaiaDymChan.Counterparty
-
-	dymRollAppChan, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.GetChainID(), rollapp1.GetChainID())
+	rollAppChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
+	require.Len(t, rollAppChan, 1)
 
-	rollappDymChan := dymRollAppChan.Counterparty
+	dymRollAppChan := rollAppChan[0].Counterparty
+	require.NotEmpty(t, dymRollAppChan.ChannelID)
+
+	rollappDymChan := rollAppChan[0]
+	require.NotEmpty(t, rollappDymChan.ChannelID)
+
+	gaiaChan, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, gaiaChan, 1)
+
+	dymGaiaChan := gaiaChan[0].Counterparty
+	require.NotEmpty(t, dymGaiaChan.ChannelID)
+
+	gaiaDymChan := gaiaChan[0]
+	require.NotEmpty(t, gaiaDymChan.ChannelID)
 
 	// Start the relayer and set the cleanup function.
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -905,10 +890,9 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		firstHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: rollappUserAddr,
-				Channel:  rollappDymChan.ChannelID,
-				Port:     rollappDymChan.PortID,
+				Channel:  dymRollAppChan.ChannelID,
+				Port:     dymRollAppChan.PortID,
 				Timeout:  5 * time.Minute,
-			
 			},
 		}
 
