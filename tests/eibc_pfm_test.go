@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -34,12 +35,12 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1Id := "rollappevm_1-1"
 	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "3s"
+	emptyBlocksMaxTimeRollapp1 := "30s"
 	configFileOverrides1 := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
 
 	// setup config for rollapp 2
 	rollapp2Id := "rollappevm_2-1"
-	emptyBlocksMaxTimeRollapp2 := "30s" // make sure rollapp 1 will have finalize height > rollapp 2
+	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
 	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
 	// Create chain factory with dymension
@@ -314,13 +315,21 @@ func TestEIBCPFM_EVM(t *testing.T) {
 
 	forwardMetadataJson, err := json.Marshal(forwardMetadata)
 	require.NoError(t, err)
-	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, %s}`, eibcFee.String(), string(forwardMetadataJson))
+	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, "forward": %s}`, eibcFee.String(), string(forwardMetadataJson))
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1User.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
+	tx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1User.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 110, rollapp1, dymension)
+	// err = testutil.WaitForBlocks(ctx, 110, rollapp1, dymension)
+	// require.NoError(t, err)
+
+	rollapp1Height, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
+	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, tx.Packet)
+	require.NoError(t, err)
+
+	// Make sure the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 	firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, rollapp1.Config().Denom)
 	secondHopDenom := transfertypes.GetPrefixedDenom(channRollApp2Dym.PortID, channRollApp2Dym.ChannelID, firstHopDenom)
@@ -331,8 +340,8 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 	secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, secondHopIBCDenom, zeroBal)
 
 }
