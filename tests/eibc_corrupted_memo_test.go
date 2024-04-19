@@ -237,7 +237,7 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 
 	// get eIbc events
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
-	require.True(t, len(eibcEvents) == 0) // verify no EIBC event was registered on the hub
+	require.True(t, len(eibcEvents) == 1) // verify 1 EIBC event was registered on the hub
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -247,8 +247,8 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, math.NewInt(0))
 
 	t.Cleanup(
 		func() {
