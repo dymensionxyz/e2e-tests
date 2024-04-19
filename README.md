@@ -9,3 +9,16 @@ make docker-build-e2e
 ```bash
 make e2e-test-ibc
 ```
+
+## Tests
+
+1. [TestDelayedAck](tests_spec/delayedack.md)
+2. [TestEIBC](tests_spec/eibc.md)
+3. [TestPFM](tests_spec/pfm.md)
+4. [TestERC20](tests_spec/erc20.md)
+4. [TestHubInvariants](tests_spec/hub_invariants.md)
+4. [TestRollapp](tests_spec/rollapp_upgrade.md)
+
+## Contributing
+
+We welcome contributions to this repository. If you would like to add more test cases or improve existing ones, please feel free to fork this repository, make your changes, and submit a pull request.
