@@ -34,6 +34,10 @@ jobs:
           - "e2e-test-rollapp-freeze-evm"
           - "e2e-test-other-rollapp-not-affected-evm"
           - "e2e-test-rollapp-genesis-event-evm"
+          - "e2e-test-eibc-fulfill-no-balance"
+          - "e2e-test-eibc-corrupted-memo"
+          - "e2e-test-eibc-excessive-fee"
+          - "e2e-test-eibc-timeout"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
