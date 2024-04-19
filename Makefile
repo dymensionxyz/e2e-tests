@@ -31,6 +31,9 @@ e2e-test-pfm-with-grace-period-evm: clean-e2e
 e2e-test-batch-finalization-evm:
 	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_EVM .
 
+e2e-test-disconnection-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestDisconnection_EVM .
+
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_EVM .
   
