@@ -46,7 +46,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 80
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -240,6 +240,14 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	dymChannel, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
+
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: dymChannel[0].ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -248,13 +256,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
-
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -374,7 +375,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 80
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
