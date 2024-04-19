@@ -188,6 +188,13 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channel.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
@@ -195,8 +202,11 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 
 	var options ibc.TransferOptions
 	// set eIBC specific memo
-	invalidMemo1 := `{"eibc": [{"fee": "200"}]}`
-	options.Memo = invalidMemo1
+
+	multiplier := math.NewInt(10)
+	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
+
+	options.Memo = BuildEIbcMemo(eibcFee)
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
@@ -224,16 +234,18 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	}
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 
 	// get eIbc events
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.True(t, len(eibcEvents) == 0) // verify no EIBC event was registered on the hub
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, transferData.Amount)
