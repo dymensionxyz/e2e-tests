@@ -16,8 +16,10 @@ make e2e-test-ibc
 2. [TestEIBC](tests_spec/eibc.md)
 3. [TestPFM](tests_spec/pfm.md)
 4. [TestERC20](tests_spec/erc20.md)
-4. [TestHubInvariants](tests_spec/hub_invariants.md)
-4. [TestRollapp](tests_spec/rollapp_upgrade.md)
+5. [TestHubInvariants](tests_spec/hub_invariants.md)
+6. [TestRollappUpgrade](tests_spec/rollapp_upgrade.md)
+7. [TestRollappGenesis](tests_spec/rollapp_genesis.md)
+8. [TestRollappHardfork](tests_spec/rollapp_hardfork.md)
 
 ## Contributing
 
