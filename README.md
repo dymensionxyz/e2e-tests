@@ -15,10 +15,10 @@ make e2e-test-ibc
 1. [TestDelayedAck](tests_spec/delayedack.md)
 2. [TestEIBC](tests_spec/eibc.md)
 3. [TestPFM](tests_spec/pfm.md)
-4. [TestERC20](tests_spec/erc20.md)
-5. [TestHubInvariants](tests_spec/hub_invariants.md)
-6. [TestRollappUpgrade](tests_spec/rollapp_upgrade.md)
-7. [TestRollappGenesis](tests_spec/rollapp_genesis.md)
+4. [TestGenesisBridge](tests_spec/rollapp_genesis.md)
+5. [TestERC20](tests_spec/erc20.md)
+6. [TestHubInvariants](tests_spec/hub_invariants.md)
+7. [TestRollappUpgrade](tests_spec/rollapp_upgrade.md)
 8. [TestRollappHardfork](tests_spec/rollapp_hardfork.md)
 
 ## Contributing
