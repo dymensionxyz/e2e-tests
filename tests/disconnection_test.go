@@ -2,15 +2,18 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -41,24 +44,83 @@ func TestDisconnection_EVM(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 0
 
+	customGenesisKV := append(rollappEVMGenesisKV, cosmos.GenesisKV{
+		Key:   "app_state.incentives.params.distr_epoch_identifier",
+		Value: "custom",
+	})
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				Type:           "rollapp-dym",
+				Name:           "rollapp-temp",
+				ChainID:        "rollappevm_1234-1",
+				Images:         []ibc.DockerImage{rollappEVMImage},
+				Bin:            "rollappd",
+				Bech32Prefix:   "ethm",
+				Denom:          "urax",
+				CoinType:       "60",
+				GasPrices:      "0.0urax",
+				GasAdjustment:  1.1,
+				TrustingPeriod: "112h",
+				EncodingConfig: encodingConfig(),
+				NoHostMount:    false,
+				// Custom genesis to make the epoch last 5 seconds
+				ModifyGenesis: func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+					g := make(map[string]interface{})
+					if err := json.Unmarshal(inputGenBz, &g); err != nil {
+						return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+					}
+
+					epochData, err := dyno.Get(g, "app_state", "epochs", "epochs")
+					if err != nil {
+						return nil, fmt.Errorf("failed to retrieve epochs: %w", err)
+					}
+					epochs := epochData.([]interface{})
+					exist := false
+					// Check if the "minute" identifier already exists
+					for _, epoch := range epochs {
+						if epochMap, ok := epoch.(map[string]interface{}); ok {
+							if epochMap["identifier"] == "custom" {
+								exist = true
+							}
+						}
+					}
+					if !exist {
+						// Define the new epoch type to be added
+						newEpochType := map[string]interface{}{
+							"identifier":                 "custom",
+							"start_time":                 "0001-01-01T00:00:00Z",
+							"duration":                   "5s",
+							"current_epoch":              "0",
+							"current_epoch_start_time":   "0001-01-01T00:00:00Z",
+							"epoch_counting_started":     false,
+							"current_epoch_start_height": "0",
+						}
+
+						// Add the new epoch to the epochs array
+						updatedEpochs := append(epochs, newEpochType)
+						if err := dyno.Set(g, updatedEpochs, "app_state", "epochs", "epochs"); err != nil {
+							return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
+						}
+					}
+					if err := dyno.Set(g, "adym", "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
+						return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+					}
+					if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+						return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+					}
+					if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
+						return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+					}
+					outputGenBz, err := json.Marshal(g)
+					if err != nil {
+						return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+					}
+
+					return cosmos.ModifyGenesis(customGenesisKV)(chainConfig, outputGenBz)
+				},
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -170,8 +232,8 @@ func TestDisconnection_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		err = testutil.WaitForCondition(
-			time.Minute*5,
-			time.Second*5,
+			time.Minute*10,
+			time.Second*5, // each epoch is 5 seconds
 			func() (bool, error) {
 				newRollappHeight, err := rollapp1.Height(ctx)
 				require.NoError(t, err)
