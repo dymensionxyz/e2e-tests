@@ -998,8 +998,11 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("gaiaIBCDenom:", gaiaIBCDenom)
+	// wait a few blocks and verify sender received funds on the hub
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
-	balance, err := dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
+	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	require.True(t, balance.Equal(bigTransferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
 
