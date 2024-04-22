@@ -1011,7 +1011,7 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferDataRollapp2, options)
 	require.NoError(t, err)
-	_, err = rollapp2.GetNode().Height(ctx)
+	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 	zeroBalance := math.NewInt(0)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
