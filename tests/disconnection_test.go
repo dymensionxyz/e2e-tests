@@ -45,13 +45,13 @@ func TestDisconnection_EVM(t *testing.T) {
 	numRollAppFn := 0
 
 	// Custom dymension epoch for faster disconnection
-	modifiedGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.incentives.params.distr_epoch_identifier",
-			Value: "custom",
-		},
-	)
+	modifyGenesisKV := dymensionGenesisKV
+	for _, kv := range modifyGenesisKV {
+		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" {
+			kv.Value = "custom"
+		}
+	}
+
 	customDymensionConfig := dymensionConfig
 	customDymensionConfig.ModifyGenesis = func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
 		g := make(map[string]interface{})
@@ -105,7 +105,7 @@ func TestDisconnection_EVM(t *testing.T) {
 			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 		}
 
-		return cosmos.ModifyGenesis(modifiedGenesisKV)(chainConfig, outputGenBz)
+		return cosmos.ModifyGenesis(modifyGenesisKV)(chainConfig, outputGenBz)
 	}
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
