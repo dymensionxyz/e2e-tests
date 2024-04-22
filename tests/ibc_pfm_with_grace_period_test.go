@@ -706,8 +706,8 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	})
 }
 
-// PFM rollApp1 to rollApp2 with Erc20 registed on rollApp2
-func TestIBCPFMWithGracePeriod_1(t *testing.T) {
+// PFM with grace period rollApp1 to rollApp2 with Erc20 registed on rollApp2
+func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -916,18 +916,18 @@ func TestIBCPFMWithGracePeriod_1(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	// t.Cleanup(
-	// 	func() {
-	// 		err := r1.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 		err = r2.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer2: %s", err)
-	// 		}
-	// 	},
-	// )
+	t.Cleanup(
+		func() {
+			err := r1.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer2: %s", err)
+			}
+		},
+	)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -973,6 +973,7 @@ func TestIBCPFMWithGracePeriod_1(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
+		// register ibc denom (secondHopIBCDenom) on rollapp2
 		metadata := banktypes.Metadata{
 			Description: "IBC token from Dymension",
 			DenomUnits: []*banktypes.DenomUnit{
@@ -1017,8 +1018,6 @@ func TestIBCPFMWithGracePeriod_1(t *testing.T) {
 
 		zeroBal := math.ZeroInt()
 		transferAmount := math.NewInt(100_000)
-
-		// rollapp1.FullNodes[0].RegisterIBCTokenDenomProposal()
 
 		// Send packet from rollapp1 -> dym -> rollapp2
 		transfer := ibc.WalletData{
