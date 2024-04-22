@@ -56,6 +56,9 @@ e2e-test-other-rollapp-not-affected-evm:  clean-e2e
 e2e-test-rollapp-genesis-event-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappGenesisEvent_EVM .
 
+e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ThirdParty_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
