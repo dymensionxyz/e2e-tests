@@ -704,6 +704,15 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 		},
 	)
 
+	// Disable erc20
+	modifyRollappGeneisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.erc20.params.enable_erc20",
+			Value: false,
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -728,7 +737,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGeneisKV),
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
@@ -750,7 +759,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGeneisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -896,25 +905,28 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, gaia)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, gaia)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, marketMaker, gaiaUser := users[0], users[1], users[2]
+	dymensionUser, marketMaker, rollapp1User, gaiaUser := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	marketMakerAddr := marketMaker.FormattedAddress()
+	rollapp1UserAddr := rollapp1User.FormattedAddress()
 	gaiaUserAddr := gaiaUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount)
 
 	transferAmount := math.NewInt(1_000_000)
+	bigTransferAmount := math.NewInt(1_000_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -968,45 +980,79 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	transferData := ibc.WalletData{
-		Address: marketMakerAddr,
+		Address: dymensionUserAddr,
 		Denom:   gaia.Config().Denom,
-		Amount:  transferAmount,
+		Amount:  bigTransferAmount,
 	}
 
-	// Get the IBC denom for urax on Hub
+	// Get the IBC denom
 	gaiaTokenDenom := transfertypes.GetPrefixedDenom(channDymGaia.PortID, channDymGaia.ChannelID, gaia.Config().Denom)
 	gaiaIBCDenom := transfertypes.ParseDenomTrace(gaiaTokenDenom).IBCDenom()
 
+	secondHopDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].PortID, channsRollApp1[0].ChannelID, gaiaTokenDenom)
+	secondHopIBCDenom := transfertypes.ParseDenomTrace(secondHopDenom).IBCDenom()
+
+	// First hop
 	var options ibc.TransferOptions
-	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = gaia.SendIBCTransfer(ctx, channGaiaDym.ChannelID, gaiaUserAddr, transferData, options)
 	require.NoError(t, err)
 
 	t.Log("gaiaIBCDenom:", gaiaIBCDenom)
 
-	expMmBalanceGaiaDenom := transferData.Amount
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
-	require.True(t, balance.Equal(expMmBalanceGaiaDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceGaiaDenom, balance))
-	// end of preconditions
+	require.True(t, balance.Equal(bigTransferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
 
 	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   gaia.Config().Denom,
+		Address: rollapp1UserAddr,
+		Denom:   gaiaIBCDenom,
+		Amount:  bigTransferAmount,
+	}
+
+	// Second hop
+	_, err = dymension.SendIBCTransfer(ctx, channsRollApp1[0].Counterparty.ChannelID, dymensionUserAddr, transferData, options)
+	require.NoError(t, err)
+
+	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(bigTransferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
+
+	transferData = ibc.WalletData{
+		Address: marketMakerAddr,
+		Denom:   secondHopIBCDenom,
 		Amount:  transferAmount,
 	}
 
-	// set eIBC specific memo
+	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, options)
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(transferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount, balance))
+	// done preparation
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   secondHopIBCDenom,
+		Amount:  transferAmount,
+	}
+
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = gaia.SendIBCTransfer(ctx, channGaiaDym.ChannelID, gaiaUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
 
-	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, gaiaIBCDenom)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(transferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount, balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -1036,27 +1082,37 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceGaiaDenom = expMmBalanceGaiaDenom.Sub((transferAmountWithoutFee))
-	require.True(t, balance.Equal(expMmBalanceGaiaDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceGaiaDenom, balance))
+	expMmBalance := transferAmount.Sub((transferAmountWithoutFee))
+	require.True(t, balance.Equal(expMmBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalance, balance))
 
-	// t.Cleanup(
-	// 	func() {
-	// 		err := r1.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
+	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+	expMmBalance = expMmBalance.Add(transferData.Amount)
+	require.True(t, balance.Equal(expMmBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalance, balance))
 
-	// 		err = r2.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
+	t.Cleanup(
+		func() {
+			err := r1.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
 
-	// 		err = r3.StopRelayer(ctx, eRep)
-	// 		if err != nil {
-	// 			t.Logf("an error occurred while stopping the relayer: %s", err)
-	// 		}
-	// 	},
-	// )
+			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+
+			err = r3.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
 }
 
 func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) *dymensiontesting.EibcEvent {
