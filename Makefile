@@ -17,7 +17,9 @@ e2e-test-ibc-timeout-evm: clean-e2e
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-eibc-fulfillment-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
-  
+
+e2e-test-eibc-fulfillment-evm-2-RAs:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_two_rollapps .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-grace-period-evm:  clean-e2e
@@ -92,6 +94,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-grace-period-evm \
 	e2e-test-transfer-multi-hop-evm \
 	e2e-test-eibc-fulfillment-evm \
+	e2e-test-eibc-fulfillment-evm-2-RAs \
 	e2e-test-pfm-with-grace-period-evm \
 	e2e-test-batch-finalization-evm \
 	e2e-test-rollapp-freeze-evm \
@@ -116,6 +119,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
 	e2e-test-eibc-fulfillment-evm \
+	e2e-test-eibc-fulfillment-evm-2-RAs \
 	e2e-test-transfer-multi-hop-evm \
 	e2e-test-pfm-with-grace-period-evm \
 	e2e-test-batch-finalization-evm \
