@@ -414,6 +414,8 @@ func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ..
 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 		require.NoError(t, err)
 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
+		err = testutil.WaitForBlocks(ctx, 20, dymension)
+		require.NoError(t, err)
 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
 		require.NoError(t, err)
 	}
@@ -440,19 +442,19 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	new_params, err := targetChain.QueryParam(ctx, module, param)
+	newParams, err := targetChain.QueryParam(ctx, module, param)
 	require.NoError(t, err)
-	require.Equal(t, string(deployerWhitelistParams), new_params.Value)
+	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 }
 
-func overridesDymintToml(settlement_layer, node_address, rollappId, gas_prices, emptyBlocksMaxTime string) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, emptyBlocksMaxTime string) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
-	dymintTomlOverrides["settlement_layer"] = settlement_layer
-	dymintTomlOverrides["node_address"] = node_address
+	dymintTomlOverrides["settlement_layer"] = settlemenLayer
+	dymintTomlOverrides["node_address"] = nodeAddress
 	dymintTomlOverrides["rollapp_id"] = rollappId
-	dymintTomlOverrides["gas_prices"] = gas_prices
+	dymintTomlOverrides["gas_prices"] = gasPrices
 	dymintTomlOverrides["empty_blocks_max_time"] = emptyBlocksMaxTime
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
