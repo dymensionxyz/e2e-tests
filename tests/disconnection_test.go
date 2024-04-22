@@ -47,7 +47,7 @@ func TestDisconnection_EVM(t *testing.T) {
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := dymensionGenesisKV
 	for _, kv := range modifyGenesisKV {
-		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" {
+		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" || kv.Key == "app_state.txfees.params.epoch_identifier" {
 			kv.Value = "custom"
 		}
 	}
