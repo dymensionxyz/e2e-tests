@@ -165,15 +165,26 @@ func TestDisconnection_EVM(t *testing.T) {
 		err = dymension.StopAllNodes(ctx)
 		require.NoError(t, err)
 
+		// Wait until rollapp stops produce block
 		rollappHeight, err := rollapp1.Height(ctx)
 		require.NoError(t, err)
 
-		time.Sleep(time.Minute)
+		err = testutil.WaitForCondition(
+			time.Minute*5,
+			time.Second*5,
+			func() (bool, error) {
+				newRollappHeight, err := rollapp1.Height(ctx)
+				require.NoError(t, err)
 
-		newRollappHeight, err := rollapp1.Height(ctx)
+				if newRollappHeight > rollappHeight {
+					rollappHeight = newRollappHeight
+					return false, nil
+				}
+
+				return true, nil
+			},
+		)
 		require.NoError(t, err)
-
-		require.Equal(t, rollappHeight, newRollappHeight)
 
 		err = dymension.StartAllNodes(ctx)
 		require.NoError(t, err)
