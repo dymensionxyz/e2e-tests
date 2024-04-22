@@ -902,17 +902,15 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 	transferAmountWithoutFee := transferAmount.Sub(eibcFee)
 
-	dymChannel_ra1, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	dymChannel_ra1, err := r1.GetChannels(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymChannel_ra1))
-	fmt.Println("Channels>>:", dymChannel_ra1)
+	require.Equal(t, 1, len(dymChannel_ra1))
 	channDymRollApp1 := dymChannel_ra1[0].Counterparty
 	require.NotEmpty(t, channDymRollApp1.ChannelID)
 
-	dymChannel_ra2, err := r2.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	dymChannel_ra2, err := r2.GetChannels(ctx, eRep, rollapp2.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymChannel_ra2))
-	fmt.Println("Channels>>>:", dymChannel_ra2)
+	require.Equal(t, 1, len(dymChannel_ra2))
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
@@ -1072,10 +1070,9 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
@@ -1084,18 +1081,22 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferDataRollapp1.Amount)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferDataRollapp2.Amount)
-	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+	expMmBalanceRollapp2Denom = expMmBalanceRollapp2Denom.Add(transferDataRollapp2.Amount)
+	require.True(t, balance.Equal(expMmBalanceRollapp2Denom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollapp2Denom, balance))
 
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
