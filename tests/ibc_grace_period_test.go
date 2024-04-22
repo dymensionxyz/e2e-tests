@@ -325,9 +325,6 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	// No packet commitments should exist on rollapp anymore
 	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
-	t.Log("res:", res)
-	t.Log("res.Commitments:", res.Commitments)
-	t.Log("res.Commitments:", res.Height)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -640,11 +637,11 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	// No packet commitments should exist on rollapp anymore
 	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
-	t.Log("res:", res)
-	t.Log("res.Commitments:", res.Commitments)
-	t.Log("res.Commitments:", res.Height)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
