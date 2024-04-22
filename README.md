@@ -20,6 +20,7 @@ make e2e-test-ibc
 6. [TestHubInvariants](tests_spec/hub_invariants.md)
 7. [TestRollappUpgrade](tests_spec/rollapp_upgrade.md)
 8. [TestRollappHardfork](tests_spec/rollapp_hardfork.md)
+9. [TestSequencer](tests_spec/sequencer.md)
 
 ## Contributing
 
