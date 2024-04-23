@@ -988,11 +988,10 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// Precondition funds check on Hub for Rollapp 2
-	expMmBalanceRollapp2Denom := transferDataRollapp2.Amount
 	balanceRollapp2, err := dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after preconditions for", rollapp2IBCDenom, ":", balance)
-	require.True(t, balanceRollapp2.Equal(expMmBalanceRollapp2Denom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollapp2Denom, balanceRollapp2))
+	require.True(t, balanceRollapp2.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balanceRollapp2))
 	// end of preconditions
 
 	transferDataRollapp1 = ibc.WalletData{
