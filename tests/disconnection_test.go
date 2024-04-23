@@ -35,7 +35,7 @@ func init() {
 		}
 	}
 
-	customDymensionConfig = dymensionConfig
+	customDymensionConfig = dymensionConfig.Clone()
 	customDymensionConfig.ModifyGenesis = func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
 		g := make(map[string]interface{})
 		if err := json.Unmarshal(inputGenBz, &g); err != nil {
@@ -291,6 +291,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 0
 
+	fmt.Println("customDymensionConfig: ", customDymensionConfig)
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
