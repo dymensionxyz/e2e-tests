@@ -37,6 +37,7 @@ jobs:
           - "e2e-test-transfer-multi-hop-evm"
           - "e2e-test-pfm-with-grace-period-evm"
           - "e2e-test-batch-finalization-evm"
+          - "e2e-test-disconnection-evm"
           - "e2e-test-rollapp-freeze-evm"
           - "e2e-test-other-rollapp-not-affected-evm"
           - "e2e-test-rollapp-genesis-event-evm"
@@ -66,6 +67,7 @@ jobs:
           - "e2e-test-transfer-multi-hop-wasm"
           - "e2e-test-pfm-with-grace-period-wasm"
           - "e2e-test-batch-finalization-wasm"
+          - "e2e-test-disconnection-wasm"
           - "e2e-test-rollapp-freeze-wasm"
           - "e2e-test-other-rollapp-not-affected-wasm"
       fail-fast: false
