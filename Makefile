@@ -80,6 +80,9 @@ e2e-test-pfm-with-grace-period-wasm: clean-e2e
 e2e-test-batch-finalization-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_Wasm .
 
+e2e-test-disconnection-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestDisconnection_Wasm .
+
 e2e-test-rollapp-freeze-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_Wasm .
   
@@ -109,6 +112,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-pfm-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
+	e2e-test-disconnection-wasm \
 	e2e-test-rollapp-freeze-wasm \
     e2e-test-other-rollapp-not-affected-wasm
 
@@ -137,6 +141,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
+	e2e-test-disconnection-wasm \
 	e2e-test-rollapp-freeze-wasm \
     e2e-test-other-rollapp-not-affected-wasm
 
