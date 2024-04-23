@@ -155,7 +155,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppVals := 1
-	numRollAppFn := 0
+	numRollAppFn := 1
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
