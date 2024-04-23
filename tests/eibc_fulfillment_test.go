@@ -925,7 +925,8 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 		userKey:   dymensionUser.KeyName(),
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp1_params)
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	// wait for first rollapp trigger to be processed
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 	triggerHubGenesisEvent(t, dymension, rollapp2_params)
 
@@ -990,7 +991,8 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	expMmBalanceRollapp2Denom := transferDataRollapp2.Amount
 	balanceRollapp2, err := dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
-	require.True(t, balanceRollapp2.Equal(expMmBalanceRollapp2Denom))
+	fmt.Println("Balance of marketMakerAddr after preconditions for", rollapp2IBCDenom, ":", balance)
+	require.True(t, balanceRollapp2.Equal(expMmBalanceRollapp2Denom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollapp2Denom, balanceRollapp2))
 	// end of preconditions
 
 	transferDataRollapp1 = ibc.WalletData{
@@ -1087,8 +1089,7 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-	expMmBalanceRollapp2Denom = expMmBalanceRollapp2Denom.Add(transferDataRollapp2.Amount)
-	require.True(t, balance.Equal(expMmBalanceRollapp2Denom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollapp2Denom, balance))
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	t.Cleanup(
 		func() {
