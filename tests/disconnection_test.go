@@ -20,11 +20,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-var (
-	customDymensionConfig ibc.ChainConfig
-)
-
-func init() {
+func customConfig() ibc.ChainConfig {
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := dymensionGenesisKV
 	for i, kv := range modifyGenesisKV {
@@ -33,7 +29,7 @@ func init() {
 		}
 	}
 
-	customDymensionConfig = ibc.ChainConfig{
+	customDymensionConfig := ibc.ChainConfig{
 		Type:           "hub-dym",
 		Name:           "dymension",
 		ChainID:        "dymension_100-1",
@@ -104,6 +100,7 @@ func init() {
 		ConfigFileOverrides: nil,
 	}
 
+	return customDymensionConfig
 }
 
 func TestDisconnection_EVM(t *testing.T) {
@@ -153,7 +150,7 @@ func TestDisconnection_EVM(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   customDymensionConfig,
+			ChainConfig:   customConfig(),
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -247,7 +244,6 @@ func TestDisconnection_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 0
 
-	fmt.Println("customDymensionConfig: ", customDymensionConfig)
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -273,7 +269,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   customDymensionConfig,
+			ChainConfig:   customConfig(),
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
