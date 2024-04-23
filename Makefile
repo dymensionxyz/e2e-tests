@@ -86,6 +86,9 @@ e2e-test-rollapp-freeze-wasm: clean-e2e
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
+
+e2e-test-eibc-fulfillment-thirdparty-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ThirdParty_Wasm .
   
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
@@ -101,6 +104,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-timeout-evm \
+	e2e-test-eibc-fulfillment-thirdparty-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -110,7 +114,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-rollapp-freeze-wasm \
-    e2e-test-other-rollapp-not-affected-wasm
+    e2e-test-other-rollapp-not-affected-wasm \ 
+	e2e-test-eibc-fulfillment-thirdparty-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -128,6 +133,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-timeout-evm \
+	e2e-test-eibc-fulfillment-thirdparty-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -137,5 +143,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-rollapp-freeze-wasm \
-    e2e-test-other-rollapp-not-affected-wasm
+    e2e-test-other-rollapp-not-affected-wasm \
+	e2e-test-eibc-fulfillment-thirdparty-wasm
 
