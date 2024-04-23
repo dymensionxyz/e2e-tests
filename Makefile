@@ -86,6 +86,10 @@ e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 e2e-test-eibc-not-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_EVM .
 
+e2e-test-eibc-not-fulfillment-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_Wasm .
+
+
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
