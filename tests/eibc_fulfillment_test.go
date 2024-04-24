@@ -1298,46 +1298,9 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r2.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r3.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r3.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -1658,4 +1621,27 @@ func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight ui
 
 func BuildEIbcMemo(eibcFee math.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
+}
+
+func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testreporter.RelayerExecReporter, chainA, chainB *cosmos.CosmosChain, ibcPath string) {
+	err := r.GeneratePath(ctx, eRep, chainA.Config().ChainID, chainB.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, chainA)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, chainA)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 }
