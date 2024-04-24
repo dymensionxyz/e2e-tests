@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -298,12 +299,6 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	transferDataRollapp2 := ibc.WalletData{
-		Address: marketMakerAddr,
-		Denom:   rollapp2.Config().Denom,
-		Amount:  transferAmount,
-	}
-
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(dymChannel_ra1[0].Counterparty.PortID, dymChannel_ra1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
@@ -319,9 +314,6 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	// if market maker don't have funds with ibc denom of rollapp2, eibc won't be discovered
-	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollapp2UserAddr, transferDataRollapp2, options)
-	require.NoError(t, err)
 	rollapp2Height, err := rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -347,7 +339,7 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	transferDataRollapp2 = ibc.WalletData{
+	transferDataRollapp2 := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp2.Config().Denom,
 		Amount:  transferAmount,
@@ -380,16 +372,25 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
+	var fulfill_demand_order = false
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
-		require.NoError(t, err)
-		fmt.Println(txhash)
-		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-		if eibcEvent != nil {
-			fmt.Println("After order fulfillment:", eibcEvent)
+		re := regexp.MustCompile(`^\d+`)
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom {
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
+			require.NoError(t, err)
+			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+			if eibcEvent != nil {
+				fmt.Println("After order fulfillment:", eibcEvent)
+			}
+			fulfill_demand_order = true
 		}
 	}
+
+	if !fulfill_demand_order {
+		panic("No eibc demant order was fulfilled")
+	}
+
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -420,12 +421,9 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 	// user should have received funds upon grace period of IBC packet from rollapp 2
 	err = testutil.WaitForBlocks(ctx, 30, rollapp2)
 	require.NoError(t, err)
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr after packet finalization:", balance)
+	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
 	require.True(t, balance.Equal(transferDataRollapp2.Amount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferDataRollapp2.Amount, balance))
 
 	t.Cleanup(
