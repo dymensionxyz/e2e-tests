@@ -129,10 +129,7 @@ var (
 			Key:   "app_state.evm.params.evm_denom",
 			Value: "urax",
 		},
-		{
-			Key:   "app_state.claims.params.claims_denom",
-			Value: "urax",
-		},
+
 		{
 			Key:   "consensus_params.block.max_gas",
 			Value: "40000000",
