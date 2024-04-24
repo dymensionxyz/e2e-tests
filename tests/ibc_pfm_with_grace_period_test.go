@@ -1078,4 +1078,8 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount))
 	})
+	// Check the commitment was deleted
+	resp, err := rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", rollapp2DymChan.ChannelID)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(resp.Commitments))
 }
