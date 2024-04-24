@@ -325,8 +325,12 @@ func TestEIBCFulfillment_on_one(t *testing.T) {
 	rollapp2Height, err := rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized on Rollapp 1
+	// wait until the packet is finalized on Rollapps
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
