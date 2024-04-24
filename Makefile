@@ -33,8 +33,11 @@ e2e-test-eibc-excessive-fee-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeTooHigh .
 
 e2e-test-eibc-timeout-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutHubToRollapp .
-	
+	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutDymToRollapp .
+
+e2e-test-eibc-timeout_and_fulfill: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutAndFulFillDymToRollapp .
+
 e2e-test-transfer-multi-hop-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop_EVM .
 
@@ -88,7 +91,7 @@ e2e-test-rollapp-freeze-wasm: clean-e2e
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
-  
+
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
