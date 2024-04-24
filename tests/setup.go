@@ -326,6 +326,90 @@ func defaultConfig() *simappparams.EncodingConfig {
 	return &cfg
 }
 
+
+func customEpochConfig(epochDuration string) ibc.ChainConfig {
+	// Custom dymension epoch for faster disconnection
+	modifyGenesisKV := dymensionGenesisKV
+	for i, kv := range modifyGenesisKV {
+		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" || kv.Key == "app_state.txfees.params.epoch_identifier" {
+			modifyGenesisKV[i].Value = "custom"
+		}
+	}
+
+	customDymensionConfig := ibc.ChainConfig{
+		Type:           "hub-dym",
+		Name:           "dymension",
+		ChainID:        "dymension_100-1",
+		Images:         []ibc.DockerImage{dymensionImage},
+		Bin:            "dymd",
+		Bech32Prefix:   "dym",
+		Denom:          "adym",
+		CoinType:       "60",
+		GasPrices:      "0.0adym",
+		EncodingConfig: encodingConfig(),
+		GasAdjustment:  1.1,
+		TrustingPeriod: "112h",
+		NoHostMount:    false,
+		ModifyGenesis: func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+			g := make(map[string]interface{})
+			if err := json.Unmarshal(inputGenBz, &g); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+			}
+
+			epochData, err := dyno.Get(g, "app_state", "epochs", "epochs")
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve epochs: %w", err)
+			}
+			epochs := epochData.([]interface{})
+			exist := false
+			// Check if the "custom" identifier already exists
+			for _, epoch := range epochs {
+				if epochMap, ok := epoch.(map[string]interface{}); ok {
+					if epochMap["identifier"] == "custom" {
+						exist = true
+					}
+				}
+			}
+			if !exist {
+				// Define the new epoch type to be added
+				newEpochType := map[string]interface{}{
+					"identifier":                 "custom",
+					"start_time":                 "0001-01-01T00:00:00Z",
+					"duration":                   epochDuration,
+					"current_epoch":              "0",
+					"current_epoch_start_time":   "0001-01-01T00:00:00Z",
+					"epoch_counting_started":     false,
+					"current_epoch_start_height": "0",
+				}
+
+				// Add the new epoch to the epochs array
+				updatedEpochs := append(epochs, newEpochType)
+				if err := dyno.Set(g, updatedEpochs, "app_state", "epochs", "epochs"); err != nil {
+					return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
+				}
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			outputGenBz, err := json.Marshal(g)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+			}
+
+			return cosmos.ModifyGenesis(modifyGenesisKV)(chainConfig, outputGenBz)
+		},
+		ConfigFileOverrides: nil,
+	}
+
+	return customDymensionConfig
+}
+
 func modifyRollappEVMGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
 		g := make(map[string]interface{})

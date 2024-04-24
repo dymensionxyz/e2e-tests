@@ -17,7 +17,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-func TestFullnodeSynv_EVM(t *testing.T) {
+func TestFullnodeSync_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -64,7 +64,7 @@ func TestFullnodeSynv_EVM(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   customConfig(),
+			ChainConfig:   customEpochConfig("5s"),
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -182,7 +182,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 		},
 		{
 			Name:          "dymension-hub",
-			ChainConfig:   customConfig(),
+			ChainConfig:   customEpochConfig("5s"),
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
