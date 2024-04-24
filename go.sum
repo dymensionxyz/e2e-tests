@@ -328,8 +328,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240422034358-c30056ce2d9d h1:OTzhPl67GncK3V412LGd6CP86bkurp46+0zcnGGmLOw=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240422034358-c30056ce2d9d/go.mod h1:kslnOTBoqMTES+SQ5H3hzR3aO11Sf4vaGbAxzKZCD/Y=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240419100059-4be856e59619 h1:g+dXAUOIukmrMSiA6CgZTLbTjTbSIpIuWvYu6Nf7Ugo=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240419100059-4be856e59619/go.mod h1:kslnOTBoqMTES+SQ5H3hzR3aO11Sf4vaGbAxzKZCD/Y=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
