@@ -510,8 +510,19 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 	transferAmountWithoutFee := transferAmount.Sub(eibcFee)
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
+	require.Equal(t, 2, len(dymChannels))
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	require.Len(t, dymChannels, 3)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -524,7 +535,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
+		channelID: channsRollApp1[0].Counterparty.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
@@ -536,12 +547,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	}
 
 	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].Counterparty.PortID, channsRollApp1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	var options ibc.TransferOptions
 	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -567,7 +578,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
