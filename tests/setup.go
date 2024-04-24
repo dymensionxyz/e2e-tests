@@ -101,7 +101,7 @@ var (
 	gaiaConfig = ibc.ChainConfig{
 		Type:                "cosmos",
 		Name:                "gaia",
-		ChainID:             "gaia-1",
+		ChainID:             "gaia_1",
 		Images:              []ibc.DockerImage{gaiaImage},
 		Bin:                 "gaiad",
 		Bech32Prefix:        "cosmos",
