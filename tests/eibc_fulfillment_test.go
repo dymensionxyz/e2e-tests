@@ -179,36 +179,8 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r2.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -508,26 +480,8 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -861,46 +815,9 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r2.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r3.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r3.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
