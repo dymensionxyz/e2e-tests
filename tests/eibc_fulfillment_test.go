@@ -1789,7 +1789,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 
 	transferDataRollapp1 := ibc.WalletData{
 		Address: rollappUserAddr,
-		Denom:   rollapp1.Config().Denom,
+		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
 
