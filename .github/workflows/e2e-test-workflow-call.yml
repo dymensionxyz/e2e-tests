@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: dymensionxyz/e2e-tests
+          ref: ducnt/ethermint
       - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: dymensionxyz/e2e-tests
+          ref: ducnt/ethermint
       - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
