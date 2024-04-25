@@ -294,7 +294,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1Id := "rollappevm_1-1"
 	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "30s"
+	emptyBlocksMaxTimeRollapp1 := "7s"
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
 
 	// setup config for rollapp 2
@@ -464,7 +464,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	r.UpdateClients(ctx, eRep, ibcPath)
@@ -473,7 +473,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
@@ -488,7 +488,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp2)
 	require.NoError(t, err)
 
 	r2.UpdateClients(ctx, eRep, anotherIbcPath)
@@ -497,7 +497,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
 
 	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
@@ -511,7 +511,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
 	require.NoError(t, err)
 
 	r3.UpdateClients(ctx, eRep, ibcPath)
@@ -520,7 +520,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r3.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2, gaia)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2, gaia)
 	require.NoError(t, err)
 
 	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
@@ -586,7 +586,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia, dymension, rollapp1)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
+	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1, rollapp2, gaia)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
@@ -651,7 +651,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	gaiaTokenDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 	gaiaIBCDenom := transfertypes.ParseDenomTrace(gaiaTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1, gaia)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, gaiaToDymTransferData.Amount)
 
@@ -696,7 +696,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -733,5 +733,5 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	// Check the commitment was deleted
 	resp, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", dymRollAppChan.ChannelID)
 	require.NoError(t, err)
-	require.Equal(t, 0, len(resp.Commitments))
+	require.Equal(t, len(resp.Commitments) == 0, true, "packet commitments still exist")
 }

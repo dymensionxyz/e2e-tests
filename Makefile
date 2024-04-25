@@ -35,7 +35,7 @@ e2e-test-eibc-excessive-fee-evm: clean-e2e
 e2e-test-eibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutDymToRollapp .
 
-e2e-test-eibc-timeout_and_fulfill: clean-e2e
+e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutAndFulFillDymToRollapp .
 
 e2e-test-transfer-multi-hop-evm:  clean-e2e
