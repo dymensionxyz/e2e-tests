@@ -439,76 +439,9 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp2)
-	require.NoError(t, err)
-
-	r2.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
-	require.NoError(t, err)
-
-	r3.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r3.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2, gaia)
-	require.NoError(t, err)
-
-	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2, gaia)
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
+	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
