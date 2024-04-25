@@ -249,7 +249,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 		err = dymension.StartAllNodes(ctx)
 		require.NoError(t, err)
 
-		// Make sure rollapp start pro
+		// Make sure rollapp start produce blocks
 		err = testutil.WaitForBlocks(ctx, 1, rollapp1)
 		require.NoError(t, err)
 	})
