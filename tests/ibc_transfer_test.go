@@ -350,9 +350,6 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
