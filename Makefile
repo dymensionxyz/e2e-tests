@@ -102,15 +102,11 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-evm \
 	e2e-test-batch-finalization-evm \
 	e2e-test-rollapp-freeze-evm \
-<<<<<<< HEAD
-  	e2e-test-other-rollapp-not-affected-evm \
-=======
     e2e-test-other-rollapp-not-affected-evm \
   	e2e-test-eibc-fulfill-no-balance-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-timeout-evm \
->>>>>>> ee1dedaa091afd6f3310a479d2c98eaf27202167
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -120,14 +116,10 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-rollapp-freeze-wasm \
-<<<<<<< HEAD
   	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet
-=======
-    e2e-test-other-rollapp-not-affected-wasm
->>>>>>> ee1dedaa091afd6f3310a479d2c98eaf27202167
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -140,15 +132,11 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-evm \
 	e2e-test-batch-finalization-evm \
 	e2e-test-rollapp-freeze-evm \
-<<<<<<< HEAD
-  	e2e-test-other-rollapp-not-affected-evm \
-=======
     e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-eibc-fulfill-no-balance-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-timeout-evm \
->>>>>>> ee1dedaa091afd6f3310a479d2c98eaf27202167
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -158,12 +146,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-pfm-with-grace-period-wasm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-rollapp-freeze-wasm \
-<<<<<<< HEAD
   	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet
-=======
-    e2e-test-other-rollapp-not-affected-wasm
-
->>>>>>> ee1dedaa091afd6f3310a479d2c98eaf27202167

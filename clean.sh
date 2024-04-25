@@ -1,7 +1,7 @@
 #!/bin/bash
 
-sudo rm -rf /tmp/relayer*
-sudo rm -rf /tmp/rollapp*
-sudo rm -rf /tmp/dym*
+rm -rf /tmp/relayer*
+rm -rf /tmp/rollapp*
+rm -rf /tmp/dym*
 echo "Clean success!!"
 
