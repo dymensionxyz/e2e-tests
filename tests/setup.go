@@ -14,6 +14,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
@@ -101,7 +102,7 @@ var (
 	gaiaConfig = ibc.ChainConfig{
 		Type:                "cosmos",
 		Name:                "gaia",
-		ChainID:             "gaia-1",
+		ChainID:             "gaia_1",
 		Images:              []ibc.DockerImage{gaiaImage},
 		Bin:                 "gaiad",
 		Bech32Prefix:        "cosmos",
@@ -460,4 +461,27 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, empt
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	return configFileOverrides
+}
+
+func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testreporter.RelayerExecReporter, chainA, chainB *cosmos.CosmosChain, ibcPath string) {
+	err := r.GeneratePath(ctx, eRep, chainA.Config().ChainID, chainB.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, chainA)
+	require.NoError(t, err)
+
+	r.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, chainA)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 }
