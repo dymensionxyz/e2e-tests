@@ -40,9 +40,9 @@ jobs:
           - "e2e-test-rollapp-freeze-evm"
           - "e2e-test-other-rollapp-not-affected-evm"
           - "e2e-test-rollapp-genesis-event-evm"
-          - "e2e-test-dym-finalize-block-on-recv-packet"
-          - "e2e-test-dym-finalize-block-on-timeout-packet"
-          - "e2e-test-dym-finalize-block-on-ack-packet"
+          - "e2e-test-dym-finalize-block-on-recv-packet-evm"
+          - "e2e-test-dym-finalize-block-on-timeout-packet-evm"
+          - "e2e-test-dym-finalize-block-on-ack-packet-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -71,6 +71,9 @@ jobs:
           - "e2e-test-batch-finalization-wasm"
           - "e2e-test-rollapp-freeze-wasm"
           - "e2e-test-other-rollapp-not-affected-wasm"
+          - "e2e-test-dym-finalize-block-on-recv-packet-wasm"
+          - "e2e-test-dym-finalize-block-on-timeout-packet-wasm"
+          - "e2e-test-dym-finalize-block-on-ack-packet-wasm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:

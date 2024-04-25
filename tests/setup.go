@@ -346,6 +346,26 @@ func modifyRollappEVMGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig,
 	}
 }
 
+func modifyRollappWasmGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(inputGenBz, &g); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+
+		if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+		}
+
+		outputGenBz, err := json.Marshal(g)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+
+		return cosmos.ModifyGenesis(genesisKV)(chainConfig, outputGenBz)
+	}
+}
+
 func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
 		g := make(map[string]interface{})
