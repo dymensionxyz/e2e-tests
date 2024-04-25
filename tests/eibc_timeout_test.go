@@ -560,10 +560,21 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 		Amount: transferAmount,
 	}
 
-	// Compose an IBC transfer and send from gaiai -> dym
+	gaiaToMMTransferData := ibc.WalletData{
+		Address: marketMakerAddr,
+		Denom: gaia.Config().Denom,
+		Amount: transferAmount,
+	}
+
+
+	// Compose an IBC transfer and send from gaiai -> dym and market maker
 	_, err = gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaianUserAddr, gaiaToDymTransferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, gaia, gaianUserAddr, gaia.Config().Denom, walletAmount.Sub(gaiaToDymTransferData.Amount))
+
+	_, err = gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaianUserAddr, gaiaToMMTransferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, gaia, gaianUserAddr, gaia.Config().Denom, walletAmount.Sub(gaiaToDymTransferData.Amount).Sub(gaiaToMMTransferData.Amount))
 
 	// Get the IBC denom for gaia on dym
 	gaiaTokenDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
@@ -618,23 +629,23 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
-	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-	expBalance := walletAmount.Sub(dymToRollAppTransferData.Amount).Add(transferAmountWithoutFee)
+	expBalance := gaiaToDymTransferData.Amount.Sub(dymToRollAppTransferData.Amount).Add(transferAmountWithoutFee)
 	require.True(t, balance.Equal(expBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalance, balance))
 	// verify funds were deducted from market maker's wallet address
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFee))
+	expBalanceMarketMaker := gaiaToMMTransferData.Amount.Sub(transferAmountWithoutFee)
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expBalanceMarketMaker = expBalanceMarketMaker.Add(dymToRollAppTransferData.Amount)
@@ -648,4 +659,8 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 			}
 		},
 	)
+	// Check the commitment was deleted
+	resp, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", dymRollAppChan.ChannelID)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(resp.Commitments))
 }
