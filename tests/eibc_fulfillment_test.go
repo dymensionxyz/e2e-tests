@@ -1622,26 +1622,3 @@ func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight ui
 func BuildEIbcMemo(eibcFee math.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
 }
-
-func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testreporter.RelayerExecReporter, chainA, chainB *cosmos.CosmosChain, ibcPath string) {
-	err := r.GeneratePath(ctx, eRep, chainA.Config().ChainID, chainB.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, chainA)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, chainA)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-}
