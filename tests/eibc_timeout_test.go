@@ -281,7 +281,7 @@ func TestEIBCTimeoutDymToRollapp(t *testing.T) {
 	)
 }
 // TestEIBCTimeoutAndFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
-// and full fill
+// and full filled
 func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -289,12 +289,18 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
+	// setup config for rollapp 1
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1Id := "rollappevm_1-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp1 := "30s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+
+	// setup config for rollapp 2
+	rollapp2Id := "rollappevm_2-1"
+	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
+	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
 	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
@@ -317,7 +323,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappevm_1-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -330,6 +336,28 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "rollapp2",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappevm_2-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -369,27 +397,34 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-	gaia := chains[2].(*cosmos.CosmosChain)
+	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+	dymension := chains[2].(*dym_hub.DymHub)
+	gaia := chains[3].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer", network)
-
-	r2 := test.NewBuiltinRelayerFactory(
+	// relayer for rollapp 2
+	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+	).Build(t, client, "relayer2", network)
+	// relayer for rollapp gaia
+	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
 		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
-	).Build(t, client, "relayer2", network)
+	).Build(t, client, "relayer3", network)
 
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
+		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r, "relayer").
 		AddRelayer(r2, "relayer2").
+		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
@@ -398,8 +433,14 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
-			Chain2:  gaia,
+			Chain2:  rollapp2,
 			Relayer: r2,
+			Path:    anotherIbcPath,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  gaia,
+			Relayer: r3,
 			Path:    ibcPath,
 		})
 
@@ -441,13 +482,13 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
 	require.NoError(t, err)
 
 	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp2)
 	require.NoError(t, err)
 
 	r2.UpdateClients(ctx, eRep, anotherIbcPath)
@@ -456,18 +497,41 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, gaia)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
 	require.NoError(t, err)
 
 	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
+	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension, gaia)
+	require.NoError(t, err)
+
+	r3.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r3.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2, gaia)
+	require.NoError(t, err)
+
+	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2, gaia)
 	require.NoError(t, err)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 2)
+	require.Len(t, channsDym, 3)
 
 	rollAppChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -479,7 +543,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	rollappDymChan := rollAppChan[0]
 	require.NotEmpty(t, rollappDymChan.ChannelID)
 
-	gaiaChan, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
+	gaiaChan, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, gaiaChan, 1)
 
@@ -496,6 +560,9 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
+	err = r3.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
@@ -503,6 +570,10 @@ func TestEIBCTimeoutAndFulFillDymToRollapp(t *testing.T) {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
 			err = r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+			err = r3.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer2: %s", err)
 			}
