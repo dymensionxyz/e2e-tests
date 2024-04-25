@@ -522,7 +522,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channsRollApp2, 1)
 
-	require.Len(t, dymChannels, 3)
+	require.Len(t, dymChannels, 2)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
