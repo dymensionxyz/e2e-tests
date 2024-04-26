@@ -36,7 +36,10 @@ e2e-test-eibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutDymToRollapp .
 
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutAndFulFillDymToRollapp .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutAndFulFillDymToRollapp_Evm .
+
+e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutAndFulFillDymToRollapp_Wasm .
 
 e2e-test-transfer-multi-hop-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferMultiHop_EVM .
