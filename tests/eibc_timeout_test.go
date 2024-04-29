@@ -261,9 +261,9 @@ func TestEIBCTimeoutDymToRollapp(t *testing.T) {
 		},
 	)
 }
-// TestEIBCTimeoutAndFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
+// TestEIBCTimeoutFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
 // and full filled
-func TestEIBCTimeoutAndFulFillDymToRollapp_Evm(t *testing.T) {
+func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -650,7 +650,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Evm(t *testing.T) {
 	require.Equal(t, len(resp.Commitments) == 0, true, "packet commitments still exist")
 }
 
-func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
+func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -658,17 +658,18 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1Id := "rollappwasm_1-1"
+	settlement_layer_rollapp1 := "dymension"
+	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
 	gasPrice := "0adym"
 	emptyBlocksMaxTimeRollapp1 := "7s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gasPrice, emptyBlocksMaxTimeRollapp1)
 
 	// setup config for rollapp 2
-	rollapp2Id := "rollappwasm_2-1"
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappwasm_12345-1"
 	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
-	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
 	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
@@ -690,8 +691,8 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test",
-				ChainID:             "rollappwasm_1-1",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -703,7 +704,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       nil,
-				ConfigFileOverrides: configFileOverrides,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -712,8 +713,8 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 			Name: "rollapp2",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test2",
-				ChainID:             "rollappwasm_2-1",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -760,6 +761,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 			NumFullNodes:  &numFullNodes,
 		},
 	})
+
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
@@ -773,24 +775,23 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
 	).Build(t, client, "relayer2", network)
-	// relayer for rollapp gaia
+	// Relayer for gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
 		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
 	).Build(t, client, "relayer3", network)
 
-	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
-		AddRelayer(r, "relayer").
+		AddRelayer(r, "relayer1").
 		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
@@ -803,7 +804,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp2,
 			Relayer: r2,
-			Path:    anotherIbcPath,
+			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
@@ -827,7 +828,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -858,7 +859,7 @@ func TestEIBCTimeoutAndFulFillDymToRollapp_Wasm(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
