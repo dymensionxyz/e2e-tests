@@ -190,8 +190,10 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
 	// verify funds balance right after sending the IBC transfer
 	zeroBalance := math.NewInt(0)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)

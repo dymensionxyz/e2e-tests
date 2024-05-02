@@ -236,6 +236,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -262,11 +263,15 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
 	zeroBalance := math.NewInt(0)
+
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
+
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
@@ -539,6 +544,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -565,11 +571,15 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
 	zeroBalance := math.NewInt(0)
+
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
+
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 

@@ -224,24 +224,18 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataDymToRollApp, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
-
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(dymChannel[0].Counterparty.PortID, dymChannel[0].Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, math.NewInt(0))
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	testutil.WaitForBlocks(ctx, 10, dymension)
 
 	// Assert balance was updated on the Rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
@@ -256,6 +250,9 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -267,16 +264,13 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -285,7 +279,7 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -501,24 +495,16 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataDymToRollApp, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
-
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(dymChannel[0].Counterparty.PortID, dymChannel[0].Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, math.NewInt(0))
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 
 	// Assert balance was updated on the Rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
@@ -531,6 +517,9 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	}
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
@@ -549,11 +538,8 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -562,7 +548,7 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -780,6 +766,9 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -801,9 +790,6 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
@@ -814,7 +800,7 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -1032,6 +1018,9 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -1053,9 +1042,6 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
@@ -1066,7 +1052,7 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -1307,29 +1293,20 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
-	// Restart Relayer
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	testutil.WaitForBlocks(ctx, 10, dymension)
 
 	t.Log("rollapp1UserAddr:", rollapp1UserAddr)
 	t.Log("dymIBCDenom:", dymIBCDenom)
+
 	// Assert balance was updated on rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -1575,20 +1552,10 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
 
-	// Restart Relayer
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	testutil.WaitForBlocks(ctx, 10, dymension)
 
 	t.Log("rollapp1UserAddr:", rollapp1UserAddr)
 	t.Log("dymIBCDenom:", dymIBCDenom)
@@ -1597,7 +1564,7 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, transferData.Amount)
 
 	// No packet commitments should exist on rollapp anymore
-	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(

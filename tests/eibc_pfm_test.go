@@ -245,14 +245,6 @@ func TestEIBCPFM_EVM(t *testing.T) {
 
 	triggerHubGenesisEvent(t, dymension, rollapp1Param)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the rollapp1 is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
 	rollapp2Param := rollappParam{
 		rollappID: rollapp2.Config().ChainID,
 		channelID: channDymRollApp2.ChannelID,
@@ -291,6 +283,10 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	require.NoError(t, err)
 	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, tx.Packet)
 	require.NoError(t, err)
+
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
@@ -532,14 +528,6 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 
 	triggerHubGenesisEvent(t, dymension, rollapp1Param)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the rollapp1 is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
 	rollapp2Param := rollappParam{
 		rollappID: rollapp2.Config().ChainID,
 		channelID: channDymRollApp2.ChannelID,
@@ -578,6 +566,10 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, tx.Packet)
 	require.NoError(t, err)
+
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
