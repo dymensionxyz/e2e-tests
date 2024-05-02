@@ -15,7 +15,7 @@ e2e-test-ibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_EVM .
 
 e2e-test-eibc-fulfillment-only-one: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_on_one .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp .
 
 e2e-test-ibc-grace-period-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_EVM .
