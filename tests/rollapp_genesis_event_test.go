@@ -122,10 +122,6 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
 

@@ -187,10 +187,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
 
@@ -223,10 +219,8 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	transferData := ibc.WalletData{
@@ -292,7 +286,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	}
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -488,10 +482,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
 
@@ -528,9 +518,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
@@ -603,7 +590,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	}
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -835,10 +822,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, gaia)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollapp1User, gaiaUser := users[0], users[1], users[2], users[3]
 
@@ -904,9 +887,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   gaia.Config().Denom,
@@ -926,8 +906,9 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("gaiaIBCDenom:", gaiaIBCDenom)
+
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, gaiaIBCDenom)
@@ -1000,7 +981,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	}
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -1235,10 +1216,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, gaia)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollapp1User, gaiaUser := users[0], users[1], users[2], users[3]
 
@@ -1304,9 +1281,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   gaia.Config().Denom,
@@ -1326,8 +1300,9 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("gaiaIBCDenom:", gaiaIBCDenom)
+
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, gaiaIBCDenom)
@@ -1400,7 +1375,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	}
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address

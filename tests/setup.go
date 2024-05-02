@@ -412,7 +412,7 @@ func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ..
 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 		require.NoError(t, err)
 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
-		err = testutil.WaitForBlocks(ctx, 20, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
 		require.NoError(t, err)
@@ -467,10 +467,7 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, chainA)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
+	err = testutil.WaitForBlocks(ctx, 10, chainA)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
