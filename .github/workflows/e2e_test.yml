@@ -37,6 +37,7 @@ jobs:
           - "e2e-test-eibc-timeout-evm"
           - "e2e-test-transfer-multi-hop-evm"
           - "e2e-test-pfm-with-grace-period-evm"
+          - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-erc20"
           - "e2e-test-pfm-gaia-to-rollapp-evm"
           - "e2e-test-batch-finalization-evm"
           - "e2e-test-disconnection-evm"
