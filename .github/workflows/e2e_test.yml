@@ -47,6 +47,7 @@ jobs:
           - "e2e-test-dym-finalize-block-on-timeout-packet-evm"
           - "e2e-test-dym-finalize-block-on-ack-packet-evm"
           - "e2e-test-delayedack-pending-packets-evm"
+          - "e2e-test-delayedack-relayer-down-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +83,7 @@ jobs:
           - "e2e-test-dym-finalize-block-on-timeout-packet-wasm"
           - "e2e-test-dym-finalize-block-on-ack-packet-wasm"
           - "e2e-test-delayedack-pending-packets-wasm"
-          
+          - "e2e-test-delayedack-relayer-down-wasm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
