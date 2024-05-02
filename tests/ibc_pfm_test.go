@@ -265,6 +265,10 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
+		// wait until gaia receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
@@ -514,6 +518,10 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
+		// wait until gaia receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
@@ -741,6 +749,10 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		transferTx, err := gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaiaUser.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
 		require.NoError(t, err)
 		err = transferTx.Validate()
+		require.NoError(t, err)
+
+		// wait until dymension receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -978,6 +990,10 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		transferTx, err := gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaiaUser.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
 		require.NoError(t, err)
 		err = transferTx.Validate()
+		require.NoError(t, err)
+
+		// wait until dymension receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)

@@ -47,7 +47,7 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "20",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -324,7 +324,7 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "20",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -601,7 +601,7 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "200",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -805,7 +805,7 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -853,7 +853,7 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "200",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -1057,7 +1057,7 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1105,7 +1105,7 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "20",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -1318,7 +1318,7 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1373,7 +1373,7 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: "20",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
 
@@ -1586,7 +1586,7 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 

@@ -42,7 +42,7 @@ type ForwardMetadata struct {
 
 const ibcPath = "dymension-demo"
 const anotherIbcPath = "dymension-demo2"
-const BLOCK_FINALITY_PERIOD = 50
+const BLOCK_FINALITY_PERIOD = 30
 
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
@@ -468,13 +468,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA)
+	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA)
+	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())

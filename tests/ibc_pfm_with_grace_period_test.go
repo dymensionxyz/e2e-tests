@@ -37,10 +37,13 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
-		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "60",
-	})
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -327,10 +330,12 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
-		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "60",
-	})
+	modifyGenesisKV := append(dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
