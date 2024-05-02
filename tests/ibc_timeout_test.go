@@ -9,7 +9,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -39,14 +38,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 10
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -91,7 +83,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       nil,
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -270,14 +262,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 10
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -307,24 +292,8 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},

@@ -43,7 +43,6 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -182,7 +181,6 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{

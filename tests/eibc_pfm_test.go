@@ -49,7 +49,6 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 
-	const BLOCK_FINALITY_PERIOD = 80
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -337,7 +336,6 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 
-	const BLOCK_FINALITY_PERIOD = 80
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{

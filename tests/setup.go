@@ -42,6 +42,7 @@ type ForwardMetadata struct {
 
 const ibcPath = "dymension-demo"
 const anotherIbcPath = "dymension-demo2"
+const BLOCK_FINALITY_PERIOD = 50
 
 var (
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
