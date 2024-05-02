@@ -141,11 +141,11 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -179,36 +179,8 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r2.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -470,11 +442,11 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -508,26 +480,8 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -556,8 +510,19 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 	transferAmountWithoutFee := transferAmount.Sub(eibcFee)
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
+	require.Equal(t, 2, len(dymChannels))
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	require.Len(t, dymChannels, 2)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -570,7 +535,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
+		channelID: channsRollApp1[0].Counterparty.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
@@ -582,12 +547,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	}
 
 	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].Counterparty.PortID, channsRollApp1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	var options ibc.TransferOptions
 	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -613,7 +578,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -861,46 +826,9 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r2.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r2.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	r3.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r3.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r2.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	walletAmount := math.NewInt(1_000_000_000_000)
 
@@ -1621,27 +1549,4 @@ func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight ui
 
 func BuildEIbcMemo(eibcFee math.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
-}
-
-func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testreporter.RelayerExecReporter, chainA, chainB *cosmos.CosmosChain, ibcPath string) {
-	err := r.GeneratePath(ctx, eRep, chainA.Config().ChainID, chainB.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, chainA)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, chainA)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
 }
