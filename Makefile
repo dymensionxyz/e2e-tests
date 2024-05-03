@@ -20,6 +20,9 @@ e2e-test-ibc-grace-period-evm:  clean-e2e
 e2e-test-eibc-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
 
+e2e-test-eibc-ack-error-dym-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_EVM .
+
 e2e-test-eibc-pfm-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCPFM_EVM .
 
@@ -119,6 +122,7 @@ e2e-test-delayedack-relayer-down-wasm: clean-e2e
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-ack-error-dym-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
@@ -155,6 +159,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-ack-error-dym-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
