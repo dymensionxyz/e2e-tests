@@ -230,9 +230,6 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -483,9 +480,6 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -724,9 +718,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from gaia -> dym -> rollapp1
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -964,9 +955,6 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
-
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
 
 		// Send packet from gaia -> dym -> rollapp1
 		transfer := ibc.WalletData{

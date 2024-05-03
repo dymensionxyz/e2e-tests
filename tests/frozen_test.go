@@ -313,8 +313,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// IBC Transfer not working
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -664,8 +662,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// IBC Transfer not working
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -1026,8 +1022,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
 		Denom:   dymension.Config().Denom,
@@ -1448,8 +1442,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
 		Denom:   dymension.Config().Denom,

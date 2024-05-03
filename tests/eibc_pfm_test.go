@@ -252,8 +252,6 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp2Param)
 
-	zeroBal := math.ZeroInt()
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -535,8 +533,6 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp2Param)
 
-	zeroBal := math.ZeroInt()
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1

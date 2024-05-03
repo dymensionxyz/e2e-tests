@@ -153,7 +153,6 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	eibcFee := math.NewInt(2_000_000) // set fee to be more than a transfer amount
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -190,9 +189,8 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 	// balance right after sending IBC transfer
-	zeroBalance := math.NewInt(0)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	// get eIbc event
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -203,7 +201,7 @@ func TestEIBCFeeTooHigh(t *testing.T) {
 	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	t.Cleanup(
 		func() {

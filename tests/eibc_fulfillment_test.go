@@ -198,7 +198,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -267,13 +266,11 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	zeroBalance := math.NewInt(0)
-
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -497,7 +494,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -575,13 +571,11 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	zeroBalance := math.NewInt(0)
-
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -843,7 +837,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	bigTransferAmount := math.NewInt(1_000_000_000)
 	multiplier := math.NewInt(10)
 
@@ -1236,7 +1229,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	bigTransferAmount := math.NewInt(1_000_000_000)
 	multiplier := math.NewInt(10)
 

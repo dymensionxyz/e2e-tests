@@ -144,8 +144,6 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -333,8 +331,6 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,

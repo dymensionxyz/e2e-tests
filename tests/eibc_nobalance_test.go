@@ -156,7 +156,6 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -195,8 +194,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	// verify funds balance right after sending the IBC transfer
-	zeroBalance := math.NewInt(0)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// get eIbc event
@@ -218,7 +216,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// verify funds were transferred to dymensionUserAddr
-	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	t.Cleanup(

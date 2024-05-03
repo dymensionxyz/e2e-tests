@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -40,11 +41,17 @@ type ForwardMetadata struct {
 	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
 }
 
-const ibcPath = "dymension-demo"
-const anotherIbcPath = "dymension-demo2"
-const BLOCK_FINALITY_PERIOD = 30
+const (
+	ibcPath               = "dymension-demo"
+	anotherIbcPath        = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD = 30
+)
 
 var (
+	transferAmount = math.NewInt(1_000_000)
+
+	zeroBal = math.ZeroInt()
+
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"

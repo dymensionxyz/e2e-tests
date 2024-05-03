@@ -194,8 +194,6 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -230,7 +228,7 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, zeroBal)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -262,7 +260,7 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	// Assert funds are waiting
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
@@ -465,8 +463,6 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -501,7 +497,7 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, zeroBal)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -531,7 +527,7 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 
 	// Assert funds are waiting
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
@@ -734,8 +730,6 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -783,7 +777,7 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 
 	// Assert funds are waiting
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
@@ -986,8 +980,6 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -1035,7 +1027,7 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 
 	// Assert funds are waiting
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
@@ -1238,8 +1230,6 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -1286,7 +1276,7 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	// Assert balance was updated on the hub because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	// Assert funds are waiting
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
@@ -1497,8 +1487,6 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	rollApp1Channel, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollApp1Channel, 1)
@@ -1545,7 +1533,7 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	// Assert balance was updated on the hub because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	// Assert funds are waiting
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, zeroBal)
 
 	// Packet commitments exist
 	res, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)

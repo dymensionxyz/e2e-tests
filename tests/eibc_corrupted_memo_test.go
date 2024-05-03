@@ -157,8 +157,6 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
-
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
@@ -224,8 +222,8 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, math.NewInt(0))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, zeroBal)
 
 	t.Cleanup(
 		func() {

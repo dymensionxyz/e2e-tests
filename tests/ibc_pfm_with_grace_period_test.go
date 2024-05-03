@@ -257,9 +257,6 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -284,7 +281,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -308,6 +305,9 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
@@ -549,9 +549,6 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -576,7 +573,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -600,6 +597,9 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
