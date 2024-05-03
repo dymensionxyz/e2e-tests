@@ -46,6 +46,7 @@ jobs:
           - "e2e-test-rollapp-genesis-event-evm"
           - "e2e-test-delayedack-pending-packets-evm"
           - "e2e-test-delayedack-relayer-down-evm"
+          - "e2e-test-eibc-invariant-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
