@@ -499,10 +499,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1, rollapp2, gaia)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, gaiaUser, marketMakerUser, rollappUser := users[0], users[1], users[2], users[3]
 
@@ -589,7 +585,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 1, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// get eibc event
