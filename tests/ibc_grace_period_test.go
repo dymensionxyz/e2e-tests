@@ -283,7 +283,8 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// No packet commitments should exist on rollapp anymore
-	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -558,7 +559,8 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// No packet commitments should exist on rollapp anymore
-	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -814,7 +816,8 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// No packet commitments should exist on rollapp anymore
-	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -1070,7 +1073,8 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// No packet commitments should exist on rollapp anymore
-	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
@@ -1607,7 +1611,8 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// No packet commitments should exist on rollapp anymore
-	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	res, err = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
+	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
 
 	t.Cleanup(
