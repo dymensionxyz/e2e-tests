@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestEIBCInvariant__EVM(t *testing.T) {
+func TestEIBCInvariant_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -385,7 +385,7 @@ func TestEIBCInvariant__EVM(t *testing.T) {
 	)
 }
 
-func TestEIBCInvariant__Wasm(t *testing.T) {
+func TestEIBCInvariant_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
