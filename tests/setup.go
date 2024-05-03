@@ -420,7 +420,7 @@ func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ..
 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 		require.NoError(t, err)
 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
-		err = testutil.WaitForBlocks(ctx, 10, dymension)
+		err = testutil.WaitForBlocks(ctx, 20, dymension)
 		require.NoError(t, err)
 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
 		require.NoError(t, err)
