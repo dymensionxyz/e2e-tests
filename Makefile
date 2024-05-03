@@ -75,6 +75,9 @@ e2e-test-ibc-success-wasm: clean-e2e
 e2e-test-ibc-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_Wasm .
 
+e2e-test-eibc-ack-error-dym-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_Wasm .
+
 e2e-test-eibc-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_Wasm .
 
@@ -141,6 +144,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
+	e2e-test-eibc-ack-error-dym-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
 	e2e-test-eibc-pfm-wasm \
@@ -178,6 +182,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
+	e2e-test-eibc-ack-error-dym-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
 	e2e-test-eibc-pfm-wasm \

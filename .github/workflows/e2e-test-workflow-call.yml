@@ -79,6 +79,7 @@ jobs:
           - "e2e-test-ibc-success-wasm"
           - "e2e-test-ibc-timeout-wasm"
           - "e2e-test-ibc-grace-period-wasm"
+          - "e2e-test-eibc-ack-error-dym-wasm"
           - "e2e-test-eibc-fulfillment-wasm"
           - "e2e-test-eibc-fulfillment-thirdparty-wasm"
           - "e2e-test-eibc-pfm-wasm"
