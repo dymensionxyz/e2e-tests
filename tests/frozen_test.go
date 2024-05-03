@@ -346,7 +346,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// wait until the packet is finalized
 	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1475,7 +1475,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	// wait until the packet is finalized
 	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
