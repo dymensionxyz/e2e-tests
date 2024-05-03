@@ -333,7 +333,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[0])
+	require.Len(t, eibcEvents, 2)
+	fmt.Println("Event:", eibcEvents[1])
+	require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
 	// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
 	dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -342,7 +344,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
