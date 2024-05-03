@@ -46,7 +46,6 @@ jobs:
           - "e2e-test-delayedack-pending-packets-evm"
           - "e2e-test-delayedack-relayer-down-evm"
       fail-fast: false
-      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
