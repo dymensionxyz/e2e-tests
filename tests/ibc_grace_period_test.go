@@ -279,6 +279,9 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	// No packet commitments should exist on rollapp anymore
 	_, _ = rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.Equal(t, len(res.Commitments) == 0, true, "packet commitments still exist")
@@ -771,9 +774,6 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// Assert balance was updated on the rollapp because transfer amount was deducted from wallet balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -790,13 +790,16 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// Packet commitments exist
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
@@ -1290,8 +1293,6 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub because transfer amount was deducted from wallet balance
-
 	// Get the IBC denom for urax on rollapp
 	dymTokenDenom := transfertypes.GetPrefixedDenom(rollApp1Channel[0].PortID, rollApp1Channel[0].ChannelID, dymension.Config().Denom)
 	dymIBCDenom := transfertypes.ParseDenomTrace(dymTokenDenom).IBCDenom()
@@ -1308,6 +1309,10 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	res, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
+
+	// Restart Relayer
+	r1.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1559,8 +1564,6 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub because transfer amount was deducted from wallet balance
-
 	// Get the IBC denom for urax on rollapp
 	dymTokenDenom := transfertypes.GetPrefixedDenom(rollApp1Channel[0].PortID, rollApp1Channel[0].ChannelID, dymension.Config().Denom)
 	dymIBCDenom := transfertypes.ParseDenomTrace(dymTokenDenom).IBCDenom()
@@ -1577,6 +1580,10 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	res, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", rollApp1Channel[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, true, "no packet commitments exist")
+
+	// Restart Relayer
+	r1.UpdateClients(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
