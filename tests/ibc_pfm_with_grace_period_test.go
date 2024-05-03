@@ -887,9 +887,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 		_, err = cosmos.PollForProposalStatus(ctx, rollapp2.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 		require.NoError(t, err, "proposal status did not change to passed")
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> rollapp2
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
