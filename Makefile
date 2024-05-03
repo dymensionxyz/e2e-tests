@@ -65,6 +65,9 @@ e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
 e2e-test-delayedack-relayer-down-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_EVM .
 
+e2e-test-eibc-invariant-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCInvariant__EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
