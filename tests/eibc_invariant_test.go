@@ -2,10 +2,12 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -233,6 +235,28 @@ func TestEIBCInvariant__EVM(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
+	epochIdentifier := json.RawMessage(fmt.Sprintf(`"%s"`, "minute"))
+	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
+		Title:       "Change epoch identifier to minute",
+		Description: "Change epoch identifier to minute",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("delayedack", "EpochIdentifier", epochIdentifier),
+		},
+		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+	})
+	require.NoError(t, err)
+
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
+	require.NoError(t, err)
+	require.Equal(t, string(epochIdentifier), newParams.Value)
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
@@ -332,6 +356,24 @@ func TestEIBCInvariant__EVM(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount.MulRaw(2))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+
+	// Send 2 ibc transfer
+	for i := 0; i < 2; i++ {
+		_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
+	}
+
+	// Wait 1 epochs
+	ok, err := dymension.WaitUntilEpochEnds(ctx, "minute", 100)
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	// Run eibc variants
+	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "eibc", "demand-order-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "eibc", "underlying-packet-exist")
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
