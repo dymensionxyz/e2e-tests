@@ -1463,7 +1463,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
@@ -1492,7 +1492,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -1509,18 +1509,18 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				ChainID:             "rollappwasm_12345-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       nil,
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -1563,12 +1563,12 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1685,6 +1685,21 @@ func TestEIBCFulfillment_ignore_hub_to_RA(t *testing.T) {
 
 	// send fund from dymension to rollapp1
 	_, err = dymension.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, dymensionUserAddr, transferDataRollapp1, options)
+	require.NoError(t, err)
+
+	// get eIbc event
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
+	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
+	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
+
+	transferDataRollapp2 := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// send fund from dymension to rollapp2-wasm
+	_, err = dymension.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, dymensionUserAddr, transferDataRollapp2, options)
 	require.NoError(t, err)
 
 	// get eIbc event
