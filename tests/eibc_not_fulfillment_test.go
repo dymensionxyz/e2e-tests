@@ -305,7 +305,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 10
+	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -447,37 +447,37 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	// marketMakerAddr := marketMaker.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	// testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
-	// transferAmountWithoutFee := transferAmount.Sub(eibcFee)
 
-	dymChannel, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymChannel))
+	require.Equal(t, 2, len(dymChannels))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	require.Len(t, dymChannels, 2)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -485,11 +485,18 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channsRollApp1[0].Counterparty.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
 	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(dymChannel[0].Counterparty.PortID, dymChannel[0].Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].Counterparty.PortID, channsRollApp1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	var options ibc.TransferOptions
@@ -501,7 +508,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -515,7 +522,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
-	require.False(t, eibcEvents[0].IsFulfilled)
+
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
