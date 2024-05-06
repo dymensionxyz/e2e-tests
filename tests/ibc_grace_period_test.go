@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -177,8 +176,6 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -457,8 +454,6 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -736,8 +731,6 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -993,8 +986,6 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -1249,8 +1240,6 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -1521,8 +1510,6 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)

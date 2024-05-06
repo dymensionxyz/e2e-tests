@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -187,8 +186,6 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
@@ -438,8 +435,6 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
 
@@ -674,8 +669,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
@@ -912,8 +905,6 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)

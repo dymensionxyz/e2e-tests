@@ -199,8 +199,6 @@ func TestEIBCPFM_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
 
@@ -477,8 +475,6 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)

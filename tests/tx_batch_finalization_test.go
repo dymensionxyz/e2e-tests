@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -130,8 +129,6 @@ func TestBatchFinalization_EVM(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -268,8 +265,6 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)

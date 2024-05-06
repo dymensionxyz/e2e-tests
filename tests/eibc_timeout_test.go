@@ -135,8 +135,6 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 

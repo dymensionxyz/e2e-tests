@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -192,8 +191,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -514,8 +511,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -879,8 +874,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
@@ -1297,8 +1290,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)

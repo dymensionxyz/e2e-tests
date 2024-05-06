@@ -48,6 +48,8 @@ const (
 )
 
 var (
+	walletAmount = math.NewInt(1_000_000_000_000)
+
 	transferAmount = math.NewInt(1_000_000)
 
 	zeroBal = math.ZeroInt()

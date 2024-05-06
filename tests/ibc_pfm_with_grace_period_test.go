@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -214,8 +213,6 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
@@ -507,8 +504,6 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
 
@@ -799,8 +794,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 			}
 		},
 	)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
