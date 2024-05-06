@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -139,9 +138,6 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, ibcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -191,14 +187,8 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -237,9 +227,6 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -272,7 +259,8 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		// wait until gaia receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
@@ -398,9 +386,6 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, ibcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -450,14 +435,8 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -496,9 +475,6 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -531,7 +507,8 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		// wait until gaia receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
@@ -649,9 +626,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -696,14 +670,8 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -743,9 +711,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from gaia -> dym -> rollapp1
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -770,6 +735,10 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
+		// wait until dymension receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
+
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
 
@@ -777,9 +746,6 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
-		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
@@ -896,9 +862,6 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -943,14 +906,8 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, gaia)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -990,9 +947,6 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from gaia -> dym -> rollapp1
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -1017,6 +971,10 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
+		// wait until dymension receive transferAmount
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
+		require.NoError(t, err)
+
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
 
@@ -1024,9 +982,6 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
-		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)

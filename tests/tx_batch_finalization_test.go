@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -43,7 +42,6 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -132,14 +130,8 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -186,7 +178,6 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -275,14 +266,8 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]

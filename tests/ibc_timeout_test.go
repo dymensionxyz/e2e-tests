@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -39,14 +38,15 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 10
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+			Value: fmt.Sprint(10),
 		},
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -137,14 +137,8 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -157,8 +151,6 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
@@ -184,13 +176,14 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	// Compose an IBC transfer and send from Rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
@@ -208,7 +201,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
 	require.NoError(t, err)
@@ -222,12 +215,14 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
@@ -244,7 +239,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
 	t.Cleanup(
@@ -274,14 +269,15 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 10
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+			Value: fmt.Sprint(10),
 		},
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -372,14 +368,8 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -392,8 +382,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	// Compose an IBC transfer and send from rollapp -> dymension
-	transferAmount := math.NewInt(1_000_000)
-
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
@@ -443,7 +431,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
 	require.NoError(t, err)
@@ -457,12 +445,14 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
@@ -479,7 +469,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
 	t.Cleanup(
