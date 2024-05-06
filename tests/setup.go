@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -40,10 +41,19 @@ type ForwardMetadata struct {
 	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
 }
 
-const ibcPath = "dymension-demo"
-const anotherIbcPath = "dymension-demo2"
+const (
+	ibcPath               = "dymension-demo"
+	anotherIbcPath        = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD = 30
+)
 
 var (
+	walletAmount = math.NewInt(1_000_000_000_000)
+
+	transferAmount = math.NewInt(1_000_000)
+
+	zeroBal = math.ZeroInt()
+
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
@@ -467,16 +477,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 30, chainA)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
+	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA)
+	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
