@@ -337,12 +337,17 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	oldRollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.Error(t, err)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+
+	// Ensure rollapp1 stops produce blocks
+	newRollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	require.Equal(t, oldRollappHeight, newRollappHeight)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -684,12 +689,17 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	oldRollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.Error(t, err)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+
+	// Ensure rollapp1 stops produce blocks
+	newRollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	require.Equal(t, oldRollappHeight, newRollappHeight)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1021,10 +1031,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	// Confirm IBC Transfer not working between Dymension <-> rollapp1
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
-
-	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1043,12 +1050,17 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollapp1Height, err := rollapp1.GetNode().Height(ctx)
+	oldRollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
-	require.Error(t, err)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+
+	// Ensure rollapp1 stops produce blocks
+	newRollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	require.Equal(t, oldRollappHeight, newRollappHeight)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1437,10 +1449,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Confirm IBC Transfer not working between Dymension <-> rollapp1
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
-
-	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1459,12 +1468,17 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollapp1Height, err := rollapp1.GetNode().Height(ctx)
+	oldRollappHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	_, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
-	require.Error(t, err)
+	// Wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+
+	// Ensure rollapp1 stops produce blocks
+	newRollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	require.Equal(t, oldRollappHeight, newRollappHeight)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
