@@ -374,15 +374,14 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
 	// Compose an IBC transfer and send from rollapp -> dymension
 	ibcTx, err := dymension.SendIBCTransfer(ctx, channel1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was not change on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-
-	dymensionHeight, err := dymension.Height(ctx)
-	require.NoError(t, err)
 
 	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+50, ibcTx.Packet)
 	require.NoError(t, err)
@@ -908,15 +907,15 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
+
+	dymensionHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
 	// Compose an IBC transfer and send from rollapp -> dymension
 	ibcTx, err := dymension.SendIBCTransfer(ctx, channel1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was not change on the rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-
-	dymensionHeight, err := dymension.Height(ctx)
-	require.NoError(t, err)
 
 	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+50, ibcTx.Packet)
 	require.NoError(t, err)
