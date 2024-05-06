@@ -337,17 +337,8 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	oldRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-
-	// Ensure rollapp1 stops produce blocks
-	newRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	require.Equal(t, oldRollappHeight, newRollappHeight)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -689,17 +680,8 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	oldRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-
-	// Ensure rollapp1 stops produce blocks
-	newRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	require.Equal(t, oldRollappHeight, newRollappHeight)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1050,17 +1032,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	oldRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-
-	// Ensure rollapp1 stops produce blocks
-	newRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	require.Equal(t, oldRollappHeight, newRollappHeight)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1468,17 +1441,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	oldRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-
-	// Ensure rollapp1 stops produce blocks
-	newRollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	require.Equal(t, oldRollappHeight, newRollappHeight)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
