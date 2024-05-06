@@ -243,14 +243,12 @@ func TestEIBCPFM_EVM(t *testing.T) {
 		userKey:   dymensionUser.KeyName(),
 	}
 
-	triggerHubGenesisEvent(t, dymension, rollapp1Param)
-
 	rollapp2Param := rollappParam{
 		rollappID: rollapp2.Config().ChainID,
 		channelID: channDymRollApp2.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
-	triggerHubGenesisEvent(t, dymension, rollapp2Param)
+	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	multiplier := math.NewInt(10)
 
@@ -524,14 +522,12 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 		userKey:   dymensionUser.KeyName(),
 	}
 
-	triggerHubGenesisEvent(t, dymension, rollapp1Param)
-
 	rollapp2Param := rollappParam{
 		rollappID: rollapp2.Config().ChainID,
 		channelID: channDymRollApp2.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
-	triggerHubGenesisEvent(t, dymension, rollapp2Param)
+	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	multiplier := math.NewInt(10)
 

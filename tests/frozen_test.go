@@ -237,17 +237,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -565,15 +564,16 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -938,17 +938,16 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1357,17 +1356,16 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)

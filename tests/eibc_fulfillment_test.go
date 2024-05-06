@@ -867,17 +867,17 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	channGaiaDym := gaiaChannels[0]
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		},
+		rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -1259,17 +1259,16 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	channGaiaDym := gaiaChannels[0]
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
