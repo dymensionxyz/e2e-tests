@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
-
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -119,17 +117,8 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -150,9 +139,6 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
@@ -209,7 +195,6 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	gasPrice := "0adym"
 	emptyBlocksMaxTimeRollapp := "3s"
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
-
 
 	// Create chain factory with dymension
 	numHubVals := 2
@@ -310,8 +295,6 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -350,9 +333,6 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	channel1, err := ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, gaia.Config().ChainID)
 	require.NoError(t, err)
 	fmt.Println("channel: ", channel1)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
@@ -474,8 +454,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -502,9 +480,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
@@ -644,8 +619,6 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -672,9 +645,6 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
@@ -831,8 +801,6 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -871,9 +839,6 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	channel1, err := ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, gaia.Config().ChainID)
 	require.NoError(t, err)
 	fmt.Println("channel: ", channel1)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
@@ -996,8 +961,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -1024,9 +987,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
