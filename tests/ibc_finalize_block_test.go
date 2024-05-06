@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -31,15 +30,13 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappevm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
 		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
@@ -168,7 +165,6 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	var transferAmount = math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
@@ -195,7 +191,7 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, sdk.ZeroInt())
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -207,15 +203,13 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappevm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// Create chain factory with dymension
 	numHubVals := 2
@@ -367,8 +361,6 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
-	var transferAmount = math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -398,15 +390,12 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappevm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
 	numHubVals := 2
@@ -528,7 +517,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	var transferAmount = math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
@@ -555,7 +543,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, sdk.ZeroInt())
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and ack failed.
@@ -567,15 +555,13 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappwasm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
 			Key:   "app_state.transfer.params.receive_enabled",
@@ -701,7 +687,6 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	var transferAmount = math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
@@ -728,7 +713,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, sdk.ZeroInt())
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -740,15 +725,12 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappwasm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
 	numHubVals := 2
@@ -900,8 +882,6 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
-	var transferAmount = math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -932,15 +912,12 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	settlementLayer := "dymension"
+	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollappId := "rollappwasm_1234-1"
+	gasPrice := "0adym"
+	emptyBlocksMaxTimeRollapp := "3s"
+	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
 	numHubVals := 2
@@ -1062,7 +1039,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	var transferAmount = math.NewInt(1_000_000)
 
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
@@ -1089,5 +1065,5 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, sdk.ZeroInt())
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
