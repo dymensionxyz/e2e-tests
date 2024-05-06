@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -37,10 +36,13 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
-		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "60",
-	})
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -163,9 +165,6 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, ibcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -215,14 +214,8 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -261,9 +254,6 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -288,7 +278,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -313,7 +303,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
@@ -337,10 +327,12 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	dymintTomlOverrides["gas_prices"] = "0adym"
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
-	modifyGenesisKV := append(dymensionGenesisKV, cosmos.GenesisKV{
-		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "60",
-	})
+	modifyGenesisKV := append(dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -463,9 +455,6 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, ibcPath)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsDym, 2)
@@ -515,14 +504,8 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, gaia)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser, gaiaUser := users[0], users[1], users[2]
@@ -561,9 +544,6 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
-
 		// Send packet from rollapp1 -> dym -> gaia
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -588,7 +568,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
@@ -613,7 +593,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		err = testutil.WaitForBlocks(ctx, 20, dymension, gaia)
+		err = testutil.WaitForBlocks(ctx, 10, dymension, gaia)
 		require.NoError(t, err)
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
@@ -815,8 +795,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
 
@@ -901,9 +879,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 		require.NoError(t, err, "error fetching height")
 		_, err = cosmos.PollForProposalStatus(ctx, rollapp2.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 		require.NoError(t, err, "proposal status did not change to passed")
-
-		zeroBal := math.ZeroInt()
-		transferAmount := math.NewInt(100_000)
 
 		// Send packet from rollapp1 -> dym -> rollapp2
 		transfer := ibc.WalletData{
