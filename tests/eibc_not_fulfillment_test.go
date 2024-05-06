@@ -43,7 +43,6 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -179,14 +178,8 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -222,9 +215,6 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
-	require.NoError(t, err)
-
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channsRollApp1[0].Counterparty.ChannelID,
@@ -247,10 +237,13 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
+
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
@@ -310,7 +303,6 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -446,14 +438,8 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -487,9 +473,6 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
 	require.NoError(t, err)
 
 	rollapp := rollappParam{
