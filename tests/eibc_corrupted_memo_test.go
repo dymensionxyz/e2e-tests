@@ -38,7 +38,7 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 50
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -138,14 +138,8 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, dymensionUser2, dymensionUser3, rollappUser := users[0], users[1], users[2], users[3]
@@ -160,8 +154,6 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
-
-	transferAmount := math.NewInt(1_000_000)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -228,8 +220,8 @@ func TestEIBCCorruptedMemoNegative(t *testing.T) {
 	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, math.NewInt(0))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, zeroBal)
 
 	t.Cleanup(
 		func() {
