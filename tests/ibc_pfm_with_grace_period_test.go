@@ -1258,7 +1258,7 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
 		require.NoError(t, err)
 
-		erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "erc20")
+		erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "wasm")
 		require.NoError(t, err)
 		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 		rollapp2Erc20MaccBalance, err := rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
