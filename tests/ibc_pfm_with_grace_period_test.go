@@ -1182,49 +1182,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 		firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
 		secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
 
-		// register ibc denom (secondHopIBCDenom) on rollapp2
-		// metadata := banktypes.Metadata{
-		// 	Description: "IBC token from Dymension",
-		// 	DenomUnits: []*banktypes.DenomUnit{
-		// 		{
-		// 			Denom:    secondHopIBCDenom,
-		// 			Exponent: 0,
-		// 			Aliases:  []string{"urax"},
-		// 		},
-		// 		{
-		// 			Denom:    "urax",
-		// 			Exponent: 6,
-		// 		},
-		// 	},
-		// 	// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
-		// 	// Base as key path and the IBC hash is what gives this token uniqueness
-		// 	// on the executing chain
-		// 	Base:    secondHopIBCDenom,
-		// 	Display: "urax",
-		// 	Name:    "urax",
-		// 	Symbol:  "urax",
-		// }
-
-		// data := map[string][]banktypes.Metadata{
-		// 	"metadata": {metadata},
-		// }
-
-		// contentFile, err := json.Marshal(data)
-		// require.NoError(t, err)
-		// rollapp2.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
-		// deposit := "500000000000" + rollapp1.Config().Denom
-		// rollapp2.GetNode().HostName()
-		// _, err = rollapp2.GetNode().RegisterIBCTokenDenomProposal(ctx, rollapp2User.KeyName(), deposit, rollapp2.GetNode().HomeDir()+"/ibcmetadata.json")
-		// require.NoError(t, err)
-
-		// err = rollapp2.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
-		// require.NoError(t, err, "failed to submit votes")
-
-		// height, err := rollapp2.Height(ctx)
-		// require.NoError(t, err, "error fetching height")
-		// _, err = cosmos.PollForProposalStatus(ctx, rollapp2.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
-		// require.NoError(t, err, "proposal status did not change to passed")
-
 		// Send packet from rollapp1 -> dym -> rollapp2
 		transfer := ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -1258,16 +1215,16 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
 		require.NoError(t, err)
 
-		erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "wasm")
-		require.NoError(t, err)
-		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-		rollapp2Erc20MaccBalance, err := rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
+		// wasmMAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "wasm")
+		// require.NoError(t, err)
+		// wasmMAccAddr := wasmMAcc.Account.BaseAccount.Address
+		rollapp2UserBalance, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 
 		// Make sure that the transfer is not successful yet due to the grace period
 		require.True(t, rollAppBalance.Equal(walletAmount.Sub(transferAmount)))
 		require.True(t, dymBalance.Equal(zeroBal))
-		require.True(t, rollapp2Erc20MaccBalance.Equal(zeroBal))
+		require.True(t, rollapp2UserBalance.Equal(zeroBal))
 
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
@@ -1280,9 +1237,9 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp2)
 		require.NoError(t, err)
 
-		rollapp2Erc20MaccBalance, err = rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
+		rollapp2UserBalance, err = rollapp2.GetBalance(ctx, rollapp2UserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount))
+		require.True(t, rollapp2UserBalance.Equal(transferAmount))
 	})
 	// Check the commitment was deleted
 	resp, err := rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", rollapp2DymChan.ChannelID)
