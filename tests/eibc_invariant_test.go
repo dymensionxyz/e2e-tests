@@ -31,14 +31,14 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
 	emptyBlocksMaxTime := "3s"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
@@ -62,18 +62,18 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappwasm_1234-1",
-				Images:              []ibc.DockerImage{rollappWasmImage},
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
@@ -84,18 +84,18 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
-				Images:              []ibc.DockerImage{rollappWasmImage},
+				ChainID:             "rollappevm_12345-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
+				Bech32Prefix:        "ethm",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -395,14 +395,14 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
+	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
 	emptyBlocksMaxTime := "3s"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
@@ -426,18 +426,18 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				ChainID:             "rollappwasm_1234-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       nil,
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
@@ -448,18 +448,18 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				ChainID:             "rollappwasm_12345-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       nil,
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
