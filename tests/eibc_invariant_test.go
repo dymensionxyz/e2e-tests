@@ -2,12 +2,10 @@ package tests
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -43,11 +41,16 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	const BLOCK_FINALITY_PERIOD = 20
+	const EPOCH_IDENTIFIER = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.delayedack.params.epoch_identifier",
+			Value: fmt.Sprint(EPOCH_IDENTIFIER),
 		},
 	)
 
@@ -235,28 +238,9 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	epochIdentifier := json.RawMessage(fmt.Sprintf(`"%s"`, "minute"))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Change epoch identifier to minute",
-		Description: "Change epoch identifier to minute",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("delayedack", "EpochIdentifier", epochIdentifier),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
 	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
 	require.NoError(t, err)
-	require.Equal(t, string(epochIdentifier), newParams.Value)
+	require.Equal(t, string(EPOCH_IDENTIFIER), newParams.Value)
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
@@ -407,11 +391,16 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	const BLOCK_FINALITY_PERIOD = 20
+	const EPOCH_IDENTIFIER = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.delayedack.params.epoch_identifier",
+			Value: fmt.Sprint(EPOCH_IDENTIFIER),
 		},
 	)
 
@@ -599,28 +588,9 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	epochIdentifier := json.RawMessage(fmt.Sprintf(`"%s"`, "minute"))
-	propTx, err := dymension.ParamChangeProposal(ctx, dymensionUser.KeyName(), &utils.ParamChangeProposalJSON{
-		Title:       "Change epoch identifier to minute",
-		Description: "Change epoch identifier to minute",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("delayedack", "EpochIdentifier", epochIdentifier),
-		},
-		Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
 	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
 	require.NoError(t, err)
-	require.Equal(t, string(epochIdentifier), newParams.Value)
+	require.Equal(t, EPOCH_IDENTIFIER, newParams.Value)
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
