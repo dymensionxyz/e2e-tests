@@ -259,6 +259,7 @@ func TestEIBCTimeoutDymToRollapp(t *testing.T) {
 		},
 	)
 }
+
 // TestEIBCTimeoutFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
 // and full filled
 func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
@@ -517,7 +518,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
 		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+			NanoSeconds: testutil.ImmediatelyTimeout().NanoSeconds, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
 		},
 	}
 
@@ -530,16 +531,15 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 
 	gaiaToDymTransferData := ibc.WalletData{
 		Address: dymensionUserAddr,
-		Denom: gaia.Config().Denom,
-		Amount: transferAmount,
+		Denom:   gaia.Config().Denom,
+		Amount:  transferAmount,
 	}
 
 	gaiaToMMTransferData := ibc.WalletData{
 		Address: marketMakerAddr,
-		Denom: gaia.Config().Denom,
-		Amount: transferAmount,
+		Denom:   gaia.Config().Denom,
+		Amount:  transferAmount,
 	}
-
 
 	// Compose an IBC transfer and send from gaiai -> dym and market maker
 	_, err = gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaianUserAddr, gaiaToDymTransferData, ibc.TransferOptions{})
@@ -570,11 +570,11 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 	// Assert balance was updated on the dym
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, zeroBal)
 	// Get the IBC denom of 3rd party token on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
@@ -873,10 +873,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia, dymension, rollapp1)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1, rollapp2, gaia)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, gaiaUser, marketMakerUser, rollappUser := users[0], users[1], users[2], users[3]
 
@@ -900,7 +896,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
 		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+			NanoSeconds: testutil.ImmediatelyTimeout().NanoSeconds, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
 		},
 	}
 
@@ -913,16 +909,15 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 
 	gaiaToDymTransferData := ibc.WalletData{
 		Address: dymensionUserAddr,
-		Denom: gaia.Config().Denom,
-		Amount: transferAmount,
+		Denom:   gaia.Config().Denom,
+		Amount:  transferAmount,
 	}
 
 	gaiaToMMTransferData := ibc.WalletData{
 		Address: marketMakerAddr,
-		Denom: gaia.Config().Denom,
-		Amount: transferAmount,
+		Denom:   gaia.Config().Denom,
+		Amount:  transferAmount,
 	}
-
 
 	// Compose an IBC transfer and send from gaiai -> dym and market maker
 	_, err = gaia.SendIBCTransfer(ctx, gaiaDymChan.ChannelID, gaianUserAddr, gaiaToDymTransferData, ibc.TransferOptions{})
@@ -953,11 +948,11 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 	// Assert balance was updated on the dym
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, zeroBal)
 	// Get the IBC denom of 3rd party token on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
