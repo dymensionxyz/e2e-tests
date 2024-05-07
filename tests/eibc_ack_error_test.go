@@ -35,6 +35,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	emptyBlocksMaxTimeRollapp1 := "10s"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
 
+	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
+
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappevm_2-1"
@@ -128,6 +130,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
+			ExtraFlags:    extraFlags,
 		},
 	})
 
@@ -267,12 +270,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	// Transfer dymension from hub to rollapp
-	transferData := ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channRollApp1Dym.PortID, channRollApp1Dym.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -280,106 +280,214 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 
 	var options ibc.TransferOptions
 
-	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, options)
-	require.NoError(t, err)
+	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
+		transferData := ibc.WalletData{
+			Address: marketMakerAddr,
+			Denom:   rollappIBCDenom,
+			Amount:  transferAmount,
+		}
 
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
+		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
+		require.NoError(t, err)
+		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
+		// end of preconditions
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+		transferData = ibc.WalletData{
+			Address: dymensionUserAddr,
+			Denom:   rollapp1.Config().Denom,
+			Amount:  transferAmount,
+		}
 
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+		// set eIBC specific memo
+		options.Memo = BuildEIbcMemo(eibcFee)
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
 
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   dymensionIBCDenom,
-		Amount:  transferAmount,
-	}
+		zeroBalance := math.NewInt(0)
+		balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+		require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
-	// set eIBC specific memo
-	options.Memo = BuildEIbcMemo(eibcFee)
+		// catch ACK errors
+		rollapp1Height, err := rollapp1.Height(ctx)
+		require.NoError(t, err)
 
-	ibcTx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
-	require.NoError(t, err)
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		require.NoError(t, err)
 
-	zeroBalance := math.NewInt(0)
-	balance, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	require.NoError(t, err)
-	fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+		// Make sure that the ack contains error
+		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	// catch ACK errors
-	rollappHeight, err = rollapp1.Height(ctx)
-	require.NoError(t, err)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
-	require.NoError(t, err)
+		// At the moment, the ack returned and the demand order status became "finalized"
+		// We will execute the ibc transfer again and try to fulfill the demand order
+		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
 
-	// Make sure that the ack contains error
-	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+		// get eIbc event
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		require.NoError(t, err)
+		require.Len(t, eibcEvents, 2)
+		fmt.Println("Event:", eibcEvents[1])
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		// fulfill demand order
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
+		require.NoError(t, err)
+		fmt.Println(txhash)
+		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+		if eibcEvent != nil {
+			fmt.Println("After order fulfillment:", eibcEvent)
+		}
 
-	// At the moment, the ack returned and the demand order status became "finalized"
-	// We will execute the ibc transfer again and try to fulfill the demand order
-	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
-	require.NoError(t, err)
+		// wait a few blocks and verify sender received funds on the hub
+		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		require.NoError(t, err)
 
-	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
-	require.NoError(t, err)
-	require.Len(t, eibcEvents, 2)
-	fmt.Println("Event:", eibcEvents[1])
-	require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
+		// verify funds minus fee were added to receiver's address
+		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
+		require.True(t, balance.Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance))
+		// verify funds were deducted from market maker's wallet address
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
-	dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	marketMakerBalance, err := dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
+		// wait until packet finalization, mm balance should be the same due to the ack error
+		rollappHeight, err := rollapp1.Height(ctx)
+		require.NoError(t, err)
 
-	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
-	require.NoError(t, err)
-	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
+		// wait for a few blocks and check if the fund returns to rollapp
+		testutil.WaitForBlocks(ctx, 20, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	})
 
-	// verify funds minus fee were added to receiver's address
-	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance changed of dymensionUserAddr after fulfilling the order:", balance.Sub(dymensionUserBalance))
-	require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance.Sub(dymensionUserBalance)))
-	// verify funds were deducted from market maker's wallet address
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee))
-	require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
-	// wait until packet finalization, mm balance should be the same due to the ack error
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-	require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+	t.Run("Demand order is created upon AckError for dym", func(t *testing.T) {
+		// Transfer dymension from hub to rollapp
+		transferData := ibc.WalletData{
+			Address: rollappUserAddr,
+			Denom:   dymension.Config().Denom,
+			Amount:  transferAmount,
+		}
 
-	// check if the fund returns to rollapp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+		require.NoError(t, err)
+
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+		transferData = ibc.WalletData{
+			Address: dymensionUserAddr,
+			Denom:   dymensionIBCDenom,
+			Amount:  transferAmount,
+		}
+
+		// set eIBC specific memo
+		options.Memo = BuildEIbcMemo(eibcFee)
+
+		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		zeroBalance := math.NewInt(0)
+		balance, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
+		require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+
+		// catch ACK errors
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
+		require.NoError(t, err)
+
+		// Make sure that the ack contains error
+		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+		// At the moment, the ack returned and the demand order status became "finalized"
+		// We will execute the ibc transfer again and try to fulfill the demand order
+		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		// get eIbc event
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		require.NoError(t, err)
+		require.Len(t, eibcEvents, 2)
+		fmt.Println("Event:", eibcEvents[1])
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
+
+		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
+		dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		marketMakerBalance, err := dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+
+		// fulfill demand order
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
+		require.NoError(t, err)
+		fmt.Println(txhash)
+		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+		if eibcEvent != nil {
+			fmt.Println("After order fulfillment:", eibcEvent)
+		}
+
+		// wait a few blocks and verify sender received funds on the hub
+		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		require.NoError(t, err)
+
+		// verify funds minus fee were added to receiver's address
+		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance changed of dymensionUserAddr after fulfilling the order:", balance.Sub(dymensionUserBalance))
+		require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance.Sub(dymensionUserBalance)))
+		// verify funds were deducted from market maker's wallet address
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee))
+		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+		// wait until packet finalization, mm balance should be the same due to the ack error
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+
+		// wait for a few blocks and check if the fund returns to rollapp
+		testutil.WaitForBlocks(ctx, 20, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, walletAmount)
+	})
+
 	t.Cleanup(
 		func() {
 			err := r2.StopRelayer(ctx, eRep)
@@ -498,6 +606,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
+			ExtraFlags:    extraFlags,
 		},
 	})
 
@@ -637,12 +746,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	// Transfer dymension from hub to rollapp
-	transferData := ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channRollApp1Dym.PortID, channRollApp1Dym.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -650,106 +756,214 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 	var options ibc.TransferOptions
 
-	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, options)
-	require.NoError(t, err)
+	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
+		transferData := ibc.WalletData{
+			Address: marketMakerAddr,
+			Denom:   rollappIBCDenom,
+			Amount:  transferAmount,
+		}
 
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
+		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
+		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
+		require.NoError(t, err)
+		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
+		// end of preconditions
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+		transferData = ibc.WalletData{
+			Address: dymensionUserAddr,
+			Denom:   rollapp1.Config().Denom,
+			Amount:  transferAmount,
+		}
 
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+		// set eIBC specific memo
+		options.Memo = BuildEIbcMemo(eibcFee)
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
 
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   dymensionIBCDenom,
-		Amount:  transferAmount,
-	}
+		zeroBalance := math.NewInt(0)
+		balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+		require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
-	// set eIBC specific memo
-	options.Memo = BuildEIbcMemo(eibcFee)
+		// catch ACK errors
+		rollapp1Height, err := rollapp1.Height(ctx)
+		require.NoError(t, err)
 
-	ibcTx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
-	require.NoError(t, err)
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		require.NoError(t, err)
 
-	zeroBalance := math.NewInt(0)
-	balance, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	require.NoError(t, err)
-	fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+		// Make sure that the ack contains error
+		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	// catch ACK errors
-	rollappHeight, err = rollapp1.Height(ctx)
-	require.NoError(t, err)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
-	require.NoError(t, err)
+		// At the moment, the ack returned and the demand order status became "finalized"
+		// We will execute the ibc transfer again and try to fulfill the demand order
+		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
 
-	// Make sure that the ack contains error
-	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+		// get eIbc event
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		require.NoError(t, err)
+		require.Len(t, eibcEvents, 2)
+		fmt.Println("Event:", eibcEvents[1])
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		// fulfill demand order
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
+		require.NoError(t, err)
+		fmt.Println(txhash)
+		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+		if eibcEvent != nil {
+			fmt.Println("After order fulfillment:", eibcEvent)
+		}
 
-	// At the moment, the ack returned and the demand order status became "finalized"
-	// We will execute the ibc transfer again and try to fulfill the demand order
-	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
-	require.NoError(t, err)
+		// wait a few blocks and verify sender received funds on the hub
+		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		require.NoError(t, err)
 
-	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
-	require.NoError(t, err)
-	require.Len(t, eibcEvents, 2)
-	fmt.Println("Event:", eibcEvents[1])
-	require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
+		// verify funds minus fee were added to receiver's address
+		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
+		require.True(t, balance.Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance))
+		// verify funds were deducted from market maker's wallet address
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
-	dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	marketMakerBalance, err := dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
+		// wait until packet finalization, mm balance should be the same due to the ack error
+		rollappHeight, err := rollapp1.Height(ctx)
+		require.NoError(t, err)
 
-	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
-	require.NoError(t, err)
-	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
+		// wait for a few blocks and check if the fund returns to rollapp
+		testutil.WaitForBlocks(ctx, 20, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	})
 
-	// verify funds minus fee were added to receiver's address
-	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance changed of dymensionUserAddr after fulfilling the order:", balance.Sub(dymensionUserBalance))
-	require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance.Sub(dymensionUserBalance)))
-	// verify funds were deducted from market maker's wallet address
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee))
-	require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
-	// wait until packet finalization, mm balance should be the same due to the ack error
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-	require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+	t.Run("Demand order is created upon AckError for dym", func(t *testing.T) {
+		// Transfer dymension from hub to rollapp
+		transferData := ibc.WalletData{
+			Address: rollappUserAddr,
+			Denom:   dymension.Config().Denom,
+			Amount:  transferAmount,
+		}
 
-	// check if the fund returns to rollapp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+		require.NoError(t, err)
+
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		// wait until the packet is finalized
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+		transferData = ibc.WalletData{
+			Address: dymensionUserAddr,
+			Denom:   dymensionIBCDenom,
+			Amount:  transferAmount,
+		}
+
+		// set eIBC specific memo
+		options.Memo = BuildEIbcMemo(eibcFee)
+
+		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		zeroBalance := math.NewInt(0)
+		balance, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
+		require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+
+		// catch ACK errors
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
+		require.NoError(t, err)
+
+		// Make sure that the ack contains error
+		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+		// At the moment, the ack returned and the demand order status became "finalized"
+		// We will execute the ibc transfer again and try to fulfill the demand order
+		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		require.NoError(t, err)
+
+		// get eIbc event
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		require.NoError(t, err)
+		require.Len(t, eibcEvents, 2)
+		fmt.Println("Event:", eibcEvents[1])
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
+
+		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
+		dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		marketMakerBalance, err := dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+
+		// fulfill demand order
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
+		require.NoError(t, err)
+		fmt.Println(txhash)
+		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+		if eibcEvent != nil {
+			fmt.Println("After order fulfillment:", eibcEvent)
+		}
+
+		// wait a few blocks and verify sender received funds on the hub
+		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		require.NoError(t, err)
+
+		// verify funds minus fee were added to receiver's address
+		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance changed of dymensionUserAddr after fulfilling the order:", balance.Sub(dymensionUserBalance))
+		require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance.Sub(dymensionUserBalance)))
+		// verify funds were deducted from market maker's wallet address
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee))
+		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+		// wait until packet finalization, mm balance should be the same due to the ack error
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
+		require.NoError(t, err)
+		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
+		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+
+		// wait for a few blocks and check if the fund returns to rollapp
+		testutil.WaitForBlocks(ctx, 20, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, walletAmount)
+	})
+
 	t.Cleanup(
 		func() {
 			err := r2.StopRelayer(ctx, eRep)
