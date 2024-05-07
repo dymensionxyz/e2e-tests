@@ -281,7 +281,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
 	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -492,8 +491,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia, dymension, rollapp1)
 
@@ -511,8 +508,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// Compose an IBC transfer and send from hub to rollapp
-	var transferAmount = math.NewInt(1_000_000)
 	// global eibc fee in case of auto created orders is 0.0015
 	numerator := math.NewInt(15)
 	denominator := math.NewInt(10000)
@@ -665,7 +660,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -876,8 +870,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia, dymension, rollapp1)
 
@@ -899,8 +891,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// Compose an IBC transfer and send from hub to rollapp
-	var transferAmount = math.NewInt(1_000_000)
 	// global eibc fee in case of auto created orders is 0.0015
 	numerator := math.NewInt(15)
 	denominator := math.NewInt(10000)
