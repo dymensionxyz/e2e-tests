@@ -904,7 +904,7 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20(t *testing.T) {
 		err = transferTx.Validate()
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 10, rollapp1)
 		require.NoError(t, err)
 
 		rollAppBalance, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
