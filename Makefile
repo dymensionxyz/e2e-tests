@@ -99,7 +99,7 @@ e2e-test-pfm-with-grace-period-wasm: clean-e2e
 e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-erc20: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithErc20 .
 
-e2e-test-batch-finalization-wasm:
+e2e-test-batch-finalization-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_Wasm .
 
 e2e-test-disconnection-wasm: clean-e2e

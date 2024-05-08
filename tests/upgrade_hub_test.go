@@ -2,15 +2,10 @@ package tests
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
-	"os"
-	"path"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -25,10 +20,19 @@ import (
 )
 
 const (
+	upgradeName = "v3"
+
 	haltHeightDelta    = uint64(20)
 	blocksAfterUpgrade = uint64(10)
-	votingPeriod       = "30s"
-	maxDepositPeriod   = "10s"
+)
+
+var (
+	// baseChain is the current version of the chain that will be upgraded from
+	baseChain = ibc.DockerImage{
+		Repository: DymensionMainRepo,
+		Version:    "23e429d6",
+		UidGid:     "1025:1025",
+	}
 )
 
 func TestHubUpgrade(t *testing.T) {
@@ -38,29 +42,58 @@ func TestHubUpgrade(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "demo-dymension-rollapp"
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	emptyBlocksMaxTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
 
-	dymensionConfig.ModifyGenesis = modifyGenesisShortProposals(votingPeriod, maxDepositPeriod)
-	dymensionConfig.Images = []ibc.DockerImage{preUpgradeDymensionImage}
+	// setup config for rollapp 2
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappwasm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	// Create chain factory with dymension
-	numHubVals := 3
-	numHubFullNodes := 3
+	numHubVals := 1
+	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+
+	// Create chain factory with dymension
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test",
-				ChainID:             "demo-dymension-rollapp",
-				Images:              []ibc.DockerImage{rollappImage},
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides1,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "rollapp2",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappwasm_12345-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
@@ -68,16 +101,33 @@ func TestHubUpgrade(t *testing.T) {
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       nil,
-				ConfigFileOverrides: configFileOverrides,
+				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{baseChain},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -87,22 +137,35 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
+	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
+	dymension := chains[2].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "reece-v2.3.1-ethermint", "100:1000"),
-	).Build(t, client, network)
-	const ibcPath = "ibc-path"
+	// relayer for rollapp 1
+	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+	).Build(t, client, "relayer1", network)
+	// relayer for rollapp 2
+	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+	).Build(t, client, "relayer2", network)
+
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
+		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRelayer(r1, "relayer1").
+		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
-			Relayer: r,
+			Relayer: r1,
 			Path:    ibcPath,
+		}).
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp2,
+			Relayer: r2,
+			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -118,7 +181,6 @@ func TestHubUpgrade(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
 	require.NoError(t, err)
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -141,17 +203,6 @@ func TestHubUpgrade(t *testing.T) {
 	// Create some user accounts on both chains
 	user := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension)[0]
 
-	// Copy file to node
-	fileName := "bytecode/dymd.tar"
-	_, file := filepath.Split(fileName)
-	err = dymNode.CopyFile(ctx, fileName, file)
-	require.NoError(t, err, "err writing binary file to docker volume")
-
-	// Get the file's checksum
-	fileContent, err := os.ReadFile(fileName)
-	require.NoError(t, err, "err reading binary file")
-	sum := sha256.Sum256(fileContent)
-
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
@@ -160,10 +211,10 @@ func TestHubUpgrade(t *testing.T) {
 	proposal := cosmos.SoftwareUpgradeProposal{
 		Deposit:     "500000000000" + dymension.Config().Denom, // greater than min deposit
 		Title:       "Chain Upgrade 1",
-		Name:        "v3",
+		Name:        upgradeName,
 		Description: "First chain software upgrade",
 		Height:      haltHeight,
-		Info:        fmt.Sprintf("{ \"binaries\": { \"linux/amd64\":\"file://%s?checksum=sha256:%x\" } }", path.Join(dymNode.HomeDir(), file), sum),
+		Info:        "Info",
 	}
 
 	upgradeTx, err := dymension.UpgradeLegacyProposal(ctx, user.KeyName(), proposal)
@@ -218,15 +269,13 @@ func TestHubUpgrade(t *testing.T) {
 
 	require.GreaterOrEqual(t, height, haltHeight+blocksAfterUpgrade, "height did not increment enough after upgrade")
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	var transferAmount = math.NewInt(1_000_000)
-
 	err = dymension.IBCTransfer(ctx,
 		dymension, rollapp1, transferAmount, dymensionUserAddr,
-		rollappUserAddr, r, ibcPath, channel,
+		rollappUserAddr, r1, ibcPath, channel,
 		eRep, ibc.TransferOptions{})
 	require.NoError(t, err)
 }
