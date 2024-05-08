@@ -65,6 +65,9 @@ e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
 e2e-test-delayedack-relayer-down-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_EVM .
 
+e2e-test-rollapp-invariant-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollappInvariant_EVM .
+	
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -138,6 +141,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-freeze-evm \
     e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-rollapp-genesis-event-evm \
+	e2e-test-rollapp-invariant-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -175,6 +179,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-freeze-evm \
     e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-rollapp-genesis-event-evm \
+	e2e-test-rollapp-invariant-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
