@@ -643,7 +643,6 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 50
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -781,8 +780,6 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp2)
 
@@ -804,7 +801,6 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -832,19 +828,12 @@ func TestEIBCFulfillment_two_rollapps(t *testing.T) {
 		channelID: channDymRollApp2.ChannelID,
 		userKey:   dymensionUser.KeyName(),
 	}
-	triggerHubGenesisEvent(t, dymension, rollapp1_params)
-	// wait for first rollapp trigger to be processed
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-	triggerHubGenesisEvent(t, dymension, rollapp2_params)
+	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	transferDataRollapp1 := ibc.WalletData{
