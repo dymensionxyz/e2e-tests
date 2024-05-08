@@ -1,15 +1,14 @@
 package tests
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -19,11 +18,11 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
-func TestEIBCPFM_EVM(t *testing.T) {
+// This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
+// that is not fulfilled by the market maker
+func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -31,23 +30,18 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1Id := "rollappevm_1-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "30s"
-	configFileOverrides1 := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+	settlement_layer_rollapp1 := "dymension"
+	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	emptyBlocksMaxTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
 
 	// setup config for rollapp 2
-	rollapp2Id := "rollappevm_2-1"
-	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
-	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
-
-	// Create chain factory with dymension
-	numHubVals := 1
-	numHubFullNodes := 1
-	numRollAppFn := 0
-	numRollAppVals := 1
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappevm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -57,13 +51,18 @@ func TestEIBCPFM_EVM(t *testing.T) {
 		},
 	)
 
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 0
+	numRollAppVals := 1
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -85,7 +84,7 @@ func TestEIBCPFM_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_2-1",
+				ChainID:             "rollappevm_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -179,128 +178,111 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	// Start both relayers
-	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err = r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
-
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
+	dymensionUser, rollappUser := users[0], users[1]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollapp1UserAddr := rollapp1User.FormattedAddress()
-	rollapp2UserAddr := rollapp2User.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
-
-	// Get dymension -> rollapp1 channel
-	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channRollApp1Dym := channsRollApp1[0]
-	require.NotEmpty(t, channRollApp1Dym.ChannelID)
-	channDymRollApp1 := channRollApp1Dym.Counterparty
-	require.NotEmpty(t, channDymRollApp1.ChannelID)
-
-	// Get dymension -> rollapp2 channel
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channRollApp2Dym := channsRollApp2[0]
-	require.NotEmpty(t, channRollApp2Dym.ChannelID)
-	channDymRollApp2 := channRollApp2Dym.Counterparty
-	require.NotEmpty(t, channDymRollApp2.ChannelID)
-
-	// Trigger genesis event for rollapp1
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 
-	// Send packet from rollapp1 -> dym -> rollapp2
-	transfer := ibc.WalletData{
+	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(dymChannels))
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	require.Len(t, dymChannels, 2)
+
+	// Start relayer
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channsRollApp1[0].Counterparty.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].Counterparty.PortID, channsRollApp1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	var options ibc.TransferOptions
+	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
 
-	forwardMetadata := &ForwardMetadata{
-		Receiver: rollapp2UserAddr,
-		Channel:  channDymRollApp2.ChannelID,
-		Port:     channDymRollApp2.PortID,
-		Timeout:  5 * time.Minute,
-	}
-
-	forwardMetadataJson, err := json.Marshal(forwardMetadata)
-	require.NoError(t, err)
-	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, "forward": %s}`, eibcFee.String(), string(forwardMetadataJson))
-
-	tx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1User.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
+	// set eIBC specific memo
+	options.Memo = BuildEIbcMemo(eibcFee)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	rollapp1Height, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, tx.Packet)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
+
+	// wait a few blocks and verify sender received funds on the hub
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.DemandOrders))
+
+	// verify funds were added to receiver's address
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+	// wait until packet finalization and verify funds
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(transferData.Amount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
 
-	// Make sure the ack contains error
-	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
-
-	firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, rollapp1.Config().Denom)
-	secondHopDenom := transfertypes.GetPrefixedDenom(channRollApp2Dym.PortID, channRollApp2Dym.ChannelID, firstHopDenom)
-
-	firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
-	secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
-
-	firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
-	secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
-
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
-	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, secondHopIBCDenom, zeroBal)
-
+	t.Cleanup(
+		func() {
+			err := r1.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
 }
 
-func TestEIBCPFM_Wasm(t *testing.T) {
+func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -308,23 +290,18 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1Id := "rollappwasm_1-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "30s"
-	configFileOverrides1 := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+	settlement_layer_rollapp1 := "dymension"
+	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	emptyBlocksMaxTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
 
 	// setup config for rollapp 2
-	rollapp2Id := "rollappwasm_2-1"
-	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
-	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
-
-	// Create chain factory with dymension
-	numHubVals := 1
-	numHubFullNodes := 1
-	numRollAppFn := 0
-	numRollAppVals := 1
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappwasm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -334,13 +311,18 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 		},
 	)
 
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 0
+	numRollAppVals := 1
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test",
-				ChainID:             "rollappwasm_1-1",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -361,8 +343,8 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 			Name: "rollapp2",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-test2",
-				ChainID:             "rollappwasm_2-1",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -456,123 +438,103 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	// Start both relayers
-	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err = r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
-
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
+	dymensionUser, rollappUser := users[0], users[1]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollapp1UserAddr := rollapp1User.FormattedAddress()
-	rollapp2UserAddr := rollapp2User.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
-
-	// Get dymension -> rollapp1 channel
-	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channRollApp1Dym := channsRollApp1[0]
-	require.NotEmpty(t, channRollApp1Dym.ChannelID)
-	channDymRollApp1 := channRollApp1Dym.Counterparty
-	require.NotEmpty(t, channDymRollApp1.ChannelID)
-
-	// Get dymension -> rollapp2 channel
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp1, 1)
-
-	channRollApp2Dym := channsRollApp2[0]
-	require.NotEmpty(t, channRollApp2Dym.ChannelID)
-	channDymRollApp2 := channRollApp2Dym.Counterparty
-	require.NotEmpty(t, channDymRollApp2.ChannelID)
-
-	// Trigger genesis event for rollapp1
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 
-	// Send packet from rollapp1 -> dym -> rollapp2
-	transfer := ibc.WalletData{
+	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(dymChannels))
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp2, 1)
+
+	require.Len(t, dymChannels, 2)
+
+	// Start relayer
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	rollapp := rollappParam{
+		rollappID: rollapp1.Config().ChainID,
+		channelID: channsRollApp1[0].Counterparty.ChannelID,
+		userKey:   dymensionUser.KeyName(),
+	}
+	triggerHubGenesisEvent(t, dymension, rollapp)
+
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channsRollApp1[0].Counterparty.PortID, channsRollApp1[0].Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	var options ibc.TransferOptions
+	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
 
-	forwardMetadata := &ForwardMetadata{
-		Receiver: rollapp2UserAddr,
-		Channel:  channDymRollApp2.ChannelID,
-		Port:     channDymRollApp2.PortID,
-		Timeout:  5 * time.Minute,
-	}
-
-	forwardMetadataJson, err := json.Marshal(forwardMetadata)
+	// set eIBC specific memo
+	options.Memo = BuildEIbcMemo(eibcFee)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
-	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, "forward": %s}`, eibcFee.String(), string(forwardMetadataJson))
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
-	tx, err := rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1User.KeyName(), transfer, ibc.TransferOptions{Memo: string(memo)})
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
+
+	// wait a few blocks and verify sender received funds on the hub
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	rollapp1Height, err := rollapp1.Height(ctx)
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
 	require.NoError(t, err)
-	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, tx.Packet)
-	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.DemandOrders))
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	// verify funds were added to receiver's address
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+	// wait until packet finalization and verify funds
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	require.True(t, balance.Equal(transferData.Amount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
 
-	// Make sure the ack contains error
-	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
-
-	firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, rollapp1.Config().Denom)
-	secondHopDenom := transfertypes.GetPrefixedDenom(channRollApp2Dym.PortID, channRollApp2Dym.ChannelID, firstHopDenom)
-
-	firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
-	secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
-
-	firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
-	secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
-
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
-	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, secondHopIBCDenom, zeroBal)
-
+	t.Cleanup(
+		func() {
+			err := r1.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
 }
