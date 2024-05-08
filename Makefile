@@ -235,8 +235,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-freeze-wasm \
     e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-delayedack-pending-packets-wasm \
-	e2e-test-rollapp-invariant-wasm
-
+	e2e-test-rollapp-invariant-wasm \
   e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
