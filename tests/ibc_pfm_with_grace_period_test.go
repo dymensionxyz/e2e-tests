@@ -1143,10 +1143,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
 
@@ -1215,9 +1211,6 @@ func TestIBCPFM_RollApp1ToRollApp2WithOutErc20(t *testing.T) {
 		dymBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, firstHopIBCDenom)
 		require.NoError(t, err)
 
-		// wasmMAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "wasm")
-		// require.NoError(t, err)
-		// wasmMAccAddr := wasmMAcc.Account.BaseAccount.Address
 		rollapp2UserBalance, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
 
