@@ -119,6 +119,9 @@ e2e-test-delayedack-pending-packets-wasm: clean-e2e
 
 e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_Wasm .
+
+e2e-test-rollapp-invariant-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollappInvariant_Wasm .
 	
 
 # Executes all tests via rollup-e2e-testing
@@ -156,7 +159,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-freeze-wasm \
     e2e-test-other-rollapp-not-affected-wasm \ 
 	e2e-test-delayedack-pending-packets-wasm \
-	e2e-test-delayedack-relayer-down-wasm
+	e2e-test-delayedack-relayer-down-wasm \ 
+	e2e-test-rollapp-invariant-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -193,5 +197,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-disconnection-wasm \
 	e2e-test-rollapp-freeze-wasm \
     e2e-test-other-rollapp-not-affected-wasm \
-	e2e-test-delayedack-pending-packets-wasm
+	e2e-test-delayedack-pending-packets-wasm \
+	e2e-test-rollapp-invariant-wasm
 
