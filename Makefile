@@ -17,6 +17,9 @@ e2e-test-ibc-timeout-evm: clean-e2e
 e2e-test-eibc-fulfillment-only-one: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp .
 
+e2e-test-eibc-fulfillment-evm-2-RAs:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_two_rollapps .
+
 e2e-test-ibc-grace-period-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_EVM .
 
@@ -77,6 +80,12 @@ e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
 e2e-test-delayedack-relayer-down-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_EVM .
 
+e2e-test-eibc-not-fulfillment-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_EVM .
+
+e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
+	
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -102,6 +111,9 @@ e2e-test-pfm-with-grace-period-wasm: clean-e2e
 e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-erc20: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithErc20 .
 
+e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithOutErc20 .
+
 e2e-test-batch-finalization-wasm:
 	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_Wasm .
 
@@ -113,9 +125,6 @@ e2e-test-rollapp-freeze-wasm: clean-e2e
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
-
-e2e-test-eibc-not-fulfillment-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_EVM .
 
 e2e-test-eibc-not-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_Wasm .
@@ -131,9 +140,6 @@ e2e-test-dym-finalize-block-on-timeout-packet-wasm: clean-e2e
 
 e2e-test-dym-finalize-block-on-ack-packet-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDymFinalizeBlock_OnAckPacket_Wasm .
-
-e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
 
 e2e-test-pfm-gaia-to-rollapp-wasm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_Wasm .	
@@ -151,6 +157,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
+  e2e-test-eibc-fulfillment-evm-2-RAs \
   e2e-test-eibc-fulfill-no-balance-evm \
 	e2e-test-eibc-fulfillment-thirdparty-evm \
 	e2e-test-eibc-pfm-evm \
@@ -190,6 +197,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-fulfillment-evm-2-RAs \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
@@ -204,7 +212,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-batch-finalization-evm \
 	e2e-test-disconnection-evm \
 	e2e-test-rollapp-freeze-evm \
-    e2e-test-other-rollapp-not-affected-evm \
+  e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-rollapp-genesis-event-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
@@ -222,5 +230,4 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet \
-  e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-delayedack-pending-packets-wasm
