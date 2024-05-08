@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -41,7 +42,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	const BLOCK_FINALITY_PERIOD = 20
-	const EPOCH_IDENTIFIER = "minute"
+	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -240,7 +241,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 
 	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
 	require.NoError(t, err)
-	require.Equal(t, string(EPOCH_IDENTIFIER), newParams.Value)
+	require.Equal(t, EPOCH_IDENTIFIER, strings.ReplaceAll(newParams.Value, `"`, ""))
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
@@ -391,7 +392,7 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
 	const BLOCK_FINALITY_PERIOD = 20
-	const EPOCH_IDENTIFIER = "minute"
+	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -590,7 +591,7 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 
 	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
 	require.NoError(t, err)
-	require.Equal(t, EPOCH_IDENTIFIER, newParams.Value)
+	require.Equal(t, EPOCH_IDENTIFIER, strings.ReplaceAll(newParams.Value, `"`, ""))
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
