@@ -50,7 +50,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.delayedack.params.epoch_identifier",
-			Value: fmt.Sprint(EPOCH_IDENTIFIER),
+			Value: EPOCH_IDENTIFIER,
 		},
 	)
 
@@ -400,7 +400,7 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.delayedack.params.epoch_identifier",
-			Value: fmt.Sprint(EPOCH_IDENTIFIER),
+			Value: EPOCH_IDENTIFIER,
 		},
 	)
 
