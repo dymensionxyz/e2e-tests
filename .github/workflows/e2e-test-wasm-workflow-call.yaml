@@ -28,6 +28,7 @@ jobs:
             - "e2e-test-other-rollapp-not-affected-wasm"
             - "e2e-test-delayedack-pending-packets-wasm"
             - "e2e-test-delayedack-relayer-down-wasm"
+            - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:
