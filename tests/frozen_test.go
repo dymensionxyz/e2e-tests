@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -132,11 +131,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -170,50 +169,8 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r2.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Start both relayers
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -235,24 +192,14 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
@@ -287,17 +234,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -351,10 +297,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -367,8 +309,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// IBC Transfer not working
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -398,8 +338,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 40, dymension)
-	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -508,11 +447,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -546,50 +485,8 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r1.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r1.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r1.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r1.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r2.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Start both relayers
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -611,14 +508,8 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -634,10 +525,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// IBC channel for rollapps
 	channsDym1, err := r1.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -668,15 +555,16 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -752,10 +640,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Check if rollapp has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -768,8 +652,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// IBC Transfer not working
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -799,8 +681,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 40, dymension)
-	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -924,11 +805,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -962,53 +843,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	s.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, s, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Start both relayers
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -1031,14 +867,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
@@ -1059,10 +889,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	rollapp2OrigBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, rollapp2.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollapp2OrigBal)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
@@ -1097,17 +923,16 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1162,9 +987,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
@@ -1177,8 +1004,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
 		Denom:   dymension.Config().Denom,
@@ -1188,6 +1013,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	// Confirm IBC Transfer not working between Dymension <-> rollapp1
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1207,8 +1033,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 40, dymension)
-	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1221,9 +1046,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
-
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
-	require.NoError(t, err)
 
 	// Get the IBC denom
 	rollapp2IbcDenom := GetIBCDenom(channsRollApp2Dym.Counterparty.PortID, channsRollApp2Dym.Counterparty.ChannelID, rollapp2.Config().Denom)
@@ -1246,13 +1068,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp2.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
@@ -1273,7 +1089,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1398,11 +1214,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1436,50 +1252,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	s.UpdateClients(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = s.CreateConnections(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
-	err = s.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, s, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Start both relayers
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -1502,14 +1276,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		},
 	)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollapp1User, rollapp2User := users[0], users[1], users[2]
@@ -1530,10 +1298,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	rollapp2OrigBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, rollapp2.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollapp2OrigBal)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-	require.NoError(t, err)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
@@ -1568,17 +1332,16 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channDymRollApp1.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channDymRollApp2.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1633,9 +1396,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	// Wait a few blocks for the gov to pass and to verify if the state index increment
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
@@ -1648,8 +1413,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
 		Denom:   dymension.Config().Denom,
@@ -1659,6 +1422,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Confirm IBC Transfer not working between Dymension <-> rollapp1
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
+	require.Equal(t, true, strings.Contains(err.Error(), "status Frozen"))
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1678,8 +1442,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 40, dymension)
-	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1692,9 +1455,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
-
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
-	require.NoError(t, err)
 
 	// Get the IBC denom
 	rollapp2IbcDenom := GetIBCDenom(channsRollApp2Dym.Counterparty.PortID, channsRollApp2Dym.Counterparty.ChannelID, rollapp2.Config().Denom)
@@ -1717,13 +1477,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp2.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp2.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	testutil.WaitForBlocks(ctx, 10, dymension)
 
 	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
 	require.NoError(t, err)
@@ -1740,11 +1494,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, tx.TxHash, "tx is nil")
 
-	rollappHeight, err = rollapp2.Height(ctx)
+	rollapp2Height, err := rollapp2.Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 

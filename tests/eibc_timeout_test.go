@@ -37,7 +37,7 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 50
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -106,7 +106,7 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -133,35 +133,10 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMakerUser, rollappUser := users[0], users[1], users[2]
@@ -210,18 +185,21 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(0))
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 1, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -254,12 +232,14 @@ func TestEIBCTimeoutHubToRollapp(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
 	expBalance := walletAmount.Sub(transferData.Amount).Add(transferAmountWithoutFee)
 	require.True(t, balance.Equal(expBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalance, balance))
+
 	// verify funds were deducted from market maker's wallet address
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFee))
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
+
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -84,7 +83,7 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -111,35 +110,10 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -167,8 +141,6 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -184,19 +156,12 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -215,19 +180,17 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -305,7 +268,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -332,54 +295,10 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	// done := make(chan bool)
-	// go func() {
-	// 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	// 	require.NoError(t, err)
-
-	// 	done <- true
-	// }()
-
-	// select {
-	// case <-done:
-	// 	fmt.Println("Channel created")
-	// case <-time.After(1 * time.Minute):
-	// 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	// 	require.NoError(t, err)
-	// }
-
-	walletAmount := math.NewInt(1_000_000_000_000)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, rollappUser := users[0], users[1]
@@ -407,8 +326,6 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1_000_000)
-
 	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -423,19 +340,12 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -454,6 +364,9 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -463,11 +376,8 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 

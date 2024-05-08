@@ -39,7 +39,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	const BLOCK_FINALITY_PERIOD = 50
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -110,7 +110,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "e2e-amd", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -137,35 +137,10 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	r.UpdateClients(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
@@ -179,7 +154,6 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -213,11 +187,12 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
+
 	// verify funds balance right after sending the IBC transfer
-	zeroBalance := math.NewInt(0)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// get eIbc event
@@ -239,7 +214,7 @@ func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// verify funds were transferred to dymensionUserAddr
-	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBalance)
+	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	t.Cleanup(
