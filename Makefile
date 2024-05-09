@@ -14,8 +14,8 @@ e2e-test-ibc-success-evm: clean-e2e
 e2e-test-ibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_EVM .
 
-e2e-test-eibc-fulfillment-only-one: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp .
+e2e-test-eibc-fulfillment-only-one-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp_EVM .
 
 e2e-test-eibc-fulfillment-evm-2-RAs:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_two_rollapps .
@@ -92,6 +92,9 @@ e2e-test-ibc-success-wasm: clean-e2e
 
 e2e-test-ibc-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_Wasm .
+
+e2e-test-eibc-fulfillment-only-one-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp_Wasm .
 
 e2e-test-eibc-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_Wasm .
