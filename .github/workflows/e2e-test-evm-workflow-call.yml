@@ -21,7 +21,7 @@ jobs:
             - "e2e-test-eibc-fulfillment-evm"
             - "e2e-test-eibc-fulfill-no-balance-evm"
             - "e2e-test-eibc-fulfillment-thirdparty-evm"
-            - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp"
+            - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm"
             - "e2e-test-eibc-pfm-evm"
             - "e2e-test-eibc-timeout-evm"
             - "e2e-test-transfer-multi-hop-evm"

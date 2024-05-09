@@ -23,8 +23,11 @@ e2e-test-ibc-grace-period-evm:  clean-e2e
 e2e-test-eibc-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
 
-e2e-test-eibc-fulfillment-ignore-hub-to-rollapp: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA .
+e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA_EVM .
+
+e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA_Wasm .
 
 e2e-test-eibc-pfm-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCPFM_EVM .
