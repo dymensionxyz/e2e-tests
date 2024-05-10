@@ -41,7 +41,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 20
 	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -182,8 +181,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
@@ -203,7 +200,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -222,16 +218,16 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -391,7 +387,6 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 20
 	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -532,8 +527,6 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
-	walletAmount := math.NewInt(1_000_000_000_000)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
@@ -553,7 +546,6 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	transferAmount := math.NewInt(1_000_000)
 	multiplier := math.NewInt(10)
 
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
@@ -572,16 +564,16 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
