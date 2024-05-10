@@ -80,6 +80,9 @@ e2e-test-delayedack-relayer-down-evm: clean-e2e
 e2e-test-rollapp-invariant-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappInvariant_EVM .
 	
+e2e-test-eibc-invariant-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCInvariant_EVM .
+
 e2e-test-eibc-not-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_EVM .
 
@@ -153,6 +156,8 @@ e2e-test-delayedack-relayer-down-wasm: clean-e2e
 e2e-test-rollapp-invariant-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappInvariant_Wasm .
 	
+e2e-test-eibc-invariant-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestEIBCInvariant_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
@@ -176,6 +181,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
   e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-rollapp-genesis-event-evm \
 	e2e-test-rollapp-invariant-evm \
+	e2e-test-eibc-invariant-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -195,6 +201,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-delayedack-pending-packets-wasm \
 	e2e-test-delayedack-relayer-down-wasm \ 
 	e2e-test-rollapp-invariant-wasm
+	e2e-test-delayedack-relayer-down-wasm \
+	e2e-test-eibc-invariant-wasm
 
 
 
@@ -221,6 +229,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
   e2e-test-other-rollapp-not-affected-evm \
 	e2e-test-rollapp-genesis-event-evm \
 	e2e-test-rollapp-invariant-evm \
+	e2e-test-eibc-invariant-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -240,4 +249,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet \
+  e2e-test-other-rollapp-not-affected-wasm \
+	e2e-test-delayedack-pending-packets-wasm \
+  e2e-test-eibc-invariant-wasm
 	e2e-test-delayedack-pending-packets-wasm

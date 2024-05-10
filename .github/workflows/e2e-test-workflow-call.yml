@@ -50,6 +50,7 @@ jobs:
           - "e2e-test-delayedack-pending-packets-evm"
           - "e2e-test-delayedack-relayer-down-evm"
           - "e2e-test-rollapp-invariant-evm"
+          - "e2e-test-eibc-invariant-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -102,6 +103,7 @@ jobs:
           - "e2e-test-delayedack-pending-packets-wasm"
           - "e2e-test-delayedack-relayer-down-wasm"
           - "e2e-test-rollapp-invariant-wasm"
+          - "e2e-test-eibc-invariant-wasm"
           - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
       fail-fast: false
     runs-on: ubuntu-latest
