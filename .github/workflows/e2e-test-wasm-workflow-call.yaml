@@ -36,6 +36,7 @@ jobs:
             - "e2e-test-eibc-invariant-wasm"
             - "e2e-test-rollapp-invariant-wasm"
             - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
+            - "e2e-test-sequencer-invariant-wasm"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:
