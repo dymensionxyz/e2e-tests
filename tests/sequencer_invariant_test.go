@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -39,8 +38,6 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 20
-	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -173,18 +170,12 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	command := []string{}
-
-	command = append(command, "init", "--home /tmp/sequencer1")
-
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer1", "/var/cosmos-chain/sequencer1")
 	require.NoError(t, err)
 
-	command = append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer1")
+	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer1")
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
-
-	command = append(command, "init", "--home /tmp/sequencer2")
 
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer2", "/var/cosmos-chain/sequencer2")
 	require.NoError(t, err)
@@ -192,8 +183,6 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	command = append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer2")
 	pub2, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, dymension, rollapp1)
@@ -255,16 +244,16 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -313,8 +302,6 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
 
-	const BLOCK_FINALITY_PERIOD = 20
-	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -447,18 +434,12 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	command := []string{}
-
-	command = append(command, "init", "--home /tmp/sequencer1")
-
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer1", "/var/cosmos-chain/sequencer1")
 	require.NoError(t, err)
 
-	command = append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer1")
+	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer1")
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
-
-	command = append(command, "init", "--home /tmp/sequencer2")
 
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer2", "/var/cosmos-chain/sequencer2")
 	require.NoError(t, err)
@@ -466,8 +447,6 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	command = append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer2")
 	pub2, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
-
-	walletAmount := math.NewInt(1_000_000_000_000)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, dymension, rollapp1)
@@ -529,16 +508,16 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
-	triggerHubGenesisEvent(t, dymension, rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channsRollApp2[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	})
+	triggerHubGenesisEvent(t, dymension,
+		rollappParam{
+			rollappID: rollapp1.Config().ChainID,
+			channelID: channsRollApp1[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		}, rollappParam{
+			rollappID: rollapp2.Config().ChainID,
+			channelID: channsRollApp2[0].Counterparty.ChannelID,
+			userKey:   dymensionUser.KeyName(),
+		})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
