@@ -19,6 +19,7 @@ jobs:
             - "e2e-test-eibc-fulfillment-only-one-wasm"           
             - "e2e-test-eibc-fulfillment-wasm"
             - "e2e-test-eibc-fulfillment-thirdparty-wasm"
+            - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm"
             - "e2e-test-eibc-pfm-wasm"
             - "e2e-test-eibc-not-fulfillment-wasm"
             - "e2e-test-transfer-multi-hop-wasm"
@@ -33,6 +34,8 @@ jobs:
             - "e2e-test-dym-finalize-block-on-ack-packet-wasm"
             - "e2e-test-delayedack-pending-packets-wasm"
             - "e2e-test-delayedack-relayer-down-wasm"
+            - "e2e-test-eibc-invariant-wasm"
+            - "e2e-test-rollapp-invariant-wasm"
             - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
         fail-fast: false
       runs-on: ubuntu-latest
