@@ -22,6 +22,7 @@ jobs:
             - "e2e-test-eibc-fulfillment-evm"
             - "e2e-test-eibc-fulfill-no-balance-evm"
             - "e2e-test-eibc-fulfillment-thirdparty-evm"
+            - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm"
             - "e2e-test-eibc-pfm-evm"
             - "e2e-test-eibc-timeout-evm"
             - "e2e-test-eibc-not-fulfillment-evm"
@@ -39,6 +40,8 @@ jobs:
             - "e2e-test-dym-finalize-block-on-ack-packet-evm"
             - "e2e-test-delayedack-pending-packets-evm"
             - "e2e-test-delayedack-relayer-down-evm"
+            - "e2e-test-eibc-invariant-evm"
+            - "e2e-test-rollapp-invariant-evm"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:
