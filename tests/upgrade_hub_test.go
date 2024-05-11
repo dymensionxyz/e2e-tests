@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -56,7 +57,7 @@ func TestHubUpgrade(t *testing.T) {
 
 	// Create chain factory with dymension
 	numHubVals := 1
-	numHubFullNodes := 1
+	numHubFullNodes := 0
 	// numRollAppFn := 0
 	// numRollAppVals := 1
 
@@ -178,6 +179,25 @@ func TestHubUpgrade(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	})
+	require.NoError(t, err)
+
+	err = dymension.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	path := "/home/ubuntu/dym.json"
+	state, err := os.ReadFile(path)
+	require.NoError(t, err)
+	for _, node := range dymension.Nodes() {
+		err := node.OverwriteGenesisFile(ctx, state)
+		require.NoError(t, err)
+	}
+
+	for _, node := range dymension.Nodes() {
+		_, _, err = node.ExecBin(ctx, "comet", "unsafe-reset-all")
+		require.NoError(t, err)
+	}
+
+	err = dymension.StartAllNodes(ctx)
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
