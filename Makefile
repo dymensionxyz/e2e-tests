@@ -26,6 +26,9 @@ e2e-test-eibc-fulfillment-evm: clean-e2e
 e2e-test-eibc-ack-error-dym-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_EVM .
 
+e2e-test-eibc-ack-error-ra-token-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_RA_Token_EVM .
+
 e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA_EVM .
 
@@ -111,6 +114,9 @@ e2e-test-ibc-timeout-wasm: clean-e2e
 e2e-test-eibc-ack-error-dym-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_Wasm .
 
+e2e-test-eibc-ack-error-ra-token-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_RA_Token_Wasm .
+
 e2e-test-eibc-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_Wasm .
 
@@ -182,6 +188,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
 	e2e-test-eibc-ack-error-dym-evm \
+	e2e-test-eibc-ack-error-ra-token-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
@@ -207,6 +214,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
 	e2e-test-eibc-ack-error-dym-wasm \
+	e2e-test-eibc-ack-error-ra-token-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
 	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm \
@@ -236,6 +244,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
 	e2e-test-eibc-ack-error-dym-evm \
+	e2e-test-eibc-ack-error-ra-token-evm \
 	e2e-test-eibc-fulfillment-evm-2-RAs \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
@@ -261,6 +270,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
 	e2e-test-eibc-ack-error-dym-wasm \
+	e2e-test-eibc-ack-error-ra-token-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
 	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm \
