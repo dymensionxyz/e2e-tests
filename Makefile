@@ -7,6 +7,9 @@
 clean-e2e:
 	sh clean.sh
 
+e2e-test: clean-e2e
+	./run-e2e.sh $(test)
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_EVM .

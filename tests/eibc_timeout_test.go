@@ -21,7 +21,7 @@ import (
 
 // This test case verifies the system's behavior when an eIBC packet is from hub to rollapp and it times out.
 // It verifies that new demand order is automatically created when that happens
-func TestEIBCTimeoutHubToRollapp(t *testing.T) {
+func TestEIBCTimeoutHubToRollapp_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}

@@ -22,7 +22,7 @@ import (
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
 // that has incorrect memo data
-func TestEIBCCorruptedMemoNegative(t *testing.T) {
+func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
