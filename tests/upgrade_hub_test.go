@@ -29,7 +29,7 @@ var (
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
 		Repository: "ghcr.io/dymensionxyz/dymension",
-		Version:    "v3.1.0",
+		Version:    "3.1.0",
 		UidGid:     "1025:1025",
 	}
 )
