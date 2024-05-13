@@ -18,6 +18,7 @@ jobs:
             - "e2e-test-ibc-grace-period-evm"
             - "e2e-test-eibc-ack-error-dym-evm"
             - "e2e-test-eibc-ack-error-ra-token-evm"
+            - "e2e-test-eibc-ack-error-3rd-party-token-evm"
             - "e2e-test-eibc-fulfillment-evm-2-RAs"
             - "e2e-test-eibc-corrupted-memo-evm"
             - "e2e-test-eibc-excessive-fee-evm"
