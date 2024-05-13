@@ -193,7 +193,7 @@ func TestHubUpgrade(t *testing.T) {
 	}
 
 	for _, node := range dymension.Nodes() {
-		_, _, err = node.ExecBin(ctx, "comet", "unsafe-reset-all")
+		_, _, err = node.ExecBin(ctx, "tendermint", "unsafe-reset-all")
 		require.NoError(t, err)
 	}
 
