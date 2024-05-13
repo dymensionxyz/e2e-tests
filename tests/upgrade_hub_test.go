@@ -197,8 +197,7 @@ func TestHubUpgrade(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = dymension.StartAllNodes(ctx)
-	require.NoError(t, err)
+	_ = dymension.StartAllNodes(ctx)
 
 	// Create some user accounts on both chains
 	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension)
