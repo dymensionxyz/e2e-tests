@@ -114,7 +114,7 @@ func TestHubUpgrade(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{baseChain},
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -203,7 +203,7 @@ func TestHubUpgrade(t *testing.T) {
 	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
