@@ -357,6 +357,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	})
 
+	testutil.WaitForBlocks(ctx, 30, dymension)
+
 	t.Run("Demand order is created upon AckError for dym", func(t *testing.T) {
 		// Transfer dymension from hub to rollapp
 		transferData := ibc.WalletData{
@@ -430,7 +432,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[2].ID, marketMakerAddr)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -489,14 +491,14 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1-1"
+	rollapp1_id := "rollappwasm_1-1"
 	gas_price_rollapp1 := "0adym"
 	emptyBlocksMaxTimeRollapp1 := "10s"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_2-1"
+	rollapp2_id := "rollappwasm_2-1"
 	gas_price_rollapp2 := "0adym"
 	emptyBlocksMaxTimeRollapp2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
@@ -526,7 +528,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappwasm_1234-1",
+				ChainID:             "rollappwasm_1-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -548,7 +550,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "rollappwasm_2-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -813,6 +815,8 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	})
+
+	testutil.WaitForBlocks(ctx, 30, dymension)
 
 	t.Run("Demand order is created upon AckError for dym", func(t *testing.T) {
 		// Transfer dymension from hub to rollapp
