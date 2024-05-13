@@ -28,8 +28,8 @@ const (
 var (
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "v3.0.0",
+		Repository: "ghcr.io/dymensionxyz/dymension",
+		Version:    "v3.1.0",
 		UidGid:     "1025:1025",
 	}
 )
@@ -114,7 +114,7 @@ func TestHubUpgrade(t *testing.T) {
 				Type:                "hub-dym",
 				Name:                "dymension",
 				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
+				Images:              []ibc.DockerImage{baseChain},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
