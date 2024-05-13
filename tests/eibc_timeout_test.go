@@ -660,13 +660,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gasPrice, emptyBlocksMaxTimeRollapp2)
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -735,7 +728,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
