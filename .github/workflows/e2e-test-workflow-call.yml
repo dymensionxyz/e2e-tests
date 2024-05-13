@@ -54,6 +54,7 @@ jobs:
           - "e2e-test-sequencer-invariant-evm"
           - "e2e-test-rollapp-invariant-evm"
           - "e2e-test-eibc-invariant-evm"
+          - "e2e-test-rollapp-upgrade-non-state-breaking-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -111,6 +112,7 @@ jobs:
           - "e2e-test-eibc-invariant-wasm"
           - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
           - "e2e-test-sequencer-invariant-wasm"
+          - "e2e-test-rollapp-upgrade-non-state-breaking-wasm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
