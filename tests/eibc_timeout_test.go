@@ -809,7 +809,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -840,7 +840,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, ibcPath)
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
@@ -949,7 +949,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 1, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// get eibc event
