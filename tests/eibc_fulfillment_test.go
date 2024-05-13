@@ -186,10 +186,6 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp2)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollappUser, rollapp2User := users[0], users[1], users[2], users[3]
 
@@ -233,19 +229,12 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 		userKey:   dymensionUser.KeyName(),
 	}
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params)
-	// wait for first rollapp trigger to be processed
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-	triggerHubGenesisEvent(t, dymension, rollapp2_params)
+	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	transferDataRollapp1 := ibc.WalletData{
@@ -317,11 +306,11 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -331,9 +320,11 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
-		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom {
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+			fmt.Println("EIBC Event:", eibcEvent)
 			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
 			require.NoError(t, err)
+			fmt.Println(txhash)
 			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			if eibcEvent != nil {
 				fmt.Println("After order fulfillment:", eibcEvent)
@@ -379,10 +370,14 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
 	require.True(t, balance.Equal(transferDataRollapp2.Amount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferDataRollapp2.Amount, balance))
 
-	cmdArgs := []string{"ibc", "channel", "packet-commitments", "transfer"}
-	out, _, err := rollapp1.Validators[0].Exec(ctx, cmdArgs, []string{dymension.GetChainID()})
-	fmt.Println(out)
+	// No packet commitments left
+	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
 	require.NoError(t, err)
+	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
+
+	res, err = rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra2[0].ChannelID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -560,10 +555,6 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp2)
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
-	require.NoError(t, err)
-
 	// Get our Bech32 encoded user addresses
 	dymensionUser, marketMaker, rollappUser, rollapp2User := users[0], users[1], users[2], users[3]
 
@@ -607,11 +598,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 		userKey:   dymensionUser.KeyName(),
 	}
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params)
-	// wait for first rollapp trigger to be processed
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-	triggerHubGenesisEvent(t, dymension, rollapp2_params)
+	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -695,7 +682,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -705,7 +692,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
-		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom {
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
 			require.NoError(t, err)
 			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -753,10 +740,14 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
 	require.True(t, balance.Equal(transferDataRollapp2.Amount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferDataRollapp2.Amount, balance))
 
-	cmdArgs := []string{"ibc", "channel", "packet-commitments", "transfer"}
-	out, _, err := rollapp1.Validators[0].Exec(ctx, cmdArgs, []string{dymension.GetChainID()})
-	fmt.Println(out)
+	// No packet commitments left
+	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
 	require.NoError(t, err)
+	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
+
+	res, err = rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra2[0].ChannelID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -2772,7 +2763,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 
@@ -3024,7 +3015,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 
