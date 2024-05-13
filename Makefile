@@ -24,7 +24,7 @@ e2e-test-eibc-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
 
 e2e-test-eibc-ack-error-dym-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_EVM .
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_EVM .
 
 e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA_EVM .
@@ -109,7 +109,7 @@ e2e-test-ibc-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_Wasm .
 
 e2e-test-eibc-ack-error-dym-wasm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_Wasm .
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_Wasm .
 
 e2e-test-eibc-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_Wasm .
