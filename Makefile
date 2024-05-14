@@ -21,7 +21,7 @@ e2e-test-eibc-fulfillment-only-one-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp_EVM .
 
 e2e-test-eibc-fulfillment-evm-2-RAs:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_two_rollapps .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_two_rollapps_EVM .
 
 e2e-test-ibc-grace-period-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCGracePeriodCompliance_EVM .
@@ -39,16 +39,16 @@ e2e-test-eibc-pfm-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCPFM_EVM .
 
 e2e-test-eibc-fulfill-no-balance-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCNoBalanceToFulfillOrder .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCNoBalanceToFulfillOrder_EVM .
 
 e2e-test-eibc-corrupted-memo-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCCorruptedMemoNegative .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCCorruptedMemoNegative_EVM .
 
 e2e-test-eibc-excessive-fee-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeTooHigh .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCFeeTooHigh_EVM .
 
 e2e-test-eibc-timeout-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutDymToRollapp .
+	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutDymToRollapp_EVM .
 
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Evm .
@@ -139,10 +139,10 @@ e2e-test-pfm-with-grace-period-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCPFMWithGracePeriod_Wasm .
 
 e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-erc20: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithErc20 .
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithErc20_EVM .
 
 e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithOutErc20 .
+	cd tests && go test -timeout=25m -race -v -run TestIBCPFM_RollApp1ToRollApp2WithOutErc20_Wasm .
 
 e2e-test-batch-finalization-wasm:
 	cd tests && go test -timeout=25m -race -v -run TestBatchFinalization_Wasm .

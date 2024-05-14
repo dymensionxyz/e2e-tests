@@ -76,6 +76,14 @@ func contains(s string, items []string) bool {
 	return false
 }
 
+func getRollappType() string {
+	rollapp, ok := os.LookupEnv("ROLLAPP_TYPE")
+	if !ok {
+		return ""
+	}
+	return rollapp
+}
+
 // getGithubActionMatrixForTests returns a json string representing the contents that should go in the matrix
 // field in a github action workflow. This string can be used with `fromJSON(str)` to dynamically build
 // the workflow matrix to include all E2E tests under the e2eRootDirectory directory.
@@ -136,10 +144,11 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, excludedIt
 
 // extractTestNames extracts the name of all tests in the same file.
 func extractTestNames(file *ast.File, excludedItems, testCases []string) ([]string, error) {
+	rollapp := getRollappType()
 	for _, d := range file.Decls {
 		if f, ok := d.(*ast.FuncDecl); ok {
 			functionName := f.Name.Name
-			if isTestFunction(f) {
+			if isTestFunction(f, rollapp) {
 				if contains(functionName, excludedItems) {
 					return testCases, nil
 				}
