@@ -16,6 +16,7 @@ jobs:
             - "e2e-test-ibc-success-evm"
             - "e2e-test-ibc-timeout-evm"
             - "e2e-test-ibc-grace-period-evm"
+            - "e2e-test-eibc-fulfillment-only-one-evm"
             - "e2e-test-eibc-fulfillment-evm-2-RAs"
             - "e2e-test-eibc-corrupted-memo-evm"
             - "e2e-test-eibc-excessive-fee-evm"
@@ -43,6 +44,7 @@ jobs:
             - "e2e-test-sequencer-invariant-evm"
             - "e2e-test-eibc-invariant-evm"
             - "e2e-test-rollapp-invariant-evm"
+            - "e2e-test-rollapp-upgrade-non-state-breaking-evm"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:
