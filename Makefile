@@ -83,7 +83,7 @@ e2e-test-eibc-not-fulfillment-evm: clean-e2e
 e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
 
-e2e-test-1:  clean-e2e
+e2e-test-erc20-hub-to-rollapp-without-register:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestERC20HubToRollAppWithoutRegister .
 
 # Executes IBC tests via rollup-e2e-testing

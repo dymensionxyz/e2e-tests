@@ -47,6 +47,13 @@ func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
 			Value: true,
 		},
 	)
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -71,8 +78,24 @@ func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ConfigFileOverrides: nil,
+			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -161,8 +184,7 @@ func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
 
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
-
-	fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
+	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(walletAmount.Sub(transferAmount)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// wait a few blocks and verify sender received funds on the hub
@@ -172,6 +194,7 @@ func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
 	// verify funds weren't added to receiver's address
 	balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
 	require.NoError(t, err)
+	fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 	// wait until packet finalization and verify funds
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
