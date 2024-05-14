@@ -263,7 +263,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 
 // TestEIBCTimeoutFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
 // and full filled
-func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
+func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
