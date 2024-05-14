@@ -196,6 +196,20 @@ func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
+
+	// wait a few blocks and verify sender received funds on the hub
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.DemandOrders))
+
 	// wait until packet finalization and verify funds
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
