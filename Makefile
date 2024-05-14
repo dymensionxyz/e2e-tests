@@ -217,6 +217,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
+	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -266,6 +267,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
+	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
