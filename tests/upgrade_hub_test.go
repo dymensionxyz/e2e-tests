@@ -184,7 +184,7 @@ func TestHubUpgrade(t *testing.T) {
 	err = dymension.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	path := "/home/ubuntu/dym.json"
+	path := "/home/ubuntu/dymjs.json"
 	state, err := os.ReadFile(path)
 	require.NoError(t, err)
 	for _, node := range dymension.Nodes() {
