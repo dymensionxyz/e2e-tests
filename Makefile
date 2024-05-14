@@ -108,7 +108,7 @@ e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
 
 e2e-test-erc20-hub-to-rollapp-without-register:  clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestERC20HubToRollAppWithoutRegister .
+	cd tests && go test -timeout=25m -race -v -run TestERC20HubToRollAppWithoutRegister_EVM .
 	
 e2e-test-rollapp-upgrade-non-state-breaking-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappUpgradeNonStateBreaking_EVM .

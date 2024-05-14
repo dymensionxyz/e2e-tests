@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestERC20HubToRollAppWithoutRegister(t *testing.T) {
+func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
