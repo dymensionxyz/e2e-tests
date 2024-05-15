@@ -603,7 +603,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 }
 
 // PFM with grace period rollApp1 to rollApp2 with Erc20 registed on rollApp2
-func TestIBCPFM_RollApp1ToRollApp2WithErc20_EVM(t *testing.T) {
+func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -945,7 +945,7 @@ func TestIBCPFM_RollApp1ToRollApp2WithErc20_EVM(t *testing.T) {
 	require.Equal(t, 0, len(resp.Commitments))
 }
 
-func TestIBCPFM_RollApp1ToRollApp2WithOutErc20_Wasm(t *testing.T) {
+func TestIBCPFM_RollApp1To2WithOutErc20_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
