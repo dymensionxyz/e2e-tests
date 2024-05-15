@@ -53,6 +53,9 @@ e2e-test-eibc-timeout-evm: clean-e2e
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Evm .
 
+e2e-test-rollapp_genesis_transfer_rollapp_to_hub_evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestTransferWithRollAppTriggerGenesis_EVM .
+
 e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Wasm .
 
