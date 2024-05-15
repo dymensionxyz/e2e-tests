@@ -949,7 +949,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 
 	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
 	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// get eibc event
