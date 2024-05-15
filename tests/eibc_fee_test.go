@@ -22,7 +22,7 @@ import (
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
 // that has set fee more than a packet amount
-func TestEIBCFeeTooHigh(t *testing.T) {
+func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
