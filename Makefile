@@ -106,6 +106,9 @@ e2e-test-eibc-not-fulfillment-evm: clean-e2e
 
 e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
+
+e2e-test-erc20-hub-to-rollapp-without-register:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestERC20HubToRollAppWithoutRegister_EVM .
 	
 e2e-test-rollapp-upgrade-non-state-breaking-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappUpgradeNonStateBreaking_EVM .
@@ -214,6 +217,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
+	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -263,6 +267,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
+	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
