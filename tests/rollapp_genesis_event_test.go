@@ -202,7 +202,7 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_1234-1", "0adym", "3s")
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -300,6 +300,9 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	require.NoError(t, err)
 	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererAllowlist")
 	
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	require.NoError(t, err)
+
 	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
@@ -364,7 +367,7 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	}
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -461,6 +464,9 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererAllowlist")
+
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	require.NoError(t, err)
 
 	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
