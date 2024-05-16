@@ -885,23 +885,25 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp2)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
+	dymensionUser, marketMaker, rollapp1User, rollapp2User := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	marketMakerAddr := marketMaker.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
+	rollapp1UserAddr := rollapp1User.FormattedAddress()
+	rollapp2UserAddr := rollapp2User.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
 
 	multiplier := math.NewInt(10)
 
@@ -945,7 +947,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for rollapp 2 urax on Hub
-	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channRollApp2Dym.PortID, channRollApp2Dym.ChannelID, rollapp2.Config().Denom)
+	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp2.PortID, channDymRollApp2.ChannelID, rollapp2.Config().Denom)
 	thirdPartyDenom := transfertypes.ParseDenomTrace(rollapp2TokenDenom).IBCDenom()
 	thirdPartyIBCDenomOnRA := transfertypes.ParseDenomTrace(
 		fmt.Sprintf("%s/%s/%s/%s/%s",
@@ -972,7 +974,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, thirdPartyDenom, transferAmount)
 		// user from rollapp1 should have funds to be able to make the ibc transfer transaction
 		transferData = ibc.WalletData{
-			Address: rollappUserAddr,
+			Address: rollapp1UserAddr,
 			Denom:   thirdPartyDenom,
 			Amount:  transferAmount,
 		}
@@ -991,7 +993,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, thirdPartyIBCDenomOnRA, transferAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
 		// end of preconditions
 
 		transferData = ibc.WalletData{
@@ -1003,7 +1005,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// set eIBC specific memo
 		options.Memo = BuildEIbcMemo(eibcFee)
 
-		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
+		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, options)
 		require.NoError(t, err)
 
 		balance, err := dymension.GetBalance(ctx, dymensionUserAddr, thirdPartyDenom)
@@ -1021,11 +1023,11 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// Make sure that the ack contains error
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, thirdPartyIBCDenomOnRA, transferAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
-		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
+		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 		require.NoError(t, err)
 
 		// get eIbc event
@@ -1074,7 +1076,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	})
 }
 
