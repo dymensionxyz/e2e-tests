@@ -117,7 +117,7 @@ var (
 		Bin:                 "gaiad",
 		Bech32Prefix:        "cosmos",
 		Denom:               "uatom",
-		CoinType:            "60",
+		CoinType:            "118",
 		GasPrices:           "0uatom",
 		EncodingConfig:      defaultConfig(),
 		GasAdjustment:       2,
