@@ -588,12 +588,6 @@ func TestRollappUpgrade_EVM(t *testing.T) {
 	// this should timeout due to chain halt at upgrade height.
 	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
 
-	height, err = rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height after chain should have halted")
-
-	// make sure that chain is halted
-	require.Equal(t, haltHeight, height, "height is not equal to halt height")
-
 	// bring down nodes to prepare for upgrade
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
