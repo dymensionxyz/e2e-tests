@@ -21,7 +21,8 @@ import (
 
 // This test case verifies the system's behavior when an eIBC packet is from dym to rollapp and it times out.
 // It verifies that new demand order is automatically created when that happens
-func TestEIBCTimeoutDymToRollapp(t *testing.T) {
+
+func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -262,7 +263,7 @@ func TestEIBCTimeoutDymToRollapp(t *testing.T) {
 
 // TestEIBCTimeoutFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
 // and full filled
-func TestEIBCTimeoutFulFillDymToRollapp_Evm(t *testing.T) {
+func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}

@@ -1362,7 +1362,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	)
 }
 
-func TestEIBCFulfillment_two_rollapps(t *testing.T) {
+func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
