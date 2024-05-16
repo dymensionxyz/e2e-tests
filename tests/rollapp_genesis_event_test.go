@@ -303,9 +303,12 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
+	hubGenesisState, err := rollapp1.GetNode().QueryHubGenesisState(ctx)
+	require.NoError(t, err)
+
 	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, hubGenesisState.GenesisTokens.AmountOf(rollapp1.Config().Denom))
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -341,7 +344,7 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 
 	escrowAddress, err = rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, hubGenesisState.GenesisTokens.AmountOf(rollapp1.Config().Denom))
 }
 
 func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
@@ -468,9 +471,12 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
+	hubGenesisState, err := rollapp1.GetNode().QueryHubGenesisState(ctx)
+	require.NoError(t, err)
+
 	escrowAddress, err := rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, hubGenesisState.GenesisTokens.AmountOf(rollapp1.Config().Denom))
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -506,5 +512,5 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 
 	escrowAddress, err = rollapp1.Validators[0].QueryEscrowAddress(ctx, channel.PortID, channel.ChannelID)
 	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, hubGenesisState.GenesisTokens.AmountOf(rollapp1.Config().Denom))
 }
