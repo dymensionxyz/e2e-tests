@@ -237,7 +237,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
