@@ -36,7 +36,7 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -221,7 +221,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
