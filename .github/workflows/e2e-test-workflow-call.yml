@@ -29,6 +29,7 @@ jobs:
           - "e2e-test-eibc-ack-error-dym-evm"
           - "e2e-test-eibc-ack-error-ra-token-evm"
           - "e2e-test-eibc-ack-error-3rd-party-token-evm"
+          - "e2e-test-eibc-fulfillment-only-one-evm"
           - "e2e-test-eibc-fulfillment-evm"
           - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm"
           - "e2e-test-eibc-fulfillment-evm-2-RAs"
@@ -38,6 +39,7 @@ jobs:
           - "e2e-test-eibc-excessive-fee-evm"
           - "e2e-test-eibc-fulfillment-thirdparty-evm"
           - "e2e-test-eibc-timeout-evm"
+          - "e2e-test-eibc-timeout_and_fulfill-evm"
           - "e2e-test-eibc-not-fulfillment-evm"
           - "e2e-test-transfer-multi-hop-evm"
           - "e2e-test-pfm-with-grace-period-evm"
@@ -56,6 +58,7 @@ jobs:
           - "e2e-test-sequencer-invariant-evm"
           - "e2e-test-rollapp-invariant-evm"
           - "e2e-test-eibc-invariant-evm"
+          - "e2e-test-rollapp-upgrade-non-state-breaking-evm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -94,10 +97,12 @@ jobs:
           - "e2e-test-eibc-ack-error-dym-wasm"
           - "e2e-test-eibc-ack-error-ra-token-wasm"
           - "e2e-test-eibc-ack-error-3rd-party-token-wasm"
+          - "e2e-test-eibc-fulfillment-only-one-wasm"
           - "e2e-test-eibc-fulfillment-wasm"
           - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm"
           - "e2e-test-eibc-fulfillment-thirdparty-wasm"
           - "e2e-test-eibc-pfm-wasm"
+          - "e2e-test-eibc-timeout_and_fulfill-wasm"
           - "e2e-test-eibc-not-fulfillment-wasm"
           - "e2e-test-transfer-multi-hop-wasm"
           - "e2e-test-pfm-with-grace-period-wasm"
@@ -115,6 +120,7 @@ jobs:
           - "e2e-test-eibc-invariant-wasm"
           - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
           - "e2e-test-sequencer-invariant-wasm"
+          - "e2e-test-rollapp-upgrade-non-state-breaking-wasm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:

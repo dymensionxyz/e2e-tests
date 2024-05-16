@@ -19,6 +19,7 @@ jobs:
             - "e2e-test-eibc-ack-error-dym-evm"
             - "e2e-test-eibc-ack-error-ra-token-evm"
             - "e2e-test-eibc-ack-error-3rd-party-token-evm"
+            - "e2e-test-eibc-fulfillment-only-one-evm"
             - "e2e-test-eibc-fulfillment-evm-2-RAs"
             - "e2e-test-eibc-corrupted-memo-evm"
             - "e2e-test-eibc-excessive-fee-evm"
@@ -46,6 +47,7 @@ jobs:
             - "e2e-test-sequencer-invariant-evm"
             - "e2e-test-eibc-invariant-evm"
             - "e2e-test-rollapp-invariant-evm"
+            - "e2e-test-rollapp-upgrade-non-state-breaking-evm"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:

@@ -19,6 +19,7 @@ jobs:
             - "e2e-test-eibc-ack-error-dym-wasm"
             - "e2e-test-eibc-ack-error-ra-token-wasm"
             - "e2e-test-eibc-ack-error-3rd-party-token-wasm"
+            - "e2e-test-eibc-fulfillment-only-one-wasm"           
             - "e2e-test-eibc-fulfillment-wasm"
             - "e2e-test-eibc-fulfillment-thirdparty-wasm"
             - "e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm"
@@ -40,6 +41,7 @@ jobs:
             - "e2e-test-rollapp-invariant-wasm"
             - "e2e-test-pfm-with-grace-period-rollapp1-to-rollapp2-without-erc20"
             - "e2e-test-sequencer-invariant-wasm"
+            - "e2e-test-rollapp-upgrade-non-state-breaking-wasm"
         fail-fast: false
       runs-on: ubuntu-latest
       steps:
