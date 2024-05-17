@@ -366,7 +366,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, walletAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 	})
 
 	t.Cleanup(
@@ -1423,7 +1423,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, walletAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 	})
 
 	t.Cleanup(
