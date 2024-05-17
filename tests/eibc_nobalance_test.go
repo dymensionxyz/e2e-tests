@@ -23,7 +23,7 @@ import (
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
 // that is attempted to be fulfilled without having enough balance by the market maker
 // as a result, the IBC packet should be finalized without order fulfillment
-func TestEIBCNoBalanceToFulfillOrder(t *testing.T) {
+func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
