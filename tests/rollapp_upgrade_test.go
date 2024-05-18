@@ -19,11 +19,6 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-const (
-	haltHeightDelta    = uint64(20)
-	blocksAfterUpgrade = uint64(10)
-)
-
 // TestRollappUpgradeNonStateBreaking_EVM ensure that the non state breaking upgrade works properly.
 func TestRollappUpgradeNonStateBreaking_EVM(t *testing.T) {
 	if testing.Short() {

@@ -126,7 +126,7 @@ e2e-test-rollapp-upgrade-non-state-breaking-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappUpgradeNonStateBreaking_EVM .
 
 e2e-test-rollapp-upgrade-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestRollappUpgrade_EVM .
+	cd tests && go test -timeout=25m -race -v -run TestRollapp_EVM_Upgrade .
 
 e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_rollapp_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferRollAppTriggerGenesis_EVM .
@@ -229,6 +229,9 @@ e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_rollapp_wasm: clea
 
 e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppTransferHubTriggerGenesis_Wasm .	
+
+e2e-test-rollapp-upgrade-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollapp_Wasm_Upgrade .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
