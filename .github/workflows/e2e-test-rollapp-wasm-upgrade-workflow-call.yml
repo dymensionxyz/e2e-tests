@@ -41,7 +41,7 @@ jobs:
           docker image load -i /tmp/e2e.tar 
           docker image ls -a
 
-      - name: Rollapp-EVM E2E Tests
+      - name: Rollapp-Wasm Upgrade E2E Tests
         run: make ${{ matrix.tests }}
         env:
           DYMENSION_CI: ${{ inputs.rollapp_wasm_ci }}
