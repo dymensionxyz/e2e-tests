@@ -29,6 +29,15 @@ e2e-test-ibc-grace-period-evm:  clean-e2e
 e2e-test-eibc-fulfillment-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_EVM .
 
+e2e-test-eibc-ack-error-dym-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_EVM .
+
+e2e-test-eibc-ack-error-ra-token-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_RA_Token_EVM .
+
+e2e-test-eibc-ack-error-3rd-party-token-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_3rd_Party_Token_EVM .
+
 e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillment_ignore_hub_to_RA_EVM .
 
@@ -122,6 +131,9 @@ e2e-test-rollapp-upgrade-evm: clean-e2e
 e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_rollapp_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferRollAppTriggerGenesis_EVM .
 
+e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppTransferHubTriggerGenesis_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -129,6 +141,14 @@ e2e-test-ibc-success-wasm: clean-e2e
 e2e-test-ibc-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferTimeout_Wasm .
 
+e2e-test-eibc-ack-error-dym-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_Dym_Wasm .
+
+e2e-test-eibc-ack-error-ra-token-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_RA_Token_Wasm .
+
+e2e-test-eibc-ack-error-3rd-party-token-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBC_AckError_3rd_Party_Token_Wasm .
 e2e-test-eibc-fulfillment-only-one-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCFulfillOnOneRollApp_Wasm .
 
@@ -189,6 +209,9 @@ e2e-test-delayedack-pending-packets-wasm: clean-e2e
 e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_Wasm .
 
+e2e-test-upgrade-hub: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHubUpgrade .
+	
 e2e-test-sequencer-invariant-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestSequencerInvariant_Wasm .
 	
@@ -204,16 +227,22 @@ e2e-test-rollapp-upgrade-non-state-breaking-wasm: clean-e2e
 e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_rollapp_wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferRollAppTriggerGenesis_Wasm .
 
+e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppTransferHubTriggerGenesis_Wasm .	
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-ack-error-dym-evm \
+	e2e-test-eibc-ack-error-ra-token-evm \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
-	e2e-test-eibc-fulfillment-evm-2-RAs \
-	e2e-test-eibc-fulfill-no-balance-evm \
+  	e2e-test-eibc-fulfillment-evm-2-RAs \
+  	e2e-test-eibc-fulfill-no-balance-evm \
 	e2e-test-eibc-fulfillment-thirdparty-evm \
+	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm \
 	e2e-test-eibc-invariant-evm \
 	e2e-test-eibc-pfm-evm \
 	e2e-test-eibc-timeout-evm \
@@ -233,9 +262,12 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
+	e2e-test-eibc-ack-error-dym-wasm \
+	e2e-test-eibc-ack-error-ra-token-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
-	e2e-test-eibc-invariant-wasm \
+	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm \
+	e2e-test-eibc-invariant-wasm
 	e2e-test-eibc-pfm-wasm \
 	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
@@ -243,14 +275,16 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-disconnection-wasm \
 	e2e-test-rollapp-freeze-wasm \
-  	e2e-test-other-rollapp-not-affected-wasm \
+ 	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet\
 	e2e-test-delayedack-pending-packets-wasm \
-	e2e-test-delayedack-relayer-down-wasm \ 
+	e2e-test-delayedack-relayer-down-wasm \
+	e2e-test-upgrade-hub \
 	e2e-test-sequencer-invariant-wasm \
 	e2e-test-rollapp-invariant-wasm \
+	e2e-test-delayedack-relayer-down-wasm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm
 
 .PHONY: clean-e2e \
@@ -258,12 +292,15 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
 	e2e-test-ibc-grace-period-evm \
+	e2e-test-eibc-ack-error-dym-evm \
+	e2e-test-eibc-ack-error-ra-token-evm \
 	e2e-test-eibc-fulfillment-evm-2-RAs \
 	e2e-test-eibc-corrupted-memo-evm \
 	e2e-test-eibc-excessive-fee-evm \
 	e2e-test-eibc-fulfillment-evm \
 	e2e-test-eibc-fulfill-no-balance-evm \
 	e2e-test-eibc-fulfillment-thirdparty-evm \
+	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-evm \
 	e2e-test-eibc-invariant-evm \
 	e2e-test-eibc-pfm-evm \
 	e2e-test-eibc-timeout-evm \
@@ -283,8 +320,11 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
+	e2e-test-eibc-ack-error-dym-wasm \
+	e2e-test-eibc-ack-error-ra-token-wasm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
+	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm \
   	e2e-test-eibc-invariant-wasm \
 	e2e-test-eibc-pfm-wasm \
 	e2e-test-transfer-multi-hop-wasm \
@@ -300,5 +340,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet \
+	e2e-test-delayedack-pending-packets-wasm \
+	e2e-test-upgrade-hub \
   	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm
