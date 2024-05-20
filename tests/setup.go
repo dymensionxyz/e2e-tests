@@ -65,7 +65,7 @@ var (
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
 
-	upgradeName = GetUpgradeName()
+	upgradeName, upgradeEVMName, upgradeWasmName = GetUpgradeName()
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
@@ -318,12 +318,20 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion
 }
 
-func GetUpgradeName() (upgradeName string) {
+func GetUpgradeName() (upgradeName, upgradeEVMName, upgradeWasmName string) {
 	upgradeName, found := os.LookupEnv("UPGRADE_NAME")
 	if !found {
 		upgradeName = ""
 	}
-	return upgradeName
+	upgradeEVMName, found = os.LookupEnv("UPGRADE_ROLAPP_EVM_NAME")
+	if !found {
+		upgradeEVMName = ""
+	}
+	upgradeWasmName, found = os.LookupEnv("UPGRADE_ROLLAPP_WASM_NAME")
+	if !found {
+		upgradeWasmName = ""
+	}
+	return upgradeName, upgradeEVMName, upgradeWasmName
 }
 
 func encodingConfig() *simappparams.EncodingConfig {
