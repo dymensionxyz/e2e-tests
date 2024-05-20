@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -985,23 +986,32 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	// get dymension and rollapp height
+	dymensionHeight, err := dymension.Height(ctx)
 	require.NoError(t, err)
-
+	rollappHeight, err := dymension.Height(ctx)
+	require.NoError(t, err)
+			
 	// ibc transfer from hub -> rollapp
-	_, err = dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
+	txHash, err := dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	// get Ibc tx
+	ibcTx, err := dymension.Validators[0].GetIbcTxFromTxHash(ctx, txHash)
 	require.NoError(t, err)
 
-	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferData.Amount))
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	// catch ACK errors
+	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
+	require.NoError(t, err)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	// Assert funds were returned to the sender after the timeout has occured
+	
+	// Check assets balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance)
 	testutil.AssertBalance(t, ctx, rollapp1, escrowAddress, rollapp1.Config().Denom, zeroBal)
