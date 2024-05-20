@@ -197,7 +197,7 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -378,7 +378,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -703,7 +703,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
@@ -885,7 +885,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
 
 	// Create chain factory with dymension
-	numHubVals := 2
+	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
