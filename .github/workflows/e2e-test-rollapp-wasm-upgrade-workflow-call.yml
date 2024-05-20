@@ -1,8 +1,8 @@
 on:
   workflow_call:
     inputs:
-      dymension_ci:
-        description: "CI run on Dymension Repo"
+      rollapp_wasm_ci:
+        description: "CI run on Rollapp-Wasm Repo"
         required: false
         type: string
         default: "latest"
@@ -14,11 +14,11 @@ on:
 
 jobs:
   # e2e-tests-by runs the actual go test command to trigger the test.
-  hub-upgrade:
+  rollapp-wasm-upgrade:
     strategy:
       matrix:
         tests:
-          - "e2e-test-upgrade-hub"
+          - "e2e-test-rollapp-upgrade-wasm"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -41,8 +41,8 @@ jobs:
           docker image load -i /tmp/e2e.tar 
           docker image ls -a
 
-      - name: Upgrade Hub E2E Tests
+      - name: Rollapp-Wasm Upgrade E2E Tests
         run: make ${{ matrix.tests }}
         env:
-          DYMENSION_CI: ${{ inputs.dymension_ci }}
-          UPGRADE_NAME: ${{ inputs.upgrade_name }}
+          DYMENSION_CI: ${{ inputs.rollapp_wasm_ci }}
+          UPGRADE_ROLAPP_WASM_NAME: ${{ inputs.upgrade_name }}
