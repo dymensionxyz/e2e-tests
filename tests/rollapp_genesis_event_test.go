@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -976,27 +975,15 @@ func TestHubTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	val0Addr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
 	
-	dymensionHeight, err := dymension.Height(ctx)
-	require.NoError(t, err)
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// check balance of ibc token on rollapp genesis account on hub
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, zeroBal)
 
-	// ibc transfer from hub -> rollapp
-	txHash, err := dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-	// get Ibc tx
-	ibcTx, err := dymension.Validators[0].GetIbcTxFromTxHash(ctx, txHash)
-	require.NoError(t, err)
-
-	// catch ACK errors
-	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
-	require.NoError(t, err)
-
-	// Make sure that the ack contains error
-	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+	// ibc transfer from genesis account on hub -> rollapp
+	_, err = dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
+	require.Error(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, zeroBal)
 	// Assert balance was updated on the rollapp
@@ -1171,7 +1158,7 @@ func TestHubTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	// check balance of ibc token on rollapp genesis account on hub
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, zeroBal)
 
-	// ibc transfer from hub -> rollapp
+	// ibc transfer from genesis account on hub -> rollapp
 	_, err = dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
 	require.Error(t, err)
 
