@@ -236,6 +236,9 @@ e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_wasm: clean-e2
 e2e-test-rollapp-upgrade-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollapp_Wasm_Upgrade .
 
+e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_rollapp_hub_wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHubTransferRollAppTriggerGenesis_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
