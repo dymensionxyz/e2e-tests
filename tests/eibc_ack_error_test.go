@@ -50,7 +50,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
@@ -407,7 +407,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
@@ -739,7 +739,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
@@ -1102,7 +1102,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
@@ -1456,7 +1456,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
@@ -1786,7 +1786,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+				Value: fmt.Sprint(50),
 			},
 			{
 				Key:   "app_state.transfer.params.receive_enabled",
