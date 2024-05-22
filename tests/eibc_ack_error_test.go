@@ -29,20 +29,21 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_2-1"
+	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -69,7 +70,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -91,7 +92,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_2-1",
+				ChainID:             "rollappevm_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -144,10 +145,10 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -386,20 +387,21 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_2-1"
+	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -426,7 +428,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -448,7 +450,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_2-1",
+				ChainID:             "rollappevm_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -501,10 +503,10 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -718,20 +720,21 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_2-1"
+	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -758,7 +761,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -780,7 +783,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_2-1",
+				ChainID:             "rollappevm_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -833,10 +836,10 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1083,18 +1086,21 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+
+	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_2-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1121,7 +1127,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappwasm_1-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1143,7 +1149,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_2-1",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1196,10 +1202,10 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1437,18 +1443,21 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+
+	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_2-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1475,7 +1484,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappwasm_1-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1497,7 +1506,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_2-1",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1550,10 +1559,10 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1767,18 +1776,21 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "10s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTimeRollapp1)
+	maxIdleTime1 := "30s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+
+	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_2-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	emptyBlocksMaxTimeRollapp2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTimeRollapp2)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1805,7 +1817,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappwasm_1-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1827,7 +1839,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_2-1",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1880,10 +1892,10 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().

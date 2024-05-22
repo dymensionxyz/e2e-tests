@@ -28,12 +28,14 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappevm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	modifyGenesisKV := append(
 		rollappEVMGenesisKV,
@@ -88,7 +90,7 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -189,12 +191,14 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappevm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -254,7 +258,7 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
@@ -370,12 +374,14 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappevm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -425,7 +431,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -530,12 +536,14 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappwasm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
@@ -590,7 +598,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -695,12 +703,14 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappwasm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -760,7 +770,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
@@ -877,12 +887,14 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollappId := "rollappwasm_1234-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp := "3s"
-	configFileOverrides := overridesDymintToml(settlementLayer, nodeAddress, rollappId, gasPrice, emptyBlocksMaxTimeRollapp)
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -932,7 +944,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().

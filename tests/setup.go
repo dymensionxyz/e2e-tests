@@ -56,11 +56,11 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	IBCRelayerImage   = "ghcr.io/decentrio/relayer"
+	IBCRelayerImage   = "ghcr.io/dymensionxyz/go-relayer"
 	IBCRelayerVersion = "main"
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
@@ -75,7 +75,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
@@ -492,15 +492,16 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, emptyBlocksMaxTime string) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime string) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
-	dymintTomlOverrides["node_address"] = nodeAddress
+	dymintTomlOverrides["settlement_node_address"] = nodeAddress
 	dymintTomlOverrides["rollapp_id"] = rollappId
-	dymintTomlOverrides["gas_prices"] = gasPrices
-	dymintTomlOverrides["empty_blocks_max_time"] = emptyBlocksMaxTime
+	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
+	dymintTomlOverrides["max_idle_time"] = maxIdleTime
+	dymintTomlOverrides["max_proof_time"] = maxProofTime
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

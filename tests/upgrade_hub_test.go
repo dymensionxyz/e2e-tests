@@ -42,17 +42,19 @@ func TestHubUpgrade(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, node_address, rollapp2_id, gas_price_rollapp2, emptyBlocksMaxTime)
+	maxIdleTime2 := "5s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -142,11 +144,11 @@ func TestHubUpgrade(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().AddRollUp(dymension, rollapp1, rollapp2).

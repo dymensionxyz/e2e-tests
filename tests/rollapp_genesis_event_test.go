@@ -1,10 +1,10 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
-	"bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -33,10 +33,11 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "5s"
+	dymintTomlOverrides["max_proof_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -89,7 +90,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -200,7 +201,14 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_1234-1", "0adym", "3s")
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -250,7 +258,7 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -357,11 +365,12 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
@@ -418,7 +427,7 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -523,7 +532,14 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_1234-1", "0adym", "3s")
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -573,7 +589,7 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -680,11 +696,12 @@ func TestRollAppTransferHubTriggerGenesis_Wasm(t *testing.T) {
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	emptyBlocksMaxTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp1, emptyBlocksMaxTime)
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
@@ -741,7 +758,7 @@ func TestRollAppTransferHubTriggerGenesis_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -846,7 +863,14 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_1234-1", "0adym", "3s")
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "5s"
+	maxProofTime := "3s"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -908,7 +932,7 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "2.5.2", "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -991,7 +1015,7 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	require.NoError(t, err)
 	rollappHeight, err := dymension.Height(ctx)
 	require.NoError(t, err)
-			
+
 	// ibc transfer from hub -> rollapp
 	txHash, err := dymension.Validators[0].SendIBCTransfer(ctx, channel.ChannelID, "validator", transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -1010,7 +1034,7 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-	
+
 	// Check assets balance
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance)
