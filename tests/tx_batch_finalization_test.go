@@ -42,7 +42,7 @@ func TestBatchFinalization_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "60s"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -180,7 +180,7 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "60s"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
