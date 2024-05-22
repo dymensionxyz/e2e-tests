@@ -492,7 +492,7 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime string) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -502,6 +502,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
+	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

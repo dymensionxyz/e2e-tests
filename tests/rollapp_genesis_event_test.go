@@ -36,8 +36,9 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "5s"
-	dymintTomlOverrides["max_proof_time"] = "3s"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "5s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -206,9 +207,9 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "5s"
-	maxProofTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -368,9 +369,9 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "5s"
-	maxProofTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
@@ -537,9 +538,9 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "5s"
-	maxProofTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -699,9 +700,9 @@ func TestRollAppTransferHubTriggerGenesis_Wasm(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "5s"
-	maxProofTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	modifyGenesisKV := []cosmos.GenesisKV{
 		{
@@ -868,9 +869,9 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "5s"
-	maxProofTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 

@@ -32,9 +32,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -42,8 +42,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -390,9 +390,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -400,8 +400,8 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -723,9 +723,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -733,8 +733,8 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappevm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1089,9 +1089,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -1099,8 +1099,8 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1446,9 +1446,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -1456,8 +1456,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
@@ -1779,9 +1779,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappwasm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "30s"
-	maxProofTime := "3s"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "5s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -1789,8 +1789,8 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "5s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "5s")
 
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := append(
