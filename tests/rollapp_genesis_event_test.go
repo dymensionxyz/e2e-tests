@@ -1115,22 +1115,24 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp1, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3  := users[0], users[1], users[2], users[3], users[4]
 
-	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr1 := dymensionUser1.FormattedAddress()
+	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
+	rollappUserAddr1 := rollappUser1.FormattedAddress()
+	rollappUserAddr2 := rollappUser2.FormattedAddress()
+	rollappUserAddr3 := rollappUser3.FormattedAddress()
 
 	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, dymensionOrigBal)
 
-	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, rollappOrigBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1138,66 +1140,56 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	rollapp_params := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
+		userKey:   dymensionUser1.KeyName(),
 	}
 	// trigger genesis event for hub and rollapp
 	triggerHubGenesisEvent(t, dymension, rollapp_params)
 
-	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererAllowlist")
-	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser1.KeyName(), rollappUserAddr1, "hubgenesis", "GenesisTriggererAllowlist")
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr1, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// get roll app height
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 	// transfer from hub to rollapp
 	transferHubToRollAppData := ibc.WalletData{
-		Address: rollappUserAddr,
+		Address: rollappUserAddr1,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
 
 	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferHubToRollAppData, ibc.TransferOptions{})
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr1, transferHubToRollAppData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
 
 	// transfer from roll app to hub
 	transferRollAppToHubData := ibc.WalletData{
-		Address: dymensionUserAddr,
+		Address: dymensionUserAddr2,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
 
 	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferRollAppToHubData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr2, transferRollAppToHubData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-	
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
-
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount)
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
 
 	// transfer from genesis acount on hub to roll app
 	transferFromGenesisAccountToRollappData := ibc.WalletData{
-		Address: rollappUserAddr,
+		Address: rollappUserAddr3,
 		Denom:   rollappIBCDenom,
 		Amount:  transferAmount,
 	}
@@ -1212,10 +1204,24 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	// check rollapp don't has any finalized state on the hub
+	_, err = dymension.QueryRollappState(ctx, rollapp1.Config().Name, true)
+	require.Error(t, err)
+	
+	// wait until packet finalization and verify funds
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// check asset balance for transfer from hub to roll app
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
+	// check asset balance for transfer from roll app to roll app
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount)
+	// check asset balance for transfer from genesis account on hub to roll app
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount.Add(transferFromGenesisAccountToRollappData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
 
 	t.Cleanup(
@@ -1317,23 +1323,26 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
+
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp1, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3  := users[0], users[1], users[2], users[3], users[4]
 
-	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr1 := dymensionUser1.FormattedAddress()
+	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
+	rollappUserAddr1 := rollappUser1.FormattedAddress()
+	rollappUserAddr2 := rollappUser2.FormattedAddress()
+	rollappUserAddr3 := rollappUser3.FormattedAddress()
 
 	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, dymensionOrigBal)
 
-	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, rollappOrigBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1341,66 +1350,56 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	rollapp_params := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
+		userKey:   dymensionUser1.KeyName(),
 	}
 	// trigger genesis event for hub and rollapp
 	triggerHubGenesisEvent(t, dymension, rollapp_params)
 
-	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser.KeyName(), rollappUserAddr, "hubgenesis", "GenesisTriggererAllowlist")
-	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
+	registerGenesisEventTriggerer(t, rollapp1.CosmosChain, rollappUser1.KeyName(), rollappUserAddr1, "hubgenesis", "GenesisTriggererAllowlist")
+	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr1, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// get roll app height
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 	// transfer from hub to rollapp
 	transferHubToRollAppData := ibc.WalletData{
-		Address: rollappUserAddr,
+		Address: rollappUserAddr1,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
 
 	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferHubToRollAppData, ibc.TransferOptions{})
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr1, transferHubToRollAppData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
 
 	// transfer from roll app to hub
 	transferRollAppToHubData := ibc.WalletData{
-		Address: dymensionUserAddr,
+		Address: dymensionUserAddr2,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
 
 	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferRollAppToHubData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr2, transferRollAppToHubData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-	
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
-
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount)
+	// Assert balance was updated on the rollapp
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
 
 	// transfer from genesis acount on hub to roll app
 	transferFromGenesisAccountToRollappData := ibc.WalletData{
-		Address: rollappUserAddr,
+		Address: rollappUserAddr3,
 		Denom:   rollappIBCDenom,
 		Amount:  transferAmount,
 	}
@@ -1415,10 +1414,24 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	// check rollapp don't has any finalized state on the hub
+	_, err = dymension.QueryRollappState(ctx, rollapp1.Config().Name, true)
+	require.Error(t, err)
+	
+	// wait until packet finalization and verify funds
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// check asset balance for transfer from hub to roll app
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr1, dymension.Config().Denom, walletAmount.Sub(transferHubToRollAppData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
+	// check asset balance for transfer from roll app to roll app
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount)
+	// check asset balance for transfer from genesis account on hub to roll app
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount.Add(transferFromGenesisAccountToRollappData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
 
 	t.Cleanup(
