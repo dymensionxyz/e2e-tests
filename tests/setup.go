@@ -61,7 +61,7 @@ var (
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
 	IBCRelayerImage   = "ghcr.io/dymensionxyz/go-relayer"
-	IBCRelayerVersion = "main"
+	IBCRelayerVersion = "main-dym"
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
 
