@@ -79,6 +79,9 @@ e2e-test-disconnection-evm: clean-e2e
 
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_EVM .
+
+e2e-test-rollapp-freeze-non-broken-invariant-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_EVM .
   
 e2e-test-other-rollapp-not-affected-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_EVM .
@@ -187,6 +190,10 @@ e2e-test-disconnection-wasm: clean-e2e
 
 e2e-test-rollapp-freeze-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_Wasm .
+
+e2e-test-rollapp-freeze-non-broken-invariant-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_Wasm .
+  
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
