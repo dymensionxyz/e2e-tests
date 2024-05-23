@@ -40,8 +40,21 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_1234-1", "0adym", "3s")
-	configFileOverrides2 := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappevm_12345-1", "0adym", "3s")
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+
+	// setup config for rollapp 2
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappevm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	maxIdleTime2 := "3s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -67,7 +80,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -132,11 +145,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -357,8 +370,21 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappwasm_1234-1", "0adym", "3s")
-	configFileOverrides2 := overridesDymintToml("dymension", fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name()), "rollappwasm_12345-1", "0adym", "3s")
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+
+	// setup config for rollapp 2
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappewasm_2-1"
+	gas_price_rollapp2 := "0adym"
+	maxIdleTime2 := "3s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -383,7 +409,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       nil,
-				ConfigFileOverrides: configFileOverrides,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -448,11 +474,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -703,20 +729,22 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	configFileOverrides2 := make(map[string]any)
 	dymintTomlOverrides2 := make(testutil.Toml)
 	dymintTomlOverrides2["settlement_layer"] = "dymension"
-	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides2["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappevm_12345-1"
-	dymintTomlOverrides2["gas_prices"] = "0adym"
-	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides2["max_idle_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -806,11 +834,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -1112,20 +1140,22 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	configFileOverrides2 := make(map[string]any)
 	dymintTomlOverrides2 := make(testutil.Toml)
 	dymintTomlOverrides2["settlement_layer"] = "dymension"
-	dymintTomlOverrides2["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides2["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappwasm_12345-1"
-	dymintTomlOverrides2["gas_prices"] = "0adym"
-	dymintTomlOverrides2["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides2["max_idle_time"] = "3s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -1215,11 +1245,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 
 	s := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().

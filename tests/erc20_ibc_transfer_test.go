@@ -27,11 +27,12 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 
 	// setup config for rollapp
 	settlement_layer_rollapp1 := "dymension"
-	node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp := "0adym"
-	emptyBlocksMaxTime := "3s"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, node_address, rollapp1_id, gas_price_rollapp, emptyBlocksMaxTime)
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -112,7 +113,7 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
