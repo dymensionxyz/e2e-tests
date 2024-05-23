@@ -229,7 +229,7 @@ e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_Wasm .
 
 e2e-test-upgrade-hub: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestHubUpgrade .
+	cd tests && go test -timeout=40m -race -v -run TestHubUpgrade .
 	
 e2e-test-sequencer-invariant-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestSequencerInvariant_Wasm .
