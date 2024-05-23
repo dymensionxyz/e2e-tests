@@ -119,6 +119,7 @@ func TestDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["max_supported_batch_skew"] = "1"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -240,6 +241,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["max_supported_batch_skew"] = "1"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
