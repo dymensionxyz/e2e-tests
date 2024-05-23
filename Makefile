@@ -83,6 +83,9 @@ e2e-test-rollapp-freeze-evm:  clean-e2e
 e2e-test-other-rollapp-not-affected-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_EVM .
 
+e2e-test-freeze-packets-rollback-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestPacketRollbacked_EVM .
+
 e2e-test-rollapp-genesis-event-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappGenesisEvent_EVM .
 
