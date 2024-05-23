@@ -143,6 +143,9 @@ e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_evm: clean-e2e
 e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_hub_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestHubTransferHubTriggerGenesis_EVM .
 
+e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -248,6 +251,9 @@ e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_wasm: clean-e2
 
 e2e-test-rollapp-upgrade-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollapp_Wasm_Upgrade .
+
+e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
