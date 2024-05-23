@@ -1149,9 +1149,6 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	_, err = rollapp1.Validators[0].ExecTx(ctx, rollappUserAddr1, "hubgenesis", "genesis-event", dymension.GetChainID(), channel.ChannelID)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -1209,6 +1206,9 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	_, err = dymension.QueryRollappState(ctx, rollapp1.Config().Name, true)
 	require.Error(t, err)
 	
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	// wait until packet finalization and verify funds
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
