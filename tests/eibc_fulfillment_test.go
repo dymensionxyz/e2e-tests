@@ -33,20 +33,28 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -404,20 +412,28 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -777,20 +793,29 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
+
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -1072,21 +1097,28 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -1377,20 +1409,28 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -1760,21 +1800,28 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -2161,20 +2208,28 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -2550,21 +2605,29 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	// setup config for rollapp 1
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -2804,21 +2867,28 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
