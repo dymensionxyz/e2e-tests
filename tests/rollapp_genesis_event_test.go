@@ -1060,7 +1060,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappwasm_1234-1"
+	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
@@ -1150,7 +1150,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp1, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3  := users[0], users[1], users[2], users[3], users[4]
+	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3 := users[0], users[1], users[2], users[3], users[4]
 
 	dymensionUserAddr1 := dymensionUser1.FormattedAddress()
 	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
@@ -1237,7 +1237,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	// check rollapp don't has any finalized state on the hub
 	_, err = dymension.QueryRollappState(ctx, rollapp1.Config().Name, true)
 	require.Error(t, err)
-	
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
@@ -1362,12 +1362,11 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp1, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3  := users[0], users[1], users[2], users[3], users[4]
+	dymensionUser1, dymensionUser2, rollappUser1, rollappUser2, rollappUser3 := users[0], users[1], users[2], users[3], users[4]
 
 	dymensionUserAddr1 := dymensionUser1.FormattedAddress()
 	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
@@ -1454,7 +1453,7 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	// check rollapp don't has any finalized state on the hub
 	_, err = dymension.QueryRollappState(ctx, rollapp1.Config().Name, true)
 	require.Error(t, err)
-	
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
