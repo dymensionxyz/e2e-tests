@@ -1156,7 +1156,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides2["rollapp_id"] = "rollappwasm_12345-1"
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides2["max_idle_time"] = "3s"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
 	dymintTomlOverrides2["max_idle_time"] = "3s"
 	dymintTomlOverrides2["batch_submit_max_time"] = "100s"
