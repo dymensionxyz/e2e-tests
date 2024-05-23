@@ -283,8 +283,8 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err, "error stopping node(s)")
 
 	// upgrade version on all nodes
-	// dymension.UpgradeVersion(ctx, client, DymensionMainRepo, dymensionVersion)
-	dymension.UpgradeVersion(ctx, client, DymensionMainRepo, "v4.0.0")
+	dymension.UpgradeVersion(ctx, client, DymensionMainRepo, dymensionVersion)
+	// dymension.UpgradeVersion(ctx, client, DymensionMainRepo, "v4.0.0")
 	// start all nodes back up.
 	// validators reach consensus on first block after upgrade height
 	// and chain block production resumes.
