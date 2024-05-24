@@ -79,9 +79,15 @@ e2e-test-disconnection-evm: clean-e2e
 
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_EVM .
+
+e2e-test-rollapp-freeze-non-broken-invariant-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_EVM .
   
 e2e-test-other-rollapp-not-affected-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_EVM .
+
+e2e-test-freeze-packets-rollback-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestPacketRollbacked_EVM .
 
 e2e-test-rollapp-genesis-event-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollappGenesisEvent_EVM .
@@ -137,6 +143,12 @@ e2e-test-rollapp_genesis_transfer_rollapp_to_hub_with_trigger_hub_evm: clean-e2e
 e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_rollapp_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestHubTransferRollAppTriggerGenesis_EVM .
 
+e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_hub_evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHubTransferHubTriggerGenesis_EVM .
+
+e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -184,9 +196,16 @@ e2e-test-disconnection-wasm: clean-e2e
 
 e2e-test-rollapp-freeze-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreeze_Wasm .
+
+e2e-test-rollapp-freeze-non-broken-invariant-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_Wasm .
+  
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
+
+e2e-test-freeze-packets-rollback-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestPacketRollbacked_Wasm .
 
 e2e-test-eibc-not-fulfillment-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestEIBCNotFulfillment_Wasm .
@@ -213,7 +232,7 @@ e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestDelayedAck_RelayerDown_Wasm .
 
 e2e-test-upgrade-hub: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestHubUpgrade .
+	cd tests && go test -timeout=40m -race -v -run TestHubUpgrade .
 	
 e2e-test-sequencer-invariant-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestSequencerInvariant_Wasm .
@@ -238,6 +257,9 @@ e2e-test-rollapp-upgrade-wasm: clean-e2e
 
 e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_rollapp_wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestHubTransferRollAppTriggerGenesis_Wasm .
+
+e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \

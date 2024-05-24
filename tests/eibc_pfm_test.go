@@ -31,18 +31,28 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1Id := "rollappevm_1-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "30s"
-	configFileOverrides1 := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	rollapp2Id := "rollappevm_2-1"
-	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
-	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -63,7 +73,7 @@ func TestEIBCPFM_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1-1",
+				ChainID:             "rollappevm_1234-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -85,7 +95,7 @@ func TestEIBCPFM_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_2-1",
+				ChainID:             "rollappevm_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -138,11 +148,11 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -308,17 +318,28 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlementLayer := "dymension"
-	nodeAddress := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1Id := "rollappwasm_1-1"
-	gasPrice := "0adym"
-	emptyBlocksMaxTimeRollapp1 := "30s"
-	configFileOverrides1 := overridesDymintToml(settlementLayer, nodeAddress, rollapp1Id, gasPrice, emptyBlocksMaxTimeRollapp1)
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	rollapp2Id := "rollappwasm_2-1"
-	emptyBlocksMaxTimeRollapp2 := "3s" // make sure rollapp 1 will have finalize height < rollapp 2
-	configFileOverrides2 := overridesDymintToml(settlementLayer, nodeAddress, rollapp2Id, gasPrice, emptyBlocksMaxTimeRollapp2)
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -340,7 +361,7 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-test",
-				ChainID:             "rollappwasm_1-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -362,7 +383,7 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-test2",
-				ChainID:             "rollappwasm_2-1",
+				ChainID:             "rollappwasm_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -415,11 +436,11 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
