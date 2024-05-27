@@ -258,6 +258,9 @@ e2e-test-rollapp-upgrade-wasm: clean-e2e
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
 
+e2e-test-rollapp-free-zee-state-not-progressing-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeStateNotProgressing_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
