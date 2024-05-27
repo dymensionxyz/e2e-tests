@@ -3206,6 +3206,12 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 		}
 	}
 
+	// send eIBC transfer before frozen
+	rollappUserOriginBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
+	require.NoError(t, err)
+
 	// Submit fraud proposal
 	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
 	require.NoError(t, err)
@@ -3227,14 +3233,6 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, latestIndex, lalatestIndex, "rollapp state index still increment after grace period. Rerun")
 
-	// check balances of dymensionUserAddr and rollapp1UserAddr after frozen (packet pending before frozen)
-	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
-	require.NoError(t, err)
-	require.Equal(t, transferAmount, balanceOfDymUserAddr)
-	balanceOfRollAppUserAddr, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount.Sub(transferAmount), balanceOfRollAppUserAddr)
-
 	// Check if rollapp1 has frozen or not
 	rollappParams, err := dymension.QueryRollappParams(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -3244,19 +3242,18 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
-	// send eIBC transfer after frozen
-	rollappUserOriginBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
-	require.NoError(t, err)
-	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
-	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.DemandOrders))
 
-	// After rollapp frozen, fund should return
+	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, rollappUserOriginBal.Sub(transferAmount), rollappUserUpdateBal, "funds aren't sent back to sender")
+	require.Equal(t, rollappUserOriginBal.Sub(transferAmount), rollappUserUpdateBal)
+
+	// check balances of dymensionUserAddr (just receive the fund for the fisrt transfer)
+	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
+	require.NoError(t, err)
+	require.Equal(t, transferAmount, balanceOfDymUserAddr)
 }
