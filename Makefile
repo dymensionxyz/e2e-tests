@@ -146,7 +146,7 @@ e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_hub_evm: clean-e2e
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_EVM .
 
-e2e-test-rollapp-free-zee-cant-fulfill-pending-eibc-packet: clean-e2e
+e2e-test-rollapp-free-zee-cant-fulfill-pending-eibc-packet-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeEibcPending_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
@@ -257,6 +257,9 @@ e2e-test-rollapp-upgrade-wasm: clean-e2e
 
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
+
+e2e-test-rollapp-free-zee-cant-fulfill-pending-eibc-packet-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeEibcPending_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
