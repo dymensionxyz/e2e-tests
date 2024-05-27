@@ -146,6 +146,9 @@ e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_hub_evm: clean-e2e
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestTransferTriggerGenesisBoth_EVM .
 
+e2e-test-rollapp-free-zee-state-not-progressing-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeStateNotProgressing_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestIBCTransferSuccess_Wasm .
