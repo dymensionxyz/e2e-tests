@@ -3255,6 +3255,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	fmt.Println("Sequencer jail status before submitting fraud proposal: ", sequencerStatus.Sequencers[0].Jailed)
 	fmt.Println("Sequencer bond amount before submitting fraud proposal: ", sequencerStatus.Sequencers[0].Tokens)
 	require.Equal(t, false, sequencerStatus.Sequencers[0].Jailed, "sequencer should not be jailed")
+	require.Equal(t, true, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have bond")
 
 	submitFraudStr := "fraud"
 	deposit := "500000000000" + dymension.Config().Denom
@@ -3299,12 +3300,15 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 
 	// Make sure sequencer slashed with all bond and jailed after fraud proposal passed
-	sequencerStatus, err = dymension.GetNode().QuerySequencerStatus(ctx, "")
+	sequencerStatus, err = dymension.GetNode().QuerySequencerStatus(ctx, sequencerAddr)
 	require.NoError(t, err)
 	require.NotEmpty(t, sequencerStatus)
 	fmt.Println("Sequencer jail status after submitting fraud proposal: ", sequencerStatus.Sequencers[0].Jailed)
 	fmt.Println("Sequencer bond amount after submitting fraud proposal: ", sequencerStatus.Sequencers[0].Tokens)
 	require.Equal(t, true, sequencerStatus.Sequencers[0].Jailed, "sequencer should have been jailed")
+	require.Equal(t, false, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have been slashed and have zero bond")
+
+	// TODO: Make sure we can not register a new sequencer
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
