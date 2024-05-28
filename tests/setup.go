@@ -66,6 +66,8 @@ var (
 
 	upgradeName, upgradeEVMName, upgradeWasmName = GetUpgradeName()
 
+	pullRelayerImage = GetPullRelayerImage()
+
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
 		Version:    dymensionVersion,
@@ -335,6 +337,17 @@ func GetUpgradeName() (upgradeName, upgradeEVMName, upgradeWasmName string) {
 		upgradeWasmName = ""
 	}
 	return upgradeName, upgradeEVMName, upgradeWasmName
+}
+
+func GetPullRelayerImage() (pullRelayerImage bool) {
+	pull, found := os.LookupEnv("RELAYER_CI")
+	if !found {
+		pullRelayerImage = true
+	}
+	if pull == "e2e" {
+		pullRelayerImage = false
+	}
+	return pullRelayerImage
 }
 
 func encodingConfig() *simappparams.EncodingConfig {
