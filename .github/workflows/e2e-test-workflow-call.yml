@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: "latest"
+      relayer_ci:
+        description: "CI run on Relayer Repo"
+        required: false
+        type: string
+        default: relayerVersion
       test:
         description: 'test name to run as standalone'
         required: false
@@ -100,6 +105,7 @@ jobs:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
           ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+          RELAYER_CI: ${{ inputs.relayer_ci }}
 
   # e2e-tests-by runs the actual go test command to trigger the test.
   rollapp-wasm:
@@ -135,3 +141,4 @@ jobs:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
             ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+            RELAYER_CI: ${{ inputs.relayer_ci }}

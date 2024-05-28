@@ -93,13 +93,13 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -343,13 +343,13 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -593,13 +593,13 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -839,13 +839,13 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer", network)
 
 	r2 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().

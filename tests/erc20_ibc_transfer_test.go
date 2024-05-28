@@ -113,7 +113,7 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
 	).Build(t, client, "relayer1", network)
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).

@@ -60,10 +60,9 @@ var (
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	IBCRelayerImage   = "ghcr.io/dymensionxyz/go-relayer"
-	IBCRelayerVersion = "main-dym"
+	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
-	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
+	dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion = GetDockerImageVersion()
 
 	upgradeName, upgradeEVMName, upgradeWasmName = GetUpgradeName()
 
@@ -300,7 +299,7 @@ var (
 	}
 )
 
-func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion string) {
+func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
 		dymensionVersion = "latest"
@@ -315,7 +314,11 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	if !found {
 		rollappWasmVersion = "latest"
 	}
-	return dymensionVersion, rollappEVMVersion, rollappWasmVersion
+	relayerVersion, found = os.LookupEnv("RELAYER_CI")
+	if !found {
+		relayerVersion = "main-dym"
+	}
+	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
 
 func GetUpgradeName() (upgradeName, upgradeEVMName, upgradeWasmName string) {
