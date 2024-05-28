@@ -109,7 +109,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -390,17 +390,17 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 	// relayer for rollapp gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer3", network)
 
 	const ibcPath = "ibc-path"
@@ -771,17 +771,17 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 	// Relayer for gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer3", network)
 
 	ic := test.NewSetup().

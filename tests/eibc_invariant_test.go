@@ -142,11 +142,11 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
@@ -498,11 +498,11 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
