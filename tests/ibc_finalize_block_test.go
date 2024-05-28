@@ -159,14 +159,14 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
-	// Compose an IBC transfer and send from rollapp -> dymension
-	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	dymensionHeight, err := dymension.Height(ctx)
 	require.NoError(t, err)
+	// Compose an IBC transfer and send from hub -> rollapp
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	ack, err := testutil.PollForAck(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
 	require.NoError(t, err)
