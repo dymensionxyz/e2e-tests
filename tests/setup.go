@@ -60,12 +60,13 @@ var (
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	IBCRelayerImage   = "ghcr.io/dymensionxyz/go-relayer"
-	IBCRelayerVersion = "main-dym"
+	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
-	dymensionVersion, rollappEVMVersion, rollappWasmVersion = GetDockerImageVersion()
+	dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion = GetDockerImageVersion()
 
 	upgradeName, upgradeEVMName, upgradeWasmName = GetUpgradeName()
+
+	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
@@ -300,7 +301,7 @@ var (
 	}
 )
 
-func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion string) {
+func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
 		dymensionVersion = "latest"
@@ -315,7 +316,11 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	if !found {
 		rollappWasmVersion = "latest"
 	}
-	return dymensionVersion, rollappEVMVersion, rollappWasmVersion
+	relayerVersion, found = os.LookupEnv("RELAYER_CI")
+	if !found {
+		relayerVersion = "main-dym"
+	}
+	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
 
 func GetUpgradeName() (upgradeName, upgradeEVMName, upgradeWasmName string) {
@@ -332,6 +337,17 @@ func GetUpgradeName() (upgradeName, upgradeEVMName, upgradeWasmName string) {
 		upgradeWasmName = ""
 	}
 	return upgradeName, upgradeEVMName, upgradeWasmName
+}
+
+func GetPullRelayerImage() (pullRelayerImage bool) {
+	pull, found := os.LookupEnv("RELAYER_CI")
+	if !found {
+		pullRelayerImage = true
+	}
+	if pull == "e2e" {
+		pullRelayerImage = false
+	}
+	return pullRelayerImage
 }
 
 func encodingConfig() *simappparams.EncodingConfig {
