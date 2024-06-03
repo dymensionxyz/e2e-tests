@@ -332,7 +332,7 @@ func Test1(t *testing.T) {
 	stateOfOldRollApp = strings.Split(stateOfOldRollApp, "\n")[0]
 
 	new_rollapp_id := "rollappevm_1234-2"
-	newState := strings.Replace(stateOfOldRollApp, "\"rollappevm_1234-1\"", new_rollapp_id, 10)
+	newState := strings.Replace(stateOfOldRollApp, "\"rollappevm_1234-1\"", "rollappevm_1234-2", 10)
 	for _, node := range rollapp1.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(newState))
 		require.NoError(t, err)
