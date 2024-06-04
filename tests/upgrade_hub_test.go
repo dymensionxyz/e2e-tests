@@ -43,28 +43,20 @@ func TestHubUpgrade(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	configFileOverrides1 := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	configFileOverrides2 := make(map[string]any)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_12345-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-
-	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappevm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 0
@@ -153,11 +145,11 @@ func TestHubUpgrade(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().AddRollUp(dymension, rollapp1, rollapp2).

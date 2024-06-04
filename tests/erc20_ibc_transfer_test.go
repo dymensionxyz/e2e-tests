@@ -113,7 +113,7 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
@@ -156,10 +156,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	// Start relayer
-	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	rollapp := rollappParam{
 		rollappID: rollapp1.Config().ChainID,
 		channelID: channel.ChannelID,
@@ -177,10 +173,13 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	// Start relayer
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
