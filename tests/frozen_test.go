@@ -381,7 +381,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappewasm_2-1"
+	rollapp2_id := "rollappewasm_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -2630,7 +2630,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappewasm_2-1"
+	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")

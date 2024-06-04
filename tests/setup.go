@@ -58,7 +58,7 @@ var (
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
-	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
+	RollappWasmMainRepo = "ghcr.io/decentrio/rollapp-wasm"
 
 	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
@@ -82,7 +82,7 @@ var (
 
 	rollappWasmImage = ibc.DockerImage{
 		Repository: RollappWasmMainRepo,
-		Version:    rollappWasmVersion,
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
