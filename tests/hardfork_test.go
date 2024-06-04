@@ -326,22 +326,33 @@ func Test1(t *testing.T) {
 	lastHeightOfRollapp, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	stateOfOldRollApp, err := rollapp1.ExportState(ctx, int64(lastHeightOfRollapp))
+
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, anotherIbcPath)
+
 	// stop all nodes and override genesis with new state
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 	stateOfOldRollApp = strings.Split(stateOfOldRollApp, "\n")[0]
 
-	new_rollapp_id := "rollappevm_1234-2"
-	newState := strings.Replace(stateOfOldRollApp, "\"rollappevm_1234-1\"", "rollappevm_1234-2", 10)
+	new_rollapp_chainId := "rollappevm_1234-2"
+	newState := strings.Replace(stateOfOldRollApp, "\"rollappevm_1234-1\"", "\"rollappevm_1234-2\"", 10)
+
+	err = dymension.SetUpNewRollAppToHub(ctx, new_rollapp_chainId, newSequencer.KeyName(), "5", keyDir, nil)
+	// wait a few blocks and verify sender received funds on the hub
+	// err = testutil.WaitForBlocks(ctx, 5, dymension)
+	// require.NoError(t, err)
+	response, err := dymension.QueryRollappParams(ctx, new_rollapp_chainId)
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	// err = dymension.RegisterRollAppToHub(ctx, newSequencer.KeyName(), new_rollapp_chainId, "5", keyDir, metadataFileDir, flags)
 	for _, node := range rollapp1.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(newState))
 		require.NoError(t, err)
 	}
 
 	// override dymint.toml
-
 	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["rollapp_id"] = new_rollapp_id
+	dymintTomlOverrides["rollapp_id"] = new_rollapp_chainId
 
 	for _, node := range rollapp1.Nodes() {
 		err = testutil.ModifyTomlConfigFile(
@@ -357,22 +368,77 @@ func Test1(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// rerun nodes with new chain id
-	err = rollapp1.StartAllNodes(ctx)
-	require.NoError(t, err, "error starting upgraded node(s)")
 	// create new sequencer
-	_, _, err = rollapp1.GetNode().ExecInit(ctx, "newsequencer", "/var/cosmos-chain/newsequencer")
+	_, _, err = rollapp1.GetNode().ExecInit(ctx, "newsequencer", rollapp1.HomeDir() + "/newsequencer")
 	require.NoError(t, err)
 
-	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/newsequencer")
+	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.HomeDir() + "/newsequencer")
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
 
-	// rollapp1
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), new_rollapp_id, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), new_rollapp_chainId, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
 		"--broadcast-mode", "block")
 
 	_, err = dymension.GetNode().ExecTx(ctx, newSequencer.KeyName(), command...)
 	require.NoError(t, err)
+
+
+	// nid, err := rollapp1.Validators[0].NodeID(ctx)
+	// require.NoError(t, err)
+
+	// anotherDymintTomlOverrides := make(testutil.Toml)
+	// anotherDymintTomlOverrides["persistent_peers"] = fmt.Sprintf("%s@newsequencer:26656", nid)
+
+	// for _, node := range rollapp1.Nodes() {
+	// 	nid, err := node.NodeID(ctx)
+	// 	require.NoError(t, err)
+
+	// 	anotherDymintTomlOverrides := make(testutil.Toml)
+	// 	anotherDymintTomlOverrides["persistent_peers"] = fmt.Sprintf("%s@newsequencer:26656", nid)
+
+	// 	err = testutil.ModifyTomlConfigFile(
+	// 		ctx,
+	// 		node.Logger(),
+	// 		node.DockerClient,
+	// 		node.TestName,
+	// 		node.VolumeName,
+	// 		node.Chain.Config().Name,
+	// 		"newsequencer/config/config.toml",
+	// 		anotherDymintTomlOverrides,
+	// 	)
+	// 	require.NoError(t, err)
+	// }
+
+	// rerun nodes with new chain id
+	err = rollapp1.Start(t.Name(), ctx, ibc.WalletData{})
+	require.NoError(t, err, "error starting node(s)")
+
+	balanceOfRollAppUser, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	// dymUserRollapp1bal, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
+	// require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, balanceOfRollAppUser.Sub(transferData.Amount))
+
+
+	// err = r.StartRelayer(ctx, eRep, anotherIbcPath)
+	// require.NoError(t, err)
+
+	// // create new sequencer
+	// _, _, err = rollapp1.GetNode().ExecInit(ctx, "newsequencer", "/var/cosmos-chain/newsequencer")
+	// require.NoError(t, err)
+
+	// command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/newsequencer")
+	// pub1, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
+	// require.NoError(t, err)
+
+	// // rollapp1
+	// command = []string{}
+	// command = append(command, "sequencer", "create-sequencer", string(pub1), new_rollapp_id, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
+	// 	"--broadcast-mode", "block")
+
+	// _, err = dymension.GetNode().ExecTx(ctx, newSequencer.KeyName(), command...)
+	// require.NoError(t, err)
 }
