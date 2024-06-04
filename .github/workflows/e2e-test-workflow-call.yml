@@ -143,4 +143,3 @@ jobs:
             ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
             RELAYER_CI: ${{ inputs.relayer_ci }}
 
-

@@ -367,7 +367,6 @@ func defaultConfig() *simappparams.EncodingConfig {
 	return &cfg
 }
 
-
 func customEpochConfig(epochDuration string) ibc.ChainConfig {
 	// Custom dymension epoch for faster disconnection
 	modifyGenesisKV := dymensionGenesisKV
