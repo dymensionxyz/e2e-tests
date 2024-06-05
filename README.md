@@ -9,6 +9,14 @@ make docker-build-e2e
 ```bash
 make e2e-test-ibc
 ```
+## Version Matrix
+
+The version matrix below shows which versions of the E2E-Tests, Dymension, Rollapp, Relayer and libraries are compatible with each other.
+
+| E2E Tests | Dymension | Rollapp-EVM | Rollapp-Wasm | Dymint | RDK | Relayer | 
+| ---------- | ---------| ----------- | ----------------- | ------------------- | ---------------------- | ---------------- | 
+| v0.0.z     | v3.1.0   | v2.1.z      | 0.1.z             | 1.y.z               | 1.y.z                  | 1.y.z            | 
+| v1.0.z     | v3.1.0   | v2.2.0-rc03 | ❌             | 1.y.z               | 1.y.z                  | 1.y.z            |
 
 ## Tests
 
