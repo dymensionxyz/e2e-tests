@@ -3008,7 +3008,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 
 	ic := test.NewSetup().
@@ -3067,7 +3067,6 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
-
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
@@ -3314,7 +3313,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 
 	ic := test.NewSetup().
@@ -3373,7 +3372,6 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
-
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
