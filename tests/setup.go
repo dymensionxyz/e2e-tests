@@ -58,7 +58,7 @@ var (
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
-	RollappWasmMainRepo = "ghcr.io/decentrio/rollapp-wasm"
+	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
 	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
