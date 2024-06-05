@@ -14,9 +14,9 @@ make e2e-test-ibc
 The version matrix below shows which versions of the E2E-Tests, Dymension, Rollapp, Relayer and libraries are compatible with each other.
 
 | E2E Tests | Dymension | Rollapp-EVM | Rollapp-Wasm | Dymint | RDK | Relayer | 
-| ---------- | ---------| ----------- | ----------------- | ------------------- | ---------------------- | ---------------- | 
-| v0.0.z     | v3.1.0   | v2.1.z      | 0.1.z             | 1.y.z               | 1.y.z                  | 1.y.z            | 
-| v1.0.z     | v3.1.0   | v2.2.0-rc03 | ❌             | 1.y.z               | 1.y.z                  | 1.y.z            |
+| ---------- | ---------| ----------- | ------------ | ------------ | -------- | ---------- | 
+| v0.0.z     | v3.1.0   | v2.1.z      | 0.1.z        | v1.1.z       | v1.6.z    | v0.3.3-v2.5.2-relayer            | 
+| v1.0.z     | v3.1.0   | v2.2.0-rc03 | ❌           | v1.1.3-rc04  | v1.6.1-rc01    | v0.3.3-v2.5.2-relayer            |
 
 ## Tests
 
