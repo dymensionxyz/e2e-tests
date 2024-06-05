@@ -247,7 +247,7 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 
 	preUpgradeRollappWasmImage := ibc.DockerImage{
 		Repository: "ghcr.io/decentrio/rollapp-wasm",
-		Version:    "pre-upgrade-non-state-breaking",
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
