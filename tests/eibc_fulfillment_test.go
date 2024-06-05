@@ -3059,12 +3059,6 @@ func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) 
 		return nil
 	}
 
-	// in case of error, print the error and return nil
-	if txResp.Code != 0 {
-		fmt.Println("Error on fulfill demand order! Transaction failed: ", txResp)
-		return nil
-	}
-
 	const evType = "eibc"
 	events := txResp.Events
 
@@ -3081,7 +3075,6 @@ func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) 
 	eibcEvent.Price = price
 	eibcEvent.Fee = fee
 	eibcEvent.IsFulfilled, err = strconv.ParseBool(isFulfilled)
-	fmt.Println("Event about to be parse4: ", eibcEvent)
 	if err != nil {
 		require.NoError(t, err)
 		return nil
