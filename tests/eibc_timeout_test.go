@@ -964,11 +964,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
-	// // According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
-	// // in order to trigger ibc timeout or else it will trigger callback
-	// err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
-	// require.NoError(t, err)
-
 	// get eibc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
