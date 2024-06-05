@@ -354,7 +354,7 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
 
-	rollapp1.UpgradeVersion(ctx, client, "ghcr.io/decentrio/rollapp-wasm", "post-upgrade-non-state-breaking")
+	rollapp1.UpgradeVersion(ctx, client, RollappWasmMainRepo, rollappWasmVersion)
 
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err, "error starting node(s)")
