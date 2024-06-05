@@ -82,7 +82,7 @@ var (
 
 	rollappWasmImage = ibc.DockerImage{
 		Repository: RollappWasmMainRepo,
-		Version:    "debug",
+		Version:    rollappWasmVersion,
 		UidGid:     "1025:1025",
 	}
 
