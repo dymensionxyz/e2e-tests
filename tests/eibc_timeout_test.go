@@ -943,32 +943,35 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+	// Get the IBC denom of 3rd party token on roll app before sending the transaction to make sure demand order is fulfilled
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	// Compose an IBC transfer and send from dym -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, dymRollAppChan.ChannelID, dymensionUserAddr, dymToRollAppTransferData, options)
 	require.NoError(t, err)
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+
 	// Assert balance was updated on the dym
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, zeroBal)
-	// Get the IBC denom of 3rd party token on roll app
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
-	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
-	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
-	require.NoError(t, err)
+	// // According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
+	// // in order to trigger ibc timeout or else it will trigger callback
+	// err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	// require.NoError(t, err)
 
 	// get eibc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
+
+	// fulfill demand order
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	// Pushing event assertion later in the test so that fulfill demand order can always be fulfilled
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, gaiaIBCDenom))
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, gaiaIBCDenom))
 
-	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
