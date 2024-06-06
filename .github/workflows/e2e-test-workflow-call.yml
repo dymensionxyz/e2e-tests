@@ -139,6 +139,6 @@ jobs:
           run: make e2e-test test=${{ matrix.test }}
           env:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
-            ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
-            ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+            ROLLAPP_EVM_CI: "43d647f8"
+            ROLLAPP_WASM_CI: "7b60edee"
             RELAYER_CI: ${{ inputs.relayer_ci }}

@@ -70,5 +70,7 @@ jobs:
           run: make e2e-test test=${{ matrix.test }}
           env:
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
+            DYMENSION_CI: "73a8a1d8"
+            ROLLAPP_WASM_CI: "7b60edee"
            
   

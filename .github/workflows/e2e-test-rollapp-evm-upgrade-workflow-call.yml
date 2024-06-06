@@ -45,4 +45,4 @@ jobs:
         run: make ${{ matrix.tests }}
         env:
           DYMENSION_CI: ${{ inputs.rollapp_evm_ci }}
-          UPGRADE_ROLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
+          UPGRADE_ROLLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
