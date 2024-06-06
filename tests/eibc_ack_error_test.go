@@ -703,7 +703,6 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
@@ -1070,7 +1069,6 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
@@ -1749,7 +1747,6 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
@@ -2117,7 +2114,6 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error

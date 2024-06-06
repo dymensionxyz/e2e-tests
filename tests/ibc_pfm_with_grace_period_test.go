@@ -956,6 +956,7 @@ func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 
 		rollapp2Erc20MaccBalance, err = rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
 		require.NoError(t, err)
+		fmt.Println("rollapp2Erc20MaccBalance", rollapp2Erc20MaccBalance)
 		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount.Sub(bridgingFee)))
 	})
 	// Check the commitment was deleted

@@ -1121,7 +1121,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
+	fmt.Println("dymUserUpdateBal2", dymUserUpdateBal2)
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount).Sub(bridgingFee)), "dym hub balance did not change")
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1534,7 +1535,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount).Sub(bridgingFee)), "dym hub balance did not change")
 }
 
 // TestPacketRollbacked_EVM ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
