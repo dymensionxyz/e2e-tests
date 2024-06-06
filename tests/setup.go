@@ -54,6 +54,10 @@ var (
 
 	zeroBal = math.ZeroInt()
 
+	amt = math.NewInt(1000)
+
+	bridgingFee = transferAmount.Quo(amt)
+
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"

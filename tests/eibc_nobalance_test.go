@@ -217,7 +217,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 
 	// verify funds were transferred to dymensionUserAddr
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, zeroBal)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	t.Cleanup(
 		func() {
