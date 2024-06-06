@@ -56,7 +56,7 @@ var (
 
 	amt = math.NewInt(1000)
 
-	bridgingFee = transferAmount.Quo(amt)
+	bridgingFee = math.NewInt(1_000)
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
