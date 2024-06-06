@@ -54,8 +54,6 @@ var (
 
 	zeroBal = math.ZeroInt()
 
-	amt = math.NewInt(1000)
-
 	bridgingFee = math.NewInt(1_000)
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
