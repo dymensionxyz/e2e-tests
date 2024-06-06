@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: dymensionxyz/e2e-tests
+          ref: v1.0.0
       - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
@@ -45,4 +46,4 @@ jobs:
         run: make ${{ matrix.tests }}
         env:
           DYMENSION_CI: ${{ inputs.rollapp_evm_ci }}
-          UPGRADE_ROLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
+          UPGRADE_ROLLAPP_EVM_NAME: ${{ inputs.upgrade_name }}

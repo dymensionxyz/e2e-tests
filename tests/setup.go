@@ -54,6 +54,8 @@ var (
 
 	zeroBal = math.ZeroInt()
 
+	bridgingFee = math.NewInt(1_000)
+
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
