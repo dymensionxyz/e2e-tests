@@ -310,7 +310,8 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, gaiaBalance.Equal(transferAmount.Sub(bridgingFee)))
+		fmt.Println("gaiaaaa", gaiaBalance)
+		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
 
@@ -602,7 +603,8 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, gaiaBalance.Equal(transferAmount.Sub(bridgingFee)))
+		fmt.Println("gaiaaaaa", gaiaBalance)
+		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
 

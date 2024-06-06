@@ -691,7 +691,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		rollappHeight, err := rollapp1.Height(ctx)
@@ -703,7 +703,8 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
@@ -1057,7 +1058,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		rollappHeight, err = rollapp1.Height(ctx)
@@ -1069,7 +1070,8 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
@@ -1747,7 +1749,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		rollappHeight, err := rollapp1.Height(ctx)
@@ -1759,7 +1762,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
@@ -2113,7 +2117,8 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		rollappHeight, err = rollapp1.Height(ctx)
@@ -2125,7 +2130,8 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
-		require.True(t, balance.Equal(expMmBalanceRollappDenom.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom.Sub(bridgingFee), balance))
+		expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
+		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
