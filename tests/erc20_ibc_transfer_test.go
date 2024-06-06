@@ -17,9 +17,9 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
@@ -404,6 +404,9 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 		"metadata": {metadataCoin},
 	}
 
+	firstHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
 	contentFile, err := json.Marshal(data)
 	require.NoError(t, err)
 	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
@@ -420,12 +423,33 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
+	secondHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	var contract string
+	for h := firstHeight; h <= secondHeight; h++ {
+		txs, err := rollapp1.GetNode().FindTxs(ctx, h)
+		require.NoError(t, err)
+		for _, tx := range txs {
+			for _, event := range tx.Events {
+				if event.Type == "register_coin" {
+					for _, data := range event.Attributes {
+						if data.Key == "erc20_token" {
+							contract = data.Value
+						}
+					}
+				}
+			}
+		}
+	}
+	require.NotNil(t, contract)
+
 	receiver := common.BytesToAddress([]byte(rollappUserAddr))
 	coinConvert := types.Coin{Denom: "urax", Amount: transferAmount}
 	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), coinConvert.String(), receiver.String())
 	require.NoError(t, err, "can not convert cosmos coin to erc20")
 
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount) )
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 	// // Get the IBC denom of Hub on rollapp
 	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
