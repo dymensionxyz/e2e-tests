@@ -1533,8 +1533,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
-
-	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount)), "dym hub balance did not change")
+	// Minus 0.1% for bridge fee
+	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))), "dym hub balance did not change")
 }
 
 // TestPacketRollbacked_EVM ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
