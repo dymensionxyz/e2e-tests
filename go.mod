@@ -197,6 +197,7 @@ require (
 )
 
 replace (
+	github.com/decentrio/rollup-e2e-testing => ../rollup-e2e-testing
 	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.1.3
 	github.com/rollkit/celestia-openrpc => github.com/celestiaorg/celestia-openrpc v0.3.0
 )

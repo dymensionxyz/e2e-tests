@@ -221,7 +221,9 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	// Minus 0.1% of transfer amount for bridge fee
+	dymBalanceMinusBridgeFee := transferData.Amount.Sub(transferData.Amount.Quo(math.NewInt(1000)))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymBalanceMinusBridgeFee)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr3, rollappIBCDenom, zeroBal)
 

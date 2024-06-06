@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -279,7 +280,9 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	// Assert balance was updated on the Hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	// Minus 0.1% of transfer amount for bridge fee
+	dymBalanceMinusBridgeFee := transferData.Amount.Sub(transferData.Amount.Quo(math.NewInt(1000)))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymBalanceMinusBridgeFee)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -558,7 +561,8 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 
 	// Assert balance was updated on the Hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -815,7 +819,9 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 
 	// Assert balance was updated on the Hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	// Minus 0.1% of transfer amount for bridge fee
+	dymBalanceMinusBridgeFee := transferData.Amount.Sub(transferData.Amount.Quo(math.NewInt(1000)))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymBalanceMinusBridgeFee)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -1071,7 +1077,7 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// Assert balance was updated on the Hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount.Sub(transferAmount.Quo(math.NewInt(1000)))))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -685,7 +686,7 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))
 
 	t.Cleanup(
 		func() {
@@ -1635,7 +1636,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
 	// check asset balance for transfer from roll app to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))
 	// check asset balance for transfer from genesis account on hub to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount.Add(transferFromGenesisAccountToRollappData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
