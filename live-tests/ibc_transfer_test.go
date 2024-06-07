@@ -1,12 +1,8 @@
 package livetests
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -69,129 +65,19 @@ func TestIBCTransfer_Live(t *testing.T) {
 	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
 
-	// Data to send in the POST request
-	data := map[string]string{
-		"address": rollappXUser.Address,
-	}
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
-	}
-
-	// Create a new POST request
-	req, err := http.NewRequest("POST", "http://18.184.170.181:3000/api/get-rollx", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the request header to indicate that we're sending JSON data
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client and send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
-
-	// Data to send in the POST request
-	data = map[string]string{
-		"address": rollappYUser.Address,
-	}
-	jsonData, err = json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
-	}
-
-	// Create a new POST request
-	req, err = http.NewRequest("POST", "http://18.184.170.181:3000/api/get-rolly", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the request header to indicate that we're sending JSON data
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client and send the request
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
-
-	// Data to send in the POST request
-	data = map[string]string{
-		"address": dymensionUser.Address,
-	}
-	jsonData, err = json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
-	}
-
-	// Create a new POST request
-	req, err = http.NewRequest("POST", "http://18.184.170.181:3000/api/get-dym", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the request header to indicate that we're sending JSON data
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client and send the request
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
+	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
+	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
+	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	rollappTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
+	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
+
+	rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
+	rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
 
 	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
 	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
@@ -211,8 +97,6 @@ func TestIBCTransfer_Live(t *testing.T) {
 	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(erc20_OrigBal)
-
-	transferAmount := math.NewInt(1_000_000)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData := ibc.WalletData{
@@ -248,7 +132,40 @@ func TestIBCTransfer_Live(t *testing.T) {
 	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(erc20_Bal)
-	fmt.Println(rollappIBCDenom)
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
+	fmt.Println(rollappXIBCDenom)
+
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
+	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappYUser.Address,
+		Denom:   dymensionUser.Denom,
+		Amount:  transferAmount,
+	}
+
+	cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 3, hub)
+
+	// Compose an IBC transfer and send from rollapp -> hub
+	transferData = ibc.WalletData{
+		Address: dymensionUser.Address,
+		Denom:   rollappYUser.Denom,
+		Amount:  transferAmount,
+	}
+
+	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 10, hub)
+
+	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(erc20_Bal)
+	fmt.Println(rollappYIBCDenom)
+
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
 	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
 }
