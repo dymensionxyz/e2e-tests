@@ -330,7 +330,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee.MulRaw(2))
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -617,7 +616,7 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	expMmBalanceRollappDenom := transferAmount.Sub(bridgingFee.MulRaw(10))
+	expMmBalanceRollappDenom := transferData.Amount.Sub(bridgingFee.MulRaw(10))
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
