@@ -380,3 +380,13 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-upgrade-hub \
   	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm
+
+###############################################################################
+###                              E2E live tests                             ###
+###############################################################################
+
+clean-e2e-live:
+	sh clean-live.sh
+
+e2e-live-test-ibc-transfer-success: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
