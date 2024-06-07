@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -1637,7 +1636,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
 	// check asset balance for transfer from roll app to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-  // Minus 0.1% of transfer amount as bridging fee
+	// Minus 0.1% of transfer amount as bridging fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// check asset balance for transfer from genesis account on hub to roll app
@@ -1862,7 +1861,7 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
 	// check asset balance for transfer from roll app to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-  // Minus 0.1% transfer amount as bridging fee
+	// Minus 0.1% transfer amount as bridging fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// check asset balance for transfer from genesis account on hub to roll app
