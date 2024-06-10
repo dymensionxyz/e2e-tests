@@ -4669,7 +4669,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
