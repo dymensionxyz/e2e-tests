@@ -4024,7 +4024,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// check balances of dymensionUserAddr (just receive the fund for the fisrt transfer)
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
-	require.Equal(t, transferAmount, balanceOfDymUserAddr)
+	require.Equal(t, transferAmount.Sub(bridgingFee), balanceOfDymUserAddr)
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
