@@ -76,7 +76,7 @@ func Test1(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -342,6 +342,7 @@ func Test1(t *testing.T) {
 	// err = testutil.WaitForBlocks(ctx, 5, dymension)
 	// require.NoError(t, err)
 	response, err := dymension.QueryRollappParams(ctx, new_rollapp_chainId)
+	fmt.Println("ressssss", response)
 	require.NoError(t, err)
 	require.NotNil(t, response)
 	// err = dymension.RegisterRollAppToHub(ctx, newSequencer.KeyName(), new_rollapp_chainId, "5", keyDir, metadataFileDir, flags)
@@ -369,10 +370,10 @@ func Test1(t *testing.T) {
 	}
 
 	// create new sequencer
-	_, _, err = rollapp1.GetNode().ExecInit(ctx, "newsequencer", rollapp1.HomeDir() + "/newsequencer")
+	_, _, err = rollapp1.GetNode().ExecInit(ctx, "newsequencer", rollapp1.HomeDir()+"/newsequencer")
 	require.NoError(t, err)
 
-	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.HomeDir() + "/newsequencer")
+	command := append([]string{rollapp1.GetNode().Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.HomeDir()+"/newsequencer")
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
 
@@ -382,7 +383,6 @@ func Test1(t *testing.T) {
 
 	_, err = dymension.GetNode().ExecTx(ctx, newSequencer.KeyName(), command...)
 	require.NoError(t, err)
-
 
 	// nid, err := rollapp1.Validators[0].NodeID(ctx)
 	// require.NoError(t, err)
@@ -421,7 +421,6 @@ func Test1(t *testing.T) {
 	// dymUserRollapp1bal, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	// require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, balanceOfRollAppUser.Sub(transferData.Amount))
-
 
 	// err = r.StartRelayer(ctx, eRep, anotherIbcPath)
 	// require.NoError(t, err)
