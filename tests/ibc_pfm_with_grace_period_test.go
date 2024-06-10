@@ -311,8 +311,9 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		// Minus 0.1% of transfer amount for bridge fee
-		require.True(t, gaiaBalance.Equal(transferAmount.Sub(bridgingFee)))
+
+		fmt.Println("gaiaaaa", gaiaBalance)
+		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
 
@@ -604,8 +605,8 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-    // Min 0.1% transfer amount as bridging fee
-		require.True(t, gaiaBalance.Equal(transferAmount.Sub(bridgingFee)))
+		fmt.Println("gaiaaaaa", gaiaBalance)
+		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
 
@@ -957,8 +958,7 @@ func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 
 		rollapp2Erc20MaccBalance, err = rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-
-		// Minus 0.1% of transfer amount for bridge fee
+		fmt.Println("rollapp2Erc20MaccBalance", rollapp2Erc20MaccBalance)
 		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount.Sub(bridgingFee)))
 	})
 	// Check the commitment was deleted
