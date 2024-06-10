@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -310,6 +311,8 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
+
+		fmt.Println("gaiaaaa", gaiaBalance)
 		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
@@ -602,6 +605,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 
 		gaiaBalance, err = gaia.GetBalance(ctx, gaiaUserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
+		fmt.Println("gaiaaaaa", gaiaBalance)
 		require.True(t, gaiaBalance.Equal(transferAmount))
 	})
 }
@@ -954,7 +958,8 @@ func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 
 		rollapp2Erc20MaccBalance, err = rollapp2.GetBalance(ctx, erc20MAccAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount))
+		fmt.Println("rollapp2Erc20MaccBalance", rollapp2Erc20MaccBalance)
+		require.True(t, rollapp2Erc20MaccBalance.Equal(transferAmount.Sub(bridgingFee)))
 	})
 	// Check the commitment was deleted
 	resp, err := rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", rollapp2DymChan.ChannelID)
@@ -1258,7 +1263,8 @@ func TestIBCPFM_RollApp1To2WithOutErc20_Wasm(t *testing.T) {
 
 		rollapp2UserBalance, err = rollapp2.GetBalance(ctx, rollapp2UserAddr, secondHopIBCDenom)
 		require.NoError(t, err)
-		require.True(t, rollapp2UserBalance.Equal(transferAmount))
+		// Minus 0.1% of transfer amount for bridge fee
+		require.True(t, rollapp2UserBalance.Equal(transferAmount.Sub(transferAmount.Quo(math.NewInt(1000)))))
 	})
 	// Check the commitment was deleted
 	resp, err := rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", rollapp2DymChan.ChannelID)

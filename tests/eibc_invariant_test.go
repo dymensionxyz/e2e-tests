@@ -265,7 +265,8 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	expMmBalanceRollappDenom := transferData.Amount
+	// Minus 0.1% of transfer amount for bridge fee
+	expMmBalanceRollappDenom := transferData.Amount.Sub(transferData.Amount.Quo(math.NewInt(1000)))
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
@@ -338,6 +339,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount.MulRaw(2))
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee.MulRaw(2))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// Send 2 ibc transfer
@@ -613,7 +615,8 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	expMmBalanceRollappDenom := transferData.Amount
+	// Minus 0.1% of transfer amount for bridge fee
+	expMmBalanceRollappDenom := transferData.Amount.Sub(bridgingFee.MulRaw(10))
 	balance, err := dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
@@ -686,6 +689,7 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount.MulRaw(2))
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee.MulRaw(2))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// Send 2 ibc transfer
