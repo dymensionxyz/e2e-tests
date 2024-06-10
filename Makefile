@@ -82,6 +82,9 @@ e2e-test-rollapp-freeze-evm:  clean-e2e
 
 e2e-test-rollapp-freeze-non-broken-invariant-evm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_EVM .
+
+e2e-test-rollapp-freeze-sequencer-slashed-jailed-evm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppSqcSlashedJailed_EVM .
   
 e2e-test-other-rollapp-not-affected-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_EVM .
@@ -202,7 +205,9 @@ e2e-test-rollapp-freeze-wasm: clean-e2e
 
 e2e-test-rollapp-freeze-non-broken-invariant-wasm:  clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestRollAppFreezeNoBrokenInvariants_Wasm .
-  
+
+e2e-test-rollapp-freeze-sequencer-slashed-jailed-wasm:  clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestRollAppSqcSlashedJailed_Wasm .  
   
 e2e-test-other-rollapp-not-affected-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestOtherRollappNotAffected_Wasm .
@@ -381,3 +386,13 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-upgrade-hub \
   	e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm
+
+###############################################################################
+###                              E2E live tests                             ###
+###############################################################################
+
+clean-e2e-live:
+	sh clean-live.sh
+
+e2e-live-test-ibc-transfer-success: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
