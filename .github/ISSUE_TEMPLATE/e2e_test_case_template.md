@@ -17,7 +17,7 @@ assignees: ''
 
 ### Test Case Issue link
 <!-- Leave this blank for a new test case. For change/delete, provide the existing test case issue. -->
-**ID:** 
+**Issue link:** 
 
 ### Scenario
 <!-- Describe the test scenario. -->
