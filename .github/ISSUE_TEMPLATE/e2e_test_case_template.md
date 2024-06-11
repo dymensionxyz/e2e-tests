@@ -1,43 +1,73 @@
----
 name: E2E Test Case
-about: Document a new or updated end-to-end test case
+description: Document a new or updated end-to-end test case
 title: "[E2E Test] "
-labels: e2e-test
-assignees: ''
+labels: 
+  - e2e-test
+assignees: []
 
----
+body:
+  - type: dropdown
+    id: test_case_type
+    attributes:
+      label: Test Case Type
+      description: Select whether this is a new test case, an update to an existing one, or a deletion.
+      options:
+        - New
+        - Update
+        - Delete
+    validations:
+      required: true
 
-<!-- Please fill out the sections below to document the test case. -->
+  - type: input
+    id: test_case_link
+    attributes:
+      label: Test Case Issue link
+      description: Leave this blank for a new test case. For change/delete, provide the existing test case issue.
+      placeholder: "e.g., #123"
+    validations:
+      required: false
 
-### Test Case Type
-<!-- Select whether this is a new test case or a change to an existing one. -->
-- [ ] New
-- [ ] Update
-- [ ] Delete
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: Describe the test scenario.
+      placeholder: "Describe the test scenario here"
+    validations:
+      required: true
 
-### Test Case Issue link
-<!-- Leave this blank for a new test case. For change/delete, provide the existing test case issue. -->
-**Issue link:** 
+  - type: textarea
+    id: description
+    attributes:
+      label: Test Case Description
+      description: Provide a brief description of the test case.
+      placeholder: "Provide a brief description of the test case here"
+    validations:
+      required: true
 
-### Scenario
-<!-- Describe the test scenario. -->
-**Scenario:** 
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions
+      description: List any preconditions required for this test case.
+      placeholder: "List preconditions here"
+    validations:
+      required: true
 
-### Test Case Description
-<!-- Provide a brief description of the test case. -->
-**Description:** 
+  - type: textarea
+    id: steps
+    attributes:
+      label: Test Steps
+      description: List the steps required to execute the test case.
+      placeholder: "1. Step one\n2. Step two\n..."
+    validations:
+      required: true
 
-### Preconditions
-<!-- List any preconditions required for this test case. -->
-**Preconditions:**
-- 
-
-### Test Steps
-<!-- List the steps required to execute the test case. -->
-**Steps:**
-1. 
-
-### Expected Results
-<!-- Describe the expected results of the test case. -->
-**Expected Results:**
-- 
+  - type: textarea
+    id: expected_results
+    attributes:
+      label: Expected Results
+      description: Describe the expected results of the test case.
+      placeholder: "List expected results here"
+    validations:
+      required: true
