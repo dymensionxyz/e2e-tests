@@ -448,8 +448,13 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	coinConvert := types.Coin{Denom: "urax", Amount: transferAmount}
 	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), coinConvert.String(), receiver.String())
 	require.NoError(t, err, "can not convert cosmos coin to erc20")
-
+	testutil.WaitForBlocks(ctx, 1, rollapp1)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+	
+	// convert erc20 back to urax
+	err = rollapp1.GetNode().ConvertErc20(ctx, contract, transferAmount.String(), receiver.String(), rollappUserAddr)
+ 	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+
 	// // Get the IBC denom of Hub on rollapp
 	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
