@@ -28,7 +28,7 @@ body:
       required: false
 
   - type: dropdown
-    id: labels
+    id: additional_labels
     attributes:
       label: "Labels"
       description: "Select any additional labels to add to this issue."
