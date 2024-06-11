@@ -27,6 +27,26 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: additional_labels
+    attributes:
+      label: "Labels"
+      description: "Select any additional labels to add to this issue."
+      options:
+        - "eibc"
+        - "delayed-ack"
+        - "genesis-bridge"
+        - "ibc erc20"
+        - "rollapp state update"
+        - "rollapp hard fork"
+        - "PFM"
+        - "fraud detection"
+        - "bridging fee"
+        - "automated denom-metadata"
+        - "eibc fee market"
+        - "full node sync"
+      multiple: true
+
   - type: textarea
     id: scenario
     attributes:
