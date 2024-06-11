@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	// "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -381,31 +381,43 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
-	metadataCoin := banktypes.Metadata{
-		Description: "description of the token",
-		Base:        "urax",
-		// NOTE: Denom units MUST be increasing
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// register ibc denom on rollapp1
+	metadata := banktypes.Metadata{
+		Description: "IBC token from Dymension",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    "urax",
+				Denom:    dymensionIBCDenom,
 				Exponent: 0,
+				Aliases:  []string{"udym"},
 			},
 			{
-				Denom:    "rax",
-				Exponent: uint32(18),
+				Denom:    "udym",
+				Exponent: 6,
 			},
 		},
-		Name:    "urax",
-		Symbol:  "Decentrio",
-		Display: "urax",
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    dymensionIBCDenom,
+		Display: "udym",
+		Name:    "udym",
+		Symbol:  "udym",
 	}
 
 	data := map[string][]banktypes.Metadata{
-		"metadata": {metadataCoin},
+		"metadata": {metadata},
 	}
-
-	firstHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
 
 	contentFile, err := json.Marshal(data)
 	require.NoError(t, err)
@@ -423,37 +435,107 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	secondHeight, err := rollapp1.Height(ctx)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	var contract string
-	for h := firstHeight; h <= secondHeight; h++ {
-		txs, err := rollapp1.GetNode().FindTxs(ctx, h)
-		require.NoError(t, err)
-		for _, tx := range txs {
-			for _, event := range tx.Events {
-				if event.Type == "register_coin" {
-					for _, data := range event.Attributes {
-						if data.Key == "erc20_token" {
-							contract = data.Value
-						}
-					}
-				}
-			}
-		}
-	}
-	require.NotNil(t, contract)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	receiver := common.BytesToAddress([]byte(rollappUserAddr))
-	coinConvert := types.Coin{Denom: "urax", Amount: transferAmount}
-	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), coinConvert.String(), receiver.String())
-	require.NoError(t, err, "can not convert cosmos coin to erc20")
-	testutil.WaitForBlocks(ctx, 1, rollapp1)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
-	
-	// convert erc20 back to urax
-	err = rollapp1.GetNode().ConvertErc20(ctx, contract, transferAmount.String(), receiver.String(), rollappUserAddr)
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Check fund was set to erc20 module account on rollapp
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	require.True(t, rollappErc20MaccBalance.Equal(transferAmount))
+	check := common.BytesToAddress([]byte(erc20MAccAddr))
+	// convert erc20
+	err = rollapp1.GetNode().ConvertErc20(ctx, check.String(), transferAmount.String(), rollappUserAddr, rollappUserAddr)
  	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+
+	// metadataCoin := banktypes.Metadata{
+	// 	Description: "description of the token",
+	// 	Base:        "urax",
+	// 	// NOTE: Denom units MUST be increasing
+	// 	DenomUnits: []*banktypes.DenomUnit{
+	// 		{
+	// 			Denom:    "urax",
+	// 			Exponent: 0,
+	// 		},
+	// 		{
+	// 			Denom:    "rax",
+	// 			Exponent: uint32(18),
+	// 		},
+	// 	},
+	// 	Name:    "urax",
+	// 	Symbol:  "Decentrio",
+	// 	Display: "urax",
+	// }
+
+	// data := map[string][]banktypes.Metadata{
+	// 	"metadata": {metadataCoin},
+	// }
+
+	// firstHeight, err := rollapp1.Height(ctx)
+	// require.NoError(t, err)
+
+	// contentFile, err := json.Marshal(data)
+	// require.NoError(t, err)
+	// rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	// deposit := "500000000000" + rollapp1.Config().Denom
+	// rollapp1.GetNode().HostName()
+	// _, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
+	// require.NoError(t, err)
+
+	// err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	// require.NoError(t, err, "failed to submit votes")
+
+	// height, err := rollapp1.Height(ctx)
+	// require.NoError(t, err, "error fetching height")
+	// _, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	// require.NoError(t, err, "proposal status did not change to passed")
+
+	// secondHeight, err := rollapp1.Height(ctx)
+	// require.NoError(t, err)
+
+	// var contract string
+	// for h := firstHeight; h <= secondHeight; h++ {
+	// 	txs, err := rollapp1.GetNode().FindTxs(ctx, h)
+	// 	require.NoError(t, err)
+	// 	for _, tx := range txs {
+	// 		for _, event := range tx.Events {
+	// 			if event.Type == "register_coin" {
+	// 				for _, data := range event.Attributes {
+	// 					if data.Key == "erc20_token" {
+	// 						contract = data.Value
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// require.NotNil(t, contract)
+
+	// receiver := common.BytesToAddress([]byte(rollappUserAddr))
+	// coinConvert := types.Coin{Denom: "urax", Amount: transferAmount}
+	// _, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), coinConvert.String(), receiver.String())
+	// require.NoError(t, err, "can not convert cosmos coin to erc20")
+	// testutil.WaitForBlocks(ctx, 1, rollapp1)
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+	
+	// // convert erc20 back to urax
+	// err = rollapp1.GetNode().ConvertErc20(ctx, contract, transferAmount.String(), receiver.String(), rollappUserAddr)
+ 	// require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
 	// // Get the IBC denom of Hub on rollapp
 	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
