@@ -18,6 +18,29 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: drs
+    attributes:
+      label: DRS
+      description: Select Rollapp type (DRS)
+      options:
+        - EVM
+        - WASM
+        - ALL
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target_milestone
+    attributes:
+      label: Target Milestone
+      description: Select which milestone does this test targets
+      options:
+        - 2D 
+        - 3D
+    validations:
+      required: true
+
   - type: input
     id: test_case_link
     attributes:
