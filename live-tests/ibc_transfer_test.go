@@ -231,27 +231,27 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
+	// rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
+	// rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
-	// hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
-	// hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
+	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
+	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
 
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(dymensionOrigBal)
+	fmt.Println("hub original balance: ", dymensionOrigBal, dymensionUser.Denom)
 
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(rollappXOrigBal)
+	fmt.Println("rollapp x original balance: ", rollappXOrigBal, rollappXUser.Denom)
 
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(rollappYOrigBal)
+	fmt.Println("rollapp y original balance: ", rollappYOrigBal, rollappYUser.Denom)
 
 	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(erc20_OrigBal)
+	fmt.Println("rol x user balance of denom send from dym: ", erc20_OrigBal)
 
 	// Compose an IBC transfer and send from rollapp x -> hub
 	transferData := ibc.WalletData{
@@ -264,32 +264,33 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 
-	erc20_Bal, err := GetERC20Balance(ctx, rollappXIBCDenom, hub.GrpcAddr)
+	// check balance before dispute period on rollapp x side
+	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println("erc20 balance after dispute period: ", erc20_Bal, rollappXIBCDenom)
+	fmt.Println("erc20 balance before dispute period: ", erc20_Bal, hubIBCDenom)
 
 	// TODO: sub bridging fee on new version
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
+	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
 
-	dymension_Bal, err := GetERC20Balance(ctx, dymensionUser.Denom, hub.GrpcAddr)
+	dymension_Bal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println("dymension user balance after dispute period: ", dymension_Bal, dymensionUser.Denom)
+	fmt.Println("dymension user balance before dispute period: ", dymension_Bal, dymensionUser.Denom)
 	require.Equal(t, dymensionOrigBal, dymension_Bal)
 
 	// TODO: change dispute period to shorter time frame
 	// wait for hub to finalize
 	testutil.WaitForBlocks(ctx, dispute_period_in_blocks, hub)
 
-	erc20_Bal, err = GetERC20Balance(ctx, rollappXIBCDenom, hub.GrpcAddr)
+	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println("erc20 balance after dispute period: ", erc20_Bal, rollappXIBCDenom)
+	fmt.Println("erc20 balance after dispute period: ", erc20_Bal, hubIBCDenom)
 
 	// TODO: sub bridging fee on new version
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
+	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
 
-	dymension_Bal, err = GetERC20Balance(ctx, dymensionUser.Denom, hub.GrpcAddr)
+	dymension_Bal, err = dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println("dymension user balance after dispute period: ", dymension_Bal, dymensionUser.Denom)
 	require.Equal(t, dymensionOrigBal.Sub(transferAmount), dymension_Bal)

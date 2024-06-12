@@ -21,7 +21,7 @@ var (
 	erc20Addr                = "rolx1glht96kr2rseywuvhhay894qw7ekuc4q4d4qs2"
 	erc20IBCDenom            = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
 	transferAmount           = sdkmath.NewInt(1_000_000)
-	dispute_period_in_blocks = 120960
+	dispute_period_in_blocks = 50
 )
 
 func BuildEIbcMemo(eibcFee sdkmath.Int) string {
