@@ -595,6 +595,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
+	dymintTomlOverrides["da_layer"] = "grpc"
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
 	dymintTomlOverrides["settlement_node_address"] = nodeAddress
 	dymintTomlOverrides["rollapp_id"] = rollappId
