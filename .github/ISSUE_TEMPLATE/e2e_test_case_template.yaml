@@ -1,0 +1,124 @@
+name: E2E Test Case
+description: Document a new or updated end-to-end test case
+title: "[E2E Test] "
+labels: 
+  - e2e-test
+assignees: []
+
+body:
+  - type: dropdown
+    id: test_case_type
+    attributes:
+      label: Test Case Type
+      description: Select whether this is a new test case, an update to an existing one, or a deletion.
+      options:
+        - New
+        - Update
+        - Delete
+    validations:
+      required: true
+
+  - type: dropdown
+    id: drs
+    attributes:
+      label: DRS
+      description: Select Rollapp type (DRS)
+      options:
+        - EVM
+        - WASM
+        - ALL
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target_milestone
+    attributes:
+      label: Target Milestone
+      description: Select which milestone does this test targets
+      options:
+        - 2D 
+        - 3D
+    validations:
+      required: true
+
+  - type: input
+    id: test_case_link
+    attributes:
+      label: Test Case Issue link
+      description: Leave this blank for a new test case. For change/delete, provide the existing test case issue.
+      placeholder: "e.g., #123"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: epic
+    attributes:
+      label: "Epic"
+      description: "Select the epic this test covers."
+      options:
+        - "eibc"
+        - "delayed-ack"
+        - "genesis-bridge"
+        - "ibc erc20"
+        - "rollapp state update"
+        - "rollapp hard fork"
+        - "PFM"
+        - "fraud detection"
+        - "bridging fee"
+        - "automated denom-metadata"
+        - "eibc fee market"
+        - "full node sync"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Test Case Description
+      description: Provide a brief description of the test case.
+      placeholder: "Provide a brief description of the test case here"
+    validations:
+      required: true
+
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions
+      description: List any preconditions required for this test case.
+      placeholder: "List preconditions here"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Test Steps
+      description: List the steps required to execute the test case.
+      placeholder: "1. Step one\n2. Step two\n..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_results
+    attributes:
+      label: Expected Results
+      description: Describe the expected results of the test case.
+      placeholder: "List expected results here"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: livetest
+    attributes:
+      label: "Live Test"
+      description: "Should a live test be written for this test. Live tests are run on testnet and assume already existing rollapps. Can be thought of as a test from a user point of view "
+      options:
+        - label: "Yes"
+
+  - type: markdown
+    attributes:
+      value: |
+        ### ⚠️ **Important Note** ⚠️
+        
+        ✅ **After issue creation please make sure you select the relevant deliverable for the issue (e.g 2D, 3D)**
+          

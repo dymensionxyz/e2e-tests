@@ -15,7 +15,8 @@ replace (
 require (
 	cosmossdk.io/math v1.3.0
 	github.com/cosmos/cosmos-sdk v0.46.16
-	github.com/cosmos/ibc-go/v6 v6.2.1
+	github.com/cosmos/ibc-go/v6 v6.3.1
+	github.com/decentrio/e2e-testing-live v0.0.0-20240607135413-e01fbc94078c
 	github.com/decentrio/rollup-e2e-testing v0.0.0-20240612151526-13144e73eef8
 	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc01.0.20240404003005-53ccf8a922fd
@@ -24,6 +25,8 @@ require (
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.27.0
 )
+
+require google.golang.org/grpc v1.61.0
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
@@ -178,7 +181,6 @@ require (
 	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240125205218-1f4bbc51befe // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
-	google.golang.org/grpc v1.61.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
