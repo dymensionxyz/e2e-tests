@@ -51,10 +51,10 @@ body:
       required: false
 
   - type: dropdown
-    id: additional_labels
+    id: epic
     attributes:
-      label: "Labels"
-      description: "Select any additional labels to add to this issue."
+      label: "Epic"
+      description: "Select the epic this test covers."
       options:
         - "eibc"
         - "delayed-ack"
@@ -68,7 +68,8 @@ body:
         - "automated denom-metadata"
         - "eibc fee market"
         - "full node sync"
-      multiple: true
+    validations:
+      required: true
 
   - type: textarea
     id: scenario
