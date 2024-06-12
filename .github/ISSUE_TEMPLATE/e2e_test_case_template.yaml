@@ -115,3 +115,12 @@ body:
       placeholder: "List expected results here"
     validations:
       required: true
+
+  - type: checkboxes
+    id: livetest
+    attributes:
+      label: "Live Test"
+      description: "Should a live test be written for this test. Live tests are run on testnet and assume already existing rollapps. Can be thought of as a test from a user point of view "
+      options:
+        - label: "Yes"
+          required: true
