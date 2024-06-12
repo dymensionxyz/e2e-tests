@@ -13,37 +13,61 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+
+	"flag"
+	"log"
+	"net"
+	"strconv"
+
+	grpcda "github.com/dymensionxyz/dymint/da/grpc"
+	"github.com/dymensionxyz/dymint/da/grpc/mockserv"
+	"github.com/dymensionxyz/dymint/store"
 )
 
-func TestDisconnection_EVM(t *testing.T) {
+// StartDA start grpc DALC server
+func StartDA() {
+	conf := grpcda.DefaultConfig
+
+	flag.IntVar(&conf.Port, "port", conf.Port, "listening port")
+	flag.StringVar(&conf.Host, "host", "0.0.0.0", "listening address")
+	flag.Parse()
+
+	kv := store.NewDefaultKVStore(".", "db", "dymint")
+	lis, err := net.Listen("tcp", conf.Host+":"+strconv.Itoa(conf.Port))
+	if err != nil {
+		log.Panic(err)
+	}
+	log.Println("Listening on:", lis.Addr())
+	srv := mockserv.GetServer(kv, conf, nil)
+	if err := srv.Serve(lis); err != nil {
+		log.Println("error while serving:", err)
+	}
+}
+
+func TestFullnodeSync_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
-	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
-	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppVals := 1
-	numRollAppFn := 0
+	numRollAppFn := 1
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -86,8 +110,19 @@ func TestDisconnection_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
+	).Build(t, client, "relayer1", network)
+
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r, "relayer1").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r,
+			Path:    ibcPath,
+		})
 
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
@@ -103,46 +138,52 @@ func TestDisconnection_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
-	dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
+	require.True(t, isFinalized)
+	require.NoError(t, err)
 
-	t.Run("hub disconnect", func(t *testing.T) {
-		err = dymension.StopAllNodes(ctx)
-		require.NoError(t, err)
+	// Stop the full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
 
-		// Wait until rollapp stops produce block
-		rollappHeight, err := rollapp1.Height(ctx)
-		require.NoError(t, err)
+	// Wait for a few blocks before start the node again and sync
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+	require.NoError(t, err)
 
-		err = testutil.WaitForCondition(
-			time.Minute*10,
-			time.Second*5, // each epoch is 5 seconds
-			func() (bool, error) {
-				newRollappHeight, err := rollapp1.Height(ctx)
-				require.NoError(t, err)
+	// Start full node again
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
-				if newRollappHeight > rollappHeight {
-					rollappHeight = newRollappHeight
-					return false, nil
-				}
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*10,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			valHeight, err := rollapp1.Validators[0].Height(ctx)
+			require.NoError(t, err)
 
-				return true, nil
-			},
-		)
-		require.NoError(t, err)
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
 
-		err = dymension.StartAllNodes(ctx)
-		require.NoError(t, err)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
 
-		// Make sure rollapp start pro
-		err = testutil.WaitForBlocks(ctx, 1, rollapp1)
-		require.NoError(t, err)
-	})
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
 }
 
-func TestDisconnection_Wasm(t *testing.T) {
+func TestFullnodeSync_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -152,16 +193,10 @@ func TestDisconnection_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
-	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
-	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
+	dymintTomlOverrides["gas_prices"] = "0adym"
+	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -233,36 +268,35 @@ func TestDisconnection_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 
-	t.Run("hub disconnect", func(t *testing.T) {
-		err = dymension.StopAllNodes(ctx)
-		require.NoError(t, err)
+	// Stop the full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
 
-		// Wait until rollapp stops produce block
-		rollappHeight, err := rollapp1.Height(ctx)
-		require.NoError(t, err)
+	// Wait for a few blocks before start the node again and sync
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+	require.NoError(t, err)
 
-		err = testutil.WaitForCondition(
-			time.Minute*10,
-			time.Second*5, // each epoch is 5 seconds
-			func() (bool, error) {
-				newRollappHeight, err := rollapp1.Height(ctx)
-				require.NoError(t, err)
+	// Start full node again
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
-				if newRollappHeight > rollappHeight {
-					rollappHeight = newRollappHeight
-					return false, nil
-				}
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*10,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			valHeight, err := rollapp1.Validators[0].Height(ctx)
+			require.NoError(t, err)
 
-				return true, nil
-			},
-		)
-		require.NoError(t, err)
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
 
-		err = dymension.StartAllNodes(ctx)
-		require.NoError(t, err)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
 
-		// Make sure rollapp start produce blocks
-		err = testutil.WaitForBlocks(ctx, 1, rollapp1)
-		require.NoError(t, err)
-	})
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
 }

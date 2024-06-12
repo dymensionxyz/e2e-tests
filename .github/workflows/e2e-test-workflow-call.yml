@@ -146,3 +146,4 @@ jobs:
             ROLLAPP_EVM_CI: "43d647f8"
             ROLLAPP_WASM_CI: "7b60edee"
             RELAYER_CI: ${{ inputs.relayer_ci }}
+

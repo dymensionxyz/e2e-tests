@@ -77,6 +77,9 @@ e2e-test-batch-finalization-evm: clean-e2e
 e2e-test-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestDisconnection_EVM .
 
+e2e-test-fullnode-sync-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestFullnodeSync_EVM .
+
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreeze_EVM .
 
@@ -202,6 +205,9 @@ e2e-test-batch-finalization-wasm:
 
 e2e-test-disconnection-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestDisconnection_Wasm .
+
+e2e-test-fullnode-sync-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestFullnodeSync_Wasm .
 
 e2e-test-rollapp-freeze-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreeze_Wasm .
