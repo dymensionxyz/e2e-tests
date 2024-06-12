@@ -76,8 +76,8 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
 	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
-	// rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	// rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
+	rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
+	rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
 
 	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
 	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
@@ -143,35 +143,35 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappYUser.Address,
-	// 	Denom:   dymensionUser.Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappYUser.Address,
+		Denom:   dymensionUser.Denom,
+		Amount:  transferAmount,
+	}
 
-	// cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
-	// require.NoError(t, err)
+	cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
+	require.NoError(t, err)
 
-	// testutil.WaitForBlocks(ctx, 3, hub)
+	testutil.WaitForBlocks(ctx, 3, hub)
 
-	// // Compose an IBC transfer and send from rollapp -> hub
-	// transferData = ibc.WalletData{
-	// 	Address: dymensionUser.Address,
-	// 	Denom:   rollappYUser.Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from rollapp -> hub
+	transferData = ibc.WalletData{
+		Address: dymensionUser.Address,
+		Denom:   rollappYUser.Denom,
+		Amount:  transferAmount,
+	}
 
-	// cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
-	// require.NoError(t, err)
+	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
+	require.NoError(t, err)
 
-	// testutil.WaitForBlocks(ctx, 10, hub)
+	testutil.WaitForBlocks(ctx, 10, hub)
 
-	// erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(erc20_Bal)
-	// fmt.Println(rollappYIBCDenom)
+	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(erc20_Bal)
+	fmt.Println(rollappYIBCDenom)
 
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
-	// require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, math.ZeroInt())
+	require.Equal(t, erc20_OrigBal, erc20_Bal)
 }
