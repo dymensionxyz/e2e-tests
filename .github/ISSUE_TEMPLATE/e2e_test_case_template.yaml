@@ -72,15 +72,6 @@ body:
       required: true
 
   - type: textarea
-    id: scenario
-    attributes:
-      label: Scenario
-      description: Describe the test scenario.
-      placeholder: "Describe the test scenario here"
-    validations:
-      required: true
-
-  - type: textarea
     id: description
     attributes:
       label: Test Case Description
