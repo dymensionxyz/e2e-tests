@@ -401,4 +401,7 @@ clean-e2e-live:
 	sh clean-live.sh
 
 e2e-live-test-ibc-transfer-success: clean-e2e-live
-	cd live-tests && go test -timeout=30m -race -v -run TestIBCTransfer_Live .
+	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
+
+e2e-live-test-eibc-timeout: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .

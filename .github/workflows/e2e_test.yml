@@ -14,6 +14,7 @@ on:
       - "docs/**"
       - "**.md"
       - "LICENSE"
+      - "live-tests/**"
 
 permissions:
   contents: read
