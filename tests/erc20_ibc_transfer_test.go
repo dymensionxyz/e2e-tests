@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	// "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -17,7 +17,8 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/ethereum/go-ethereum/common"
+
+	// "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -381,31 +382,43 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	}
 	triggerHubGenesisEvent(t, dymension, rollapp)
 
-	metadataCoin := banktypes.Metadata{
-		Description: "description of the token",
-		Base:        "urax",
-		// NOTE: Denom units MUST be increasing
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// register ibc denom on rollapp1
+	metadata := banktypes.Metadata{
+		Description: "IBC token from Dymension",
 		DenomUnits: []*banktypes.DenomUnit{
 			{
-				Denom:    "urax",
+				Denom:    dymensionIBCDenom,
 				Exponent: 0,
+				Aliases:  []string{"udym"},
 			},
 			{
-				Denom:    "rax",
-				Exponent: uint32(18),
+				Denom:    "udym",
+				Exponent: 6,
 			},
 		},
-		Name:    "urax",
-		Symbol:  "Decentrio",
-		Display: "urax",
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    dymensionIBCDenom,
+		Display: "udym",
+		Name:    "udym",
+		Symbol:  "udym",
 	}
 
 	data := map[string][]banktypes.Metadata{
-		"metadata": {metadataCoin},
+		"metadata": {metadata},
 	}
-
-	firstHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
 
 	contentFile, err := json.Marshal(data)
 	require.NoError(t, err)
@@ -423,96 +436,62 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	secondHeight, err := rollapp1.Height(ctx)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	var contract string
-	for h := firstHeight; h <= secondHeight; h++ {
-		txs, err := rollapp1.GetNode().FindTxs(ctx, h)
-		require.NoError(t, err)
-		for _, tx := range txs {
-			for _, event := range tx.Events {
-				if event.Type == "register_coin" {
-					for _, data := range event.Attributes {
-						if data.Key == "erc20_token" {
-							contract = data.Value
-						}
-					}
-				}
-			}
-		}
-	}
-	require.NotNil(t, contract)
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	receiver := common.BytesToAddress([]byte(rollappUserAddr))
-	coinConvert := types.Coin{Denom: "urax", Amount: transferAmount}
-	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), coinConvert.String(), receiver.String())
-	require.NoError(t, err, "can not convert cosmos coin to erc20")
-	testutil.WaitForBlocks(ctx, 1, rollapp1)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Check fund was set to erc20 module account on rollapp
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	require.True(t, rollappErc20MaccBalance.Equal(transferAmount))
+	require.NoError(t, err)
+
+	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
+	require.NoError(t, err)
+	require.NotNil(t, tokenPair)
 	
-	// convert erc20 back to urax
-	err = rollapp1.GetNode().ConvertErc20(ctx, contract, transferAmount.String(), receiver.String(), rollappUserAddr)
- 	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+	// convert erc20
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1_id)
+	require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
-	// // Get the IBC denom of Hub on rollapp
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 
-	// transferData := ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:  dymensionIBCDenom,
+		Amount:  transferAmount,
+	}
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
-
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
-	// // Start relayer
-	// err = r1.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
-
-	// balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-	// fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-	// require.True(t, balance.Equal(walletAmount.Sub(transferAmount)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
-
-	// // wait a few blocks and verify sender received funds on the hub
-	// err = testutil.WaitForBlocks(ctx, 5, dymension)
-	// require.NoError(t, err)
-
-	// // verify funds weren't added to receiver's address
-	// balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	// require.NoError(t, err)
-	// fmt.Println("Balance of rollappUserAddr right after sending eIBC transfer:", balance)
-	// require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
-
-	// // get eIbc event
-	// eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
-	// require.NoError(t, err)
-	// fmt.Println("Event:", eibcEvents[0])
-
-	// // wait a few blocks and verify sender received funds on the hub
-	// err = testutil.WaitForBlocks(ctx, 5, dymension)
-	// require.NoError(t, err)
-
-	// resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
-	// require.NoError(t, err)
-	// require.Equal(t, 1, len(resp.DemandOrders))
-
-	// // wait until packet finalization and verify funds
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
-	// balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
-	// require.NoError(t, err)
-	// require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
-
-	// balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-	// require.True(t, balance.Equal(walletAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+	// check balance on dym and rollapp after transfer
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 
 	t.Cleanup(
 		func() {
