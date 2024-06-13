@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	// "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -464,7 +464,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
 	require.NoError(t, err)
 	require.NotNil(t, tokenPair)
-	
+
 	// convert erc20
 	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1_id)
 	require.NoError(t, err, "can not convert erc20 to cosmos coin")
@@ -475,9 +475,13 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
-		Denom:  dymensionIBCDenom,
+		Denom:   dymensionIBCDenom,
 		Amount:  transferAmount,
 	}
+	// delayedACKParams, err := dymension.GetNode().QueryDelayedACKParams(ctx)
+	// require.NoError(t, err)
+	multiplier := math.NewInt(1000)
+	bridgeFee := transferAmount.Quo(multiplier) // transferAmount * 0.001
 	// Compose an IBC transfer and send from rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -491,7 +495,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	require.True(t, isFinalized)
 	// check balance on dym and rollapp after transfer
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(bridgeFee))
 
 	t.Cleanup(
 		func() {
