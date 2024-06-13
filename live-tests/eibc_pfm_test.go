@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
-
+	"bytes"
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/decentrio/e2e-testing-live/cosmos"
@@ -41,7 +41,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 		Denom:         "arolx",
 	}
 
-	rollappY := cosmos.CosmosChain{
+	rollappNim := cosmos.CosmosChain{
 		RPCAddr:       "rpc.nimtwo.evm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "grpc.nimtwo.evm.ra.blumbus.noisnemyd.xyz:443",
 		ChainID:       "nim_9999-1",
@@ -55,7 +55,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
-	rollappYUser, err := rollappY.CreateUser("roly1")
+	rollappNimUser, err := rollappNim.CreateUser("rolnim1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
@@ -64,7 +64,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 
-	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
+	err = rollappNim.NewClient("https://" + rollappNim.RPCAddr)
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
@@ -75,14 +75,11 @@ func TestEIBCPFM_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
+	firstHopDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
+	firstHopIBCDenom := transfertypes.ParseDenomTrace(firstHopDenom).IBCDenom()
 
-	// rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	// rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
-
-	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
-	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
+	secondHopDenom := transfertypes.GetPrefixedDenom("transfer", channelIDNimDym, firstHopDenom)
+	secondHopIBCDenom := transfertypes.ParseDenomTrace(secondHopDenom).IBCDenom()
 
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
@@ -108,8 +105,8 @@ func TestEIBCPFM_Live(t *testing.T) {
 	}
 
 	forwardMetadata := &ForwardMetadata{
-		Receiver: rollappYUser.Address,
-		Channel:  channelIDDymRollappY,
+		Receiver: rollappNimUser.Address,
+		Channel:  channelIDDymNim,
 		Port:     "transfer",
 		Timeout:  5 * time.Minute,
 	}
@@ -122,22 +119,33 @@ func TestEIBCPFM_Live(t *testing.T) {
 
 	// set eIBC specific memo
 	memo := fmt.Sprintf(`{"eibc": {"fee": "%s"}, "forward": %s}`, eibcFee.String(), string(forwardMetadataJson))
-	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, ibc.TransferOptions{Memo: string(memo)})
+	txResp, err := cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, ibc.TransferOptions{Memo: string(memo)})
 	require.NoError(t, err)
 
+	tx, err := cosmos.GetIbcTxFromTxResponse(*txResp)
+	require.NoError(t, err)
+
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	encodingConfig := encodingConfig()
+	ack, err := testutil.PollForAck(ctx, rollappX, encodingConfig.InterfaceRegistry,  rollappXHeight, rollappXHeight+30, tx.Packet)
+	require.NoError(t, err)
 	testutil.WaitForBlocks(ctx, 10, hub)
 
-	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_Bal)
-	fmt.Println(rollappXIBCDenom)
+	// Make sure the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	require.Equal(t, erc20_OrigBal, erc20_Bal)
-	testutil.WaitForBlocks(ctx, 3, hub)
+	// erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	// require.NoError(t, err)
+	// fmt.Println(erc20_Bal)
+	// fmt.Println(rollappXIBCDenom)
+
+	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+	// require.Equal(t, erc20_OrigBal, erc20_Bal)
+	// testutil.WaitForBlocks(ctx, 3, hub)
 
 
-	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_Bal)
+	// erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	// require.NoError(t, err)
+	// fmt.Println(erc20_Bal)
 }

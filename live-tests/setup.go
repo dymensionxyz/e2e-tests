@@ -4,10 +4,17 @@ import (
 	"context"
 	"fmt"
 	"time"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	sdkmath "cosmossdk.io/math"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
+	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
+	ethermint "github.com/evmos/ethermint/types"
 )
 
 var (
@@ -15,12 +22,14 @@ var (
 	channelIDDymRollappY = "channel-22"
 	channelIDRollappXDym = "channel-0"
 	channelIDRollappYDym = "channel-0"
-	dymFee               = "6000000000000000adym"
-	rolxFee              = "10000000000000arolx"
-	rolyFee              = "2000000000000000aroly"
-	erc20Addr            = "rolx1glht96kr2rseywuvhhay894qw7ekuc4q4d4qs2"
-	erc20IBCDenom        = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
-	transferAmount       = sdkmath.NewInt(1_000_000)
+	channelIDDymNim      = "channel-16"
+	channelIDNimDym      = "channel-0"
+	dymFee         = "6000000000000000adym"
+	rolxFee        = "10000000000000arolx"
+	rolyFee        = "2000000000000000aroly"
+	erc20Addr      = "rolx1glht96kr2rseywuvhhay894qw7ekuc4q4d4qs2"
+	erc20IBCDenom  = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
+	transferAmount = sdkmath.NewInt(1_000_000)
 )
 
 type ForwardMetadata struct {
@@ -52,4 +61,15 @@ func GetERC20Balance(ctx context.Context, denom, grpcAddr string) (sdkmath.Int, 
 	}
 
 	return res.Balance.Amount, nil
+}
+
+func encodingConfig() *simappparams.EncodingConfig {
+	cfg := cosmos.DefaultEncoding()
+
+	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
+	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
+	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
+	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
+	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
+	return &cfg
 }
