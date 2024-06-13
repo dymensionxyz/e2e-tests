@@ -3,7 +3,7 @@ package livetests
 import (
 	"context"
 	"fmt"
-
+	"time"
 	sdkmath "cosmossdk.io/math"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc"
@@ -22,6 +22,16 @@ var (
 	erc20IBCDenom        = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
 	transferAmount       = sdkmath.NewInt(1_000_000)
 )
+
+type ForwardMetadata struct {
+	Receiver       string        `json:"receiver"`
+	Port           string        `json:"port"`
+	Channel        string        `json:"channel"`
+	Timeout        time.Duration `json:"timeout"`
+	Retries        *uint8        `json:"retries,omitempty"`
+	Next           *string       `json:"next,omitempty"`
+	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
+}
 
 func BuildEIbcMemo(eibcFee sdkmath.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
