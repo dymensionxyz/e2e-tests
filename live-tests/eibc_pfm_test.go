@@ -135,17 +135,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	// erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(erc20_Bal)
-	// fmt.Println(rollappXIBCDenom)
-
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	// require.Equal(t, erc20_OrigBal, erc20_Bal)
-	// testutil.WaitForBlocks(ctx, 3, hub)
-
-
-	// erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(erc20_Bal)
+	testutil.AssertBalance(t, ctx, rollappXUser, rollappXUser.Denom, rollappX.GrpcAddr, rollappXOrigBal)
+	testutil.AssertBalance(t, ctx, dymensionUser, firstHopIBCDenom, hub.GrpcAddr, zeroBal)
+	testutil.AssertBalance(t, ctx, rollappNimUser, secondHopIBCDenom, rollappNim.GrpcAddr, zeroBal)
 }
