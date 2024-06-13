@@ -158,7 +158,7 @@ e2e-test-rollapp-freeze-cant-fulfill-pending-eibc-packet-evm: clean-e2e
 e2e-test-rollapp-freeze-state-not-progressing-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreezeStateNotProgressing_EVM .
 
-e2e-test-rollapp_test1: clean-e2e
+e2e-test-erc20-rollapp-to-hub-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestERC20RollAppToHubWithRegister_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
