@@ -13,7 +13,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 
@@ -40,7 +39,7 @@ func StartDA() {
 	if err != nil {
 		log.Panic(err)
 	}
-	log.Println("Listening on:", lis.Addr())
+	log.Println("DA grpc listening on:", lis.Addr())
 	srv := mockserv.GetServer(kv, conf, nil)
 	if err := srv.Serve(lis); err != nil {
 		log.Println("error while serving:", err)
@@ -53,6 +52,8 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
+	go StartDA()
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
@@ -110,19 +111,8 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/decentrio/relayer", "2.5.2", "100:1000"),
-	).Build(t, client, "relayer1", network)
-
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer1").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
+		AddRollUp(dymension, rollapp1)
 
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
@@ -138,11 +128,6 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -155,7 +140,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 50, dymension)
 	require.NoError(t, err)
 
 	// Start full node again
