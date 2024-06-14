@@ -3,12 +3,18 @@ package livetests
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/decentrio/e2e-testing-live/cosmos"
 	"github.com/decentrio/e2e-testing-live/testutil"
+	"github.com/decentrio/rollup-e2e-testing/blockdb"
+	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/stretchr/testify/require"
 )
@@ -102,7 +108,7 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	fmt.Println(erc20_OrigBal)
 
 	// Compose an IBC transfer and send from rollappx -> marketmaker
-	transferData := ibc.WalletData{
+	transferDataRollAppXToMm := ibc.WalletData{
 		Address: marketmaker.Address,
 		Denom:   rollappX.Denom,
 		Amount:  transferAmount,
@@ -111,16 +117,22 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 3, hub)
 
 	var options ibc.TransferOptions
-	cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferData, dymFee, options)
+	cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferDataRollAppXToMm, dymFee, options)
 	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 3, hub)
 
-	testutil.AssertBalance(t, ctx, marketmaker, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 	testutil.AssertBalance(t, ctx, rollappXUser, rollappXUser.Denom, rollappX.GrpcAddr, rollappXOrigBal.Sub(transferAmount))
+	// Minus 0.1% of transfer amount for bridge fee
+	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount.Sub(transferDataRollAppXToMm.Amount.Quo(math.NewInt(1000)))
+	balance, err := marketmaker.GetBalance(ctx, rollappXIBCDenom, hub.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+	// end of preconditions
 
 	// Compose an IBC transfer and send from rollapp -> hub
-	transferData = ibc.WalletData{
+	transferDataRollAppXToHub := ibc.WalletData{
 		Address: dymensionUser.Address,
 		Denom:   rollappXUser.Denom,
 		Amount:  transferAmount,
@@ -131,10 +143,37 @@ func TestEIBCFulfill_Live(t *testing.T) {
 
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
-	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
+	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToHub, rolxFee, options)
 	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 10, hub)
+
+	// get eIbc event
+
+	encoding := encodingConfig()
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
+	require.NoError(t, err)
+	for i, eibcEvent := range eibcEvents {
+		fmt.Println(i, "EIBC Event:", eibcEvent)
+	}
+
+	var fulfill_demand_order = false
+	// fulfill demand orders from rollapp 1
+	for _, eibcEvent := range eibcEvents {
+		re := regexp.MustCompile(`^\d+`)
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+			fmt.Println("EIBC Event:", eibcEvent)
+			txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketmaker.Address, dymFee)
+			require.NoError(t, err)
+			eibcEvent := getEibcEventFromTx(t, &hub, *txResp)
+			if eibcEvent != nil {
+				fmt.Println("After order fulfillment:", eibcEvent)
+			}
+			fulfill_demand_order = true
+		}
+	}
+
+	require.Equal(t, true, fulfill_demand_order)
 
 	// erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	// require.NoError(t, err)
@@ -175,4 +214,101 @@ func TestEIBCFulfill_Live(t *testing.T) {
 
 	// testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, math.ZeroInt())
 	// require.Equal(t, erc20_OrigBal, erc20_Bal)
+}
+
+func getEibcEventFromTx(t *testing.T, dymension *cosmos.CosmosChain, txResp types.TxResponse) *dymensiontesting.EibcEvent {
+	const evType = "eibc"
+	events := txResp.Events
+
+	var (
+		id, _           = cosmos.AttributeValue(events, evType, "id")
+		price, _        = cosmos.AttributeValue(events, evType, "price")
+		fee, _          = cosmos.AttributeValue(events, evType, "fee")
+		isFulfilled, _  = cosmos.AttributeValue(events, evType, "is_fulfilled")
+		packetStatus, _ = cosmos.AttributeValue(events, evType, "packet_status")
+	)
+
+	eibcEvent := new(dymensiontesting.EibcEvent)
+	eibcEvent.ID = id
+	eibcEvent.Price = price
+	eibcEvent.Fee = fee
+	checkFulfilled, err := strconv.ParseBool(isFulfilled)
+	if err != nil {
+		require.NoError(t, err)
+		return nil
+	}
+	eibcEvent.IsFulfilled = checkFulfilled
+	eibcEvent.PacketStatus = packetStatus
+
+	return eibcEvent
+}
+
+func getEIbcEventsWithinBlockRange(
+	ctx context.Context,
+	dymension *cosmos.CosmosChain,
+	blockRange uint64,
+	breakOnFirstOccurence bool,
+	interfaceRegistry codectypes.InterfaceRegistry,
+) ([]dymensiontesting.EibcEvent, error) {
+	var eibcEventsArray []dymensiontesting.EibcEvent
+
+	height, err := dymension.Height(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Dymension height: %w", err)
+	}
+	fmt.Printf("Dymension height: %d\n", height)
+
+	err = testutil.WaitForBlocks(ctx, int(blockRange), *dymension)
+	if err != nil {
+		return nil, fmt.Errorf("error waiting for blocks: %w", err)
+	}
+
+	eibcEvents, err := getEventsOfType(dymension, height-5, height+blockRange, "eibc", breakOnFirstOccurence, interfaceRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
+	}
+
+	if len(eibcEvents) == 0 {
+		return nil, fmt.Errorf("There wasn't a single 'eibc' event registered within the specified block range on the hub")
+	}
+
+	for _, event := range eibcEvents {
+		eibcEvent, err := dymensiontesting.MapToEibcEvent(event)
+		if err != nil {
+			return nil, fmt.Errorf("error mapping to EibcEvent: %w", err)
+		}
+		eibcEventsArray = append(eibcEventsArray, eibcEvent)
+	}
+
+	return eibcEventsArray, nil
+}
+
+func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight uint64, eventType string, breakOnFirstOccurence bool, interfaceRegistry codectypes.InterfaceRegistry) ([]blockdb.Event, error) {
+	var eventTypeArray []blockdb.Event
+	shouldReturn := false
+
+	for height := startHeight; height <= endHeight && !shouldReturn; height++ {
+		txs, err := chain.FindTxs(context.Background(), height, interfaceRegistry)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching transactions at height %d: %w", height, err)
+		}
+
+		for _, tx := range txs {
+			for _, event := range tx.Events {
+				if event.Type == eventType {
+					eventTypeArray = append(eventTypeArray, event)
+					if breakOnFirstOccurence {
+						shouldReturn = true
+						fmt.Printf("%s event found on block height: %d", eventType, height)
+						break
+					}
+				}
+			}
+			if shouldReturn {
+				break
+			}
+		}
+	}
+
+	return eventTypeArray, nil
 }
