@@ -1,0 +1,40 @@
+name: Issue Labeler
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  label-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract issue details and label
+        id: extract-labels
+        run: |
+          echo "Extracting labels from issue"
+          target=$(echo "${{ github.event.issue.body }}" | awk '/### Target Milestone/{getline; getline; print}' | tr -d '\n' | sed 's/^ *//;s/ *$//')
+          epic=$(echo "${{ github.event.issue.body }}" | awk '/### Epic/{getline; getline; print}' | tr -d '\n' | sed 's/^ *//;s/ *$//')
+
+          labels="${target},${epic}"
+          labels=$(echo "$labels" | tr -d '\n')
+          echo "labels=$labels" >> $GITHUB_ENV
+
+      - name: Add labels
+        if: env.labels != ''
+        run: gh issue edit "$NUMBER" --add-label "$LABELS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+          LABELS:  ${{ env.labels }}
