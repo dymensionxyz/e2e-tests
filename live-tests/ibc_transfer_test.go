@@ -127,7 +127,7 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
+	testutil.WaitForBlocks(ctx, dispute_period_in_blocks, hub)
 
 	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
@@ -159,7 +159,7 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
+	testutil.WaitForBlocks(ctx, dispute_period_in_blocks, hub)
 
 	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
@@ -231,8 +231,8 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	// rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	// rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
+	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
+	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
 	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
 	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
@@ -270,7 +270,7 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	fmt.Println("erc20 balance before dispute period: ", erc20_Bal, hubIBCDenom)
 
 	// TODO: sub bridging fee on new version
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
 
 	dymension_Bal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
@@ -278,7 +278,6 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	fmt.Println("dymension user balance before dispute period: ", dymension_Bal, dymensionUser.Denom)
 	require.Equal(t, dymensionOrigBal, dymension_Bal)
 
-	// TODO: change dispute period to shorter time frame
 	// wait for hub to finalize
 	testutil.WaitForBlocks(ctx, dispute_period_in_blocks, hub)
 
@@ -287,7 +286,7 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	fmt.Println("erc20 balance after dispute period: ", erc20_Bal, hubIBCDenom)
 
 	// TODO: sub bridging fee on new version
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
 
 	dymension_Bal, err = dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
