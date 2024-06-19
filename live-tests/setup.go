@@ -11,16 +11,17 @@ import (
 )
 
 var (
-	channelIDDymRollappX = "channel-17"
-	channelIDDymRollappY = "channel-22"
-	channelIDRollappXDym = "channel-0"
-	channelIDRollappYDym = "channel-0"
-	dymFee               = "6000000000000000adym"
-	rolxFee              = "10000000000000arolx"
-	rolyFee              = "2000000000000000aroly"
-	erc20Addr            = "rolx1glht96kr2rseywuvhhay894qw7ekuc4q4d4qs2"
-	erc20IBCDenom        = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
-	transferAmount       = sdkmath.NewInt(1_000_000)
+	channelIDDymRollappX                     = "channel-17"
+	channelIDDymRollappY                     = "channel-22"
+	channelIDRollappXDym                     = "channel-0"
+	channelIDRollappYDym                     = "channel-0"
+	dymFee                                   = "6000000000000000adym"
+	rolxFee                                  = "10000000000000arolx"
+	rolyFee                                  = "2000000000000000aroly"
+	erc20Addr                                = "rolx1glht96kr2rseywuvhhay894qw7ekuc4q4d4qs2"
+	erc20IBCDenom                            = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
+	transferAmount                           = sdkmath.NewInt(1_000_000)
+	disputed_period_plus_batch_submit_blocks = 60
 )
 
 func BuildEIbcMemo(eibcFee sdkmath.Int) string {
