@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/decentrio/e2e-testing-live/cosmos"
 	"github.com/decentrio/e2e-testing-live/testutil"
@@ -258,6 +259,8 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	var options ibc.TransferOptions
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
+	// Amount should not be received by hub yet
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, sdkmath.NewInt(0))
 
 	// wait for hub to finalize
 	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
