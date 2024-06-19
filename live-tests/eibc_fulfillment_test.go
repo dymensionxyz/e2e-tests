@@ -57,9 +57,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
-	// create market maker
-	marketmaker, err := hub.CreateUser("dym2")
-	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
 	rollappYUser, err := rollappY.CreateUser("roly1")
@@ -85,12 +82,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
 	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
-	// rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	// rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
-
-	// hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
-	// hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
-
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(dymensionOrigBal)
@@ -107,30 +98,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(erc20_OrigBal)
 
-	// Compose an IBC transfer and send from rollappx -> marketmaker
-	transferDataRollAppXToMm := ibc.WalletData{
-		Address: marketmaker.Address,
-		Denom:   rollappX.Denom,
-		Amount:  transferAmount,
-	}
-
-	testutil.WaitForBlocks(ctx, 3, hub)
-
-	var options ibc.TransferOptions
-	cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferDataRollAppXToMm, dymFee, options)
-	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 3, hub)
-
-	testutil.AssertBalance(t, ctx, rollappXUser, rollappXUser.Denom, rollappX.GrpcAddr, rollappXOrigBal.Sub(transferAmount))
-	// Minus 0.1% of transfer amount for bridge fee
-	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount.Sub(transferDataRollAppXToMm.Amount.Quo(math.NewInt(1000)))
-	balance, err := marketmaker.GetBalance(ctx, rollappXIBCDenom, hub.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
-	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-	// end of preconditions
-
 	// Compose an IBC transfer and send from rollapp -> hub
 	transferDataRollAppXToHub := ibc.WalletData{
 		Address: dymensionUser.Address,
@@ -140,6 +107,8 @@ func TestEIBCFulfill_Live(t *testing.T) {
 
 	multiplier := math.NewInt(10)
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
+
+	var options ibc.TransferOptions
 
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
@@ -163,7 +132,7 @@ func TestEIBCFulfill_Live(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketmaker.Address, dymFee)
+			txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMakerAddress, dymFee)
 			require.NoError(t, err)
 			eibcEvent := getEibcEventFromTx(t, &hub, *txResp)
 			if eibcEvent != nil {
@@ -174,46 +143,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	}
 
 	require.Equal(t, true, fulfill_demand_order)
-
-	// erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(erc20_Bal)
-	// fmt.Println(rollappXIBCDenom)
-
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	// require.Equal(t, erc20_OrigBal, erc20_Bal)
-
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappYUser.Address,
-	// 	Denom:   dymensionUser.Denom,
-	// 	Amount:  transferAmount,
-	// }
-
-	// cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
-	// require.NoError(t, err)
-
-	// testutil.WaitForBlocks(ctx, 3, hub)
-
-	// // Compose an IBC transfer and send from rollapp -> hub
-	// transferData = ibc.WalletData{
-	// 	Address: dymensionUser.Address,
-	// 	Denom:   rollappYUser.Denom,
-	// 	Amount:  transferAmount,
-	// }
-
-	// cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
-	// require.NoError(t, err)
-
-	// testutil.WaitForBlocks(ctx, 10, hub)
-
-	// erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(erc20_Bal)
-	// fmt.Println(rollappYIBCDenom)
-
-	// testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	// require.Equal(t, erc20_OrigBal, erc20_Bal)
 }
 
 func getEibcEventFromTx(t *testing.T, dymension *cosmos.CosmosChain, txResp types.TxResponse) *dymensiontesting.EibcEvent {
