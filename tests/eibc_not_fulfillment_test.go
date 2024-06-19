@@ -272,6 +272,7 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
+
 	// Minus 0.1% of transfer amount for bridge fee
 	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
@@ -532,7 +533,8 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
-  // Minus 0.1% bridging fee
+
+	// Minus 0.1% bridging fee
 	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	t.Cleanup(
