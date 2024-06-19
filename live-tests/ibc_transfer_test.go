@@ -110,8 +110,15 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferData, dymFee, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 3, hub)
-	// Compose an IBC transfer and send from rollapp -> hub
+	testutil.WaitForBlocks(ctx, 10, hub)
+
+	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(erc20_Bal)
+
+	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
+
+	// Compose an IBC transfer and send from rollappX -> hub
 	transferData = ibc.WalletData{
 		Address: dymensionUser.Address,
 		Denom:   rollappXUser.Denom,
@@ -127,7 +134,7 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
+	// Compose an IBC transfer and send from hub -> rollappY
 	transferData = ibc.WalletData{
 		Address: rollappYUser.Address,
 		Denom:   dymensionUser.Denom,
@@ -139,7 +146,7 @@ func TestIBCTransfer_Live(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 3, hub)
 
-	// Compose an IBC transfer and send from rollapp -> hub
+	// Compose an IBC transfer and send from rollappY -> hub
 	transferData = ibc.WalletData{
 		Address: dymensionUser.Address,
 		Denom:   rollappYUser.Denom,
@@ -151,19 +158,8 @@ func TestIBCTransfer_Live(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
 
-	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_Bal)
-	fmt.Println(rollappXIBCDenom)
-
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
-	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
-
-	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappYIBCDenom)
-
 	// rolly currently don't support eibc
+	testutil.AssertBalance(t, ctx, rollappYUser, hubIBCDenom, rollappY.GrpcAddr, transferAmount)
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, transferAmount)
-	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
 }
