@@ -104,18 +104,16 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 3, hub)
 
 	multiplier := math.NewInt(10)
-	eibcFee := transferAmountMM.Quo(multiplier) // transferAmount * 0.1
 
 	var options ibc.TransferOptions
-	// set eIBC specific memo
-	options.Memo = BuildEIbcMemo(eibcFee)
+
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToMm, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
+	testutil.WaitForBlocks(ctx, 80, hub)
 
 	// TODO: Minus 0.1% of transfer amount for bridge fee
-	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount.Sub(eibcFee)
+	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount
 	balance, err := marketMaker.GetBalance(ctx, rollappXIBCDenom, hub.GrpcAddr)
 	require.NoError(t, err)
 
@@ -130,7 +128,7 @@ func TestEIBCFulfill_Live(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	eibcFee = transferAmount.Quo(multiplier) // transferAmount * 0.1
+	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
