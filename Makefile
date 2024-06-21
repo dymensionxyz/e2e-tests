@@ -408,3 +408,6 @@ e2e-live-test-ibc-transfer-success: clean-e2e-live
 
 e2e-live-test-eibc-timeout: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .
+
+e2e-live-test-eibc-3rd-token: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_Live .
