@@ -3,6 +3,7 @@ package livetests
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -31,6 +32,7 @@ func TestIBCTransfer_Live(t *testing.T) {
 
 	rollappX := cosmos.CosmosChain{
 		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
+		JsonRPCAddr:   "https://json-rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz",
 		GrpcAddr:      "3.123.185.77:9090",
 		ChainID:       "rolx_100004-1",
 		Bin:           "rollapp-evm",
@@ -94,7 +96,9 @@ func TestIBCTransfer_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
 
-	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
+	height, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	erc20_OrigBal, err := rollappXUser.GetERC20Balance(rollappX.JsonRPCAddr, erc20Contract, int64(height))
 	require.NoError(t, err)
 	fmt.Println(erc20_OrigBal)
 
@@ -112,11 +116,13 @@ func TestIBCTransfer_Live(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, hub)
 
-	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	height, err = rollappX.Height(ctx)
+	require.NoError(t, err)
+	erc20_Bal, err := rollappXUser.GetERC20Balance(rollappX.JsonRPCAddr, erc20Contract, int64(height))
 	require.NoError(t, err)
 	fmt.Println(erc20_Bal)
-
-	require.Equal(t, erc20_OrigBal.Add(transferAmount), erc20_Bal)
+	bigInt := big.NewInt(1000000)
+	require.Equal(t, erc20_OrigBal.Add(erc20_OrigBal, bigInt), erc20_Bal)
 
 	// Compose an IBC transfer and send from rollappX -> hub
 	transferData = ibc.WalletData{
