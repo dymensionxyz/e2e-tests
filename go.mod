@@ -16,7 +16,7 @@ require (
 	cosmossdk.io/math v1.3.0
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.3.1
-	github.com/decentrio/e2e-testing-live v0.0.0-20240621080257-fc7bb3ea31a6
+	github.com/decentrio/e2e-testing-live v0.0.0-20240621171959-3bed51637623
 	github.com/decentrio/rollup-e2e-testing v0.0.0-20240613052224-dbe561dad115
 	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc01.0.20240404003005-53ccf8a922fd
@@ -26,11 +26,7 @@ require (
 	go.uber.org/zap v1.27.0
 )
 
-require (
-	github.com/ethereum/go-ethereum v1.10.26
-	github.com/pkg/errors v0.9.1
-	google.golang.org/grpc v1.61.0
-)
+require google.golang.org/grpc v1.61.0
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
@@ -77,6 +73,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
+	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
@@ -134,6 +131,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/petermattis/goid v0.0.0-20230317030725-371a4b8eda08 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.6.0 // indirect

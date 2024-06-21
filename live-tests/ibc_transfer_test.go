@@ -162,7 +162,14 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
+	rollappHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+
+	fmt.Println(rollappHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
 	// rolly currently don't support eibc
