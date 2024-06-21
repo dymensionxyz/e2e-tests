@@ -109,7 +109,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 	const ibcPath = "ibc-path"
 	ic := test.NewSetup().
@@ -390,17 +390,17 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 	// relayer for rollapp gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer3", network)
 
 	const ibcPath = "ibc-path"
@@ -653,28 +653,29 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	configFileOverrides1 := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides
 	// setup config for rollapp 2
-	configFileOverrides2 := make(map[string]any)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappwasm_12345-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "rollappwasm_12345-1"
+	gas_price_rollapp2 := "0adym"
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -743,7 +744,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -771,17 +772,17 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 	// relayer for rollapp 2
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 	// Relayer for gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer3", network)
 
 	ic := test.NewSetup().
@@ -949,32 +950,30 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+	// Get the IBC denom of 3rd party token on roll app before sending the transaction to make sure demand order is fulfilled
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	// Compose an IBC transfer and send from dym -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, dymRollAppChan.ChannelID, dymensionUserAddr, dymToRollAppTransferData, options)
 	require.NoError(t, err)
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+
 	// Assert balance was updated on the dym
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, zeroBal)
-	// Get the IBC denom of 3rd party token on roll app
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, gaiaIBCDenom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
-
-	// According to delayedack module, we need the rollapp to have finalizedHeight > ibcClientLatestHeight
-	// in order to trigger ibc timeout or else it will trigger callback
-	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// get eibc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
+
+	// fulfill demand order
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	// Pushing event assertion later in the test so that fulfill demand order can always be fulfilled
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, gaiaIBCDenom))
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, gaiaIBCDenom))
 
-	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)

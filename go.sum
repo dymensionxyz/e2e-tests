@@ -314,8 +314,8 @@ github.com/cosmos/gorocksdb v1.2.0 h1:d0l3jJG8M4hBouIZq0mDUHZ+zjOx044J3nGRskwTb4
 github.com/cosmos/gorocksdb v1.2.0/go.mod h1:aaKvKItm514hKfNJpUJXnnOWeBnk2GL4+Qw9NHizILw=
 github.com/cosmos/iavl v0.19.6 h1:XY78yEeNPrEYyNCKlqr9chrwoeSDJ0bV2VjocTk//OU=
 github.com/cosmos/iavl v0.19.6/go.mod h1:X9PKD3J0iFxdmgNLa7b2LYWdsGd90ToV5cAONApkEPw=
-github.com/cosmos/ibc-go/v6 v6.2.1 h1:NiaDXTRhKwf3n9kELD4VRIe5zby1yk1jBvaz9tXTQ6k=
-github.com/cosmos/ibc-go/v6 v6.2.1/go.mod h1:XLsARy4Y7+GtAqzMcxNdlQf6lx+ti1e8KcMGv5NIK7A=
+github.com/cosmos/ibc-go/v6 v6.3.1 h1:/5ur3AsmNW8WuOevfODHlaY5Ze236PBNE3vVo9o3fQA=
+github.com/cosmos/ibc-go/v6 v6.3.1/go.mod h1:Dm14j9s094bGyCEE8W4fD+2t8IneHv+cz+80Mvwjr1w=
 github.com/cosmos/ledger-cosmos-go v0.12.4 h1:drvWt+GJP7Aiw550yeb3ON/zsrgW0jgh5saFCr7pDnw=
 github.com/cosmos/ledger-cosmos-go v0.12.4/go.mod h1:fjfVWRf++Xkygt9wzCsjEBdjcf7wiiY35fv3ctT+k4M=
 github.com/cpuguy83/go-md2man v1.0.10/go.mod h1:SmD6nW6nTyfqj6ABTjUi3V3JVMnlJmwcJI5acqYI6dE=
@@ -328,8 +328,10 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240621092221-ece5defa5645 h1:a4acSrHA85QsEsPh9Icix99U0eKUXyOe9IUOaRR2tDA=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240621092221-ece5defa5645/go.mod h1:kslnOTBoqMTES+SQ5H3hzR3aO11Sf4vaGbAxzKZCD/Y=
+github.com/decentrio/e2e-testing-live v0.0.0-20240607135413-e01fbc94078c h1:2TpLnXMuYxUK1w0hgE6HoEO6DA4TVLHoy/CQSlSF1qM=
+github.com/decentrio/e2e-testing-live v0.0.0-20240607135413-e01fbc94078c/go.mod h1:GDoIFdNFWS2zh9vkN1Q4VXL3UO056cp5RwYlaUGBrm0=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240621183028-18d047d7be15 h1:iEI8jacEciNWatn4MGhSEw2+1o3oFEQ17TZHqT+V1fo=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240621183028-18d047d7be15/go.mod h1:kslnOTBoqMTES+SQ5H3hzR3aO11Sf4vaGbAxzKZCD/Y=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=

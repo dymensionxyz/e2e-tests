@@ -91,7 +91,7 @@ func TestRollappGenesisEvent_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -262,7 +262,7 @@ func TestTransferRollAppTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -434,7 +434,7 @@ func TestTransferRollAppTriggerGenesis_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -599,7 +599,7 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -685,7 +685,7 @@ func TestRollAppTransferHubTriggerGenesis_EVM(t *testing.T) {
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	t.Cleanup(
 		func() {
@@ -771,7 +771,7 @@ func TestRollAppTransferHubTriggerGenesis_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -857,7 +857,8 @@ func TestRollAppTransferHubTriggerGenesis_Wasm(t *testing.T) {
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount)
+	// Minus 0.1% bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	t.Cleanup(
 		func() {
@@ -1317,7 +1318,7 @@ func TestHubTransferHubTriggerGenesis_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -1501,7 +1502,7 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -1635,7 +1636,9 @@ func TestTransferTriggerGenesisBoth_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
 	// check asset balance for transfer from roll app to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount)
+	// Minus 0.1% of transfer amount as bridging fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+
 	// check asset balance for transfer from genesis account on hub to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount.Add(transferFromGenesisAccountToRollappData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))
@@ -1666,6 +1669,13 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
+	modifyGenesisKV := []cosmos.GenesisKV{
+		{
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
+		},
+	}
+
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
 	// Create chain factory with dymension
@@ -1691,7 +1701,7 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1717,7 +1727,7 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
@@ -1851,7 +1861,9 @@ func TestTransferTriggerGenesisBoth_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr1, dymensionIBCDenom, transferAmount)
 	// check asset balance for transfer from roll app to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, rollapp1.Config().Denom, walletAmount.Sub(transferRollAppToHubData.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount)
+	// Minus 0.1% transfer amount as bridging fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+
 	// check asset balance for transfer from genesis account on hub to roll app
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr3, rollapp1.Config().Denom, walletAmount.Add(transferFromGenesisAccountToRollappData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, val0Addr, rollappIBCDenom, balance.Sub(transferFromGenesisAccountToRollappData.Amount))

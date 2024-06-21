@@ -1,0 +1,39 @@
+name: Create Issue on Checkbox Checked
+
+on:
+    issues:
+        types:
+          - opened
+          - edited
+jobs:
+  create_e2e_live_issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if a checkbox was checked
+        id: check_checkbox
+        run: |
+          checkbox=$(echo "${{ github.event.issue.body }}" | awk '/### Live Test/{getline; getline; print}' | tr -d '\n' | grep -q '^\- \[X\] Yes$' && echo "y" || echo "n")
+
+          echo $checkbox
+          if [[ "$checkbox" = "y" ]]; then
+            echo "::set-output name=checked::true"
+          else
+            echo "::set-output name=checked::false"
+          fi
+
+      - name: Create a new issue
+        if: steps.check_checkbox.outputs.checked == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueTitle = '[LIVE]${{ github.event.issue.title }}';
+            const issueBody = `Issue live-test relate to [this issue](${context.payload.issue.html_url}).`;
+            const newIssue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: issueTitle,
+              body: issueBody,
+            });
+            core.setOutput('issue_number', newIssue.data.number);
