@@ -87,7 +87,7 @@ func Test1(t *testing.T) {
 			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
-			ExtraFlags:    extraFlags,
+			ExtraFlags:    nil,
 		},
 	})
 
@@ -126,7 +126,7 @@ func Test1(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -321,13 +321,23 @@ func Test1(t *testing.T) {
 	// Check rollapp1 state index not increment
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
+	// stop all nodes and override genesis with new state
+	// err = rollapp1.StopAllNodes(ctx)
+	// require.NoError(t, err)
+	// get the latest hight was finalized
+	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, true)
+	require.NoError(t, err)
 
-	// get last height of rollapp and export genesis at that height
-	lastHeightOfRollapp, err := rollapp1.Height(ctx)
+	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
+	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
-	stateOfOldRollApp, err := rollapp1.ExportState(ctx, int64(lastHeightOfRollapp))
-	println("check stateOfOldRollAp: ", stateOfOldRollApp)
+
+	// export genesis
+	stateOfOldRollApp, err := rollapp1.ExportState(ctx, int64(height))
 	require.NoError(t, err)
+
+	stateOfOldRollApp = strings.Split(stateOfOldRollApp, "\n")[0]
+	genesis := strings.Replace(stateOfOldRollApp, "rollappevm_1234-1", "rollappevm_1234-2", 10)
 
 	// setup new rollapp with the same rollapp and increase revision number
 	// setup config for rollapp 1
@@ -371,13 +381,6 @@ func Test1(t *testing.T) {
 
 	newRollApp := chains[0].(*dym_rollapp.DymRollApp)
 
-	result := strings.Replace(stateOfOldRollApp, "rollappevm_1234-1", "rollappevm_1234-2", 10)
-	require.NoError(t, err)
-	for _, node := range newRollApp.Nodes() {
-		err := node.OverwriteGenesisFile(ctx, []byte(result))
-		require.NoError(t, err)
-	}
-
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
 	).Build(t, client, "relayer2", network)
@@ -400,9 +403,8 @@ func Test1(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, dymension)
+	}, dymension, new_rollapp_id, []byte(genesis))
 	require.NoError(t, err)
-
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
 
 	// Start both relayers

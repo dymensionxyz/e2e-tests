@@ -157,7 +157,7 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -449,7 +449,7 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -762,7 +762,7 @@ func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1116,7 +1116,7 @@ func TestIBCPFM_RollApp1To2WithOutErc20_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
