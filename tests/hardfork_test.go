@@ -131,7 +131,7 @@ func Test1(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// Start both relayers
+	// Start relayer
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
@@ -322,8 +322,8 @@ func Test1(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 	// stop all nodes and override genesis with new state
-	// err = rollapp1.StopAllNodes(ctx)
-	// require.NoError(t, err)
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
 	// get the latest hight was finalized
 	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, true)
 	require.NoError(t, err)
@@ -407,7 +407,89 @@ func Test1(t *testing.T) {
 	require.NoError(t, err)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
 
-	// Start both relayers
+	// Start relayer
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err := r2.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
+	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsNewRollApp, 2)
+
+	channDymNewRollApp := channsNewRollApp[1].Counterparty
+	require.NotEmpty(t, channDymNewRollApp.ChannelID)
+
+	channsNewRollAppDym := channsNewRollApp[1]
+	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
+
+	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	require.NoError(t, err)
+
+	// Get the IBC denom
+	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
+	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
+
+	// Create user account on new roll app
+	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
+
+	// Get our Bech32 encoded user addresses
+	newRollAppUser := users[0]
+	newRollAppUserAddr := newRollAppUser.FormattedAddress()
+	// Get original account balance
+	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, newRollAppOrigBal)
+
+	// IBC Transfer working between Dymension <-> new roll app
+	transferDataFromDym = ibc.WalletData{
+		Address: newRollAppUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+	// hub -> new roll app
+	dymBalanceBefore, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+
+	_, err = dymension.SendIBCTransfer(ctx, channDymNewRollApp.ChannelID, dymensionUserAddr, transferDataFromDym, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
+	// check assets balance
+	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
+
+	// new roll app to hub
+	transferDataFromNewRollApp := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   newRollApp.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	newRollAppBalanceBefore, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
+	require.NoError(t, err)
+
+	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferDataFromNewRollApp, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	multiplier = math.NewInt(1000)
+	bridgeFee := transferAmount.Quo(multiplier)
+	// check assets balance
+	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgeFee))
 }
