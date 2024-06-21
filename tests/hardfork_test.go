@@ -22,7 +22,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-func Test1(t *testing.T) {
+func TestHardFork_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
