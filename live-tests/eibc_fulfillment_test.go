@@ -90,9 +90,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
-	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_OrigBal)
 
 	transferAmountMM := math.NewInt(100000000000)
 	// Compose an IBC transfer and send from rollappx -> marketmaker
