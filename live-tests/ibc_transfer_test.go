@@ -140,6 +140,15 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+
+	fmt.Println(rollappXHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	// Compose an IBC transfer and send from hub -> rollappY
 	transferData = ibc.WalletData{
 		Address: rollappYUser.Address,
@@ -162,12 +171,12 @@ func TestIBCTransfer_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollappX.Height(ctx)
+	rollappYHeight, err := rollappY.Height(ctx)
 	require.NoError(t, err)
 
-	fmt.Println(rollappHeight)
+	fmt.Println(rollappYHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappHeight, 300)
+	isFinalized, err = hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
