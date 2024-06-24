@@ -161,6 +161,9 @@ e2e-test-rollapp-freeze-state-not-progressing-evm: clean-e2e
 e2e-test-erc20-rollapp-to-hub-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestERC20RollAppToHubWithRegister_EVM .
 
+e2e-test-rollapp-hardfork-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHardFork_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -281,6 +284,9 @@ e2e-test-rollapp-freeze-cant-fulfill-pending-eibc-packet-wasm: clean-e2e
 e2e-test-rollapp-freeze-state-not-progressing-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreezeStateNotProgressing_Wasm .
 
+e2e-test-rollapp-hardfork-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHardFork_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
@@ -310,6 +316,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
 	e2e-test-erc20-hub-to-rollapp-without-register \
+	e2e-test-rollapp-hardfork-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -336,7 +343,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-sequencer-invariant-wasm \
 	e2e-test-rollapp-invariant-wasm \
 	e2e-test-delayedack-relayer-down-wasm \
-	e2e-test-rollapp-upgrade-non-state-breaking-wasm
+	e2e-test-rollapp-upgrade-non-state-breaking-wasm \
+	e2e-test-rollapp-hardfork-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -368,6 +376,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
 	e2e-test-erc20-hub-to-rollapp-without-register \
+	e2e-test-rollapp-hardfork-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -394,7 +403,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-delayedack-pending-packets-wasm \
 	e2e-test-upgrade-hub \
   	e2e-test-other-rollapp-not-affected-wasm \
-	e2e-test-rollapp-upgrade-non-state-breaking-wasm
+	e2e-test-rollapp-upgrade-non-state-breaking-wasm \
+	e2e-test-rollapp-hardfork-wasm
 
 ###############################################################################
 ###                              E2E live tests                             ###
