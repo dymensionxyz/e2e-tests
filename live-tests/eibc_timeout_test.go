@@ -137,7 +137,14 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+
+	fmt.Println(rollappXHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	height, err = rollappX.Height(ctx)
 	require.NoError(t, err)
@@ -145,6 +152,7 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(erc20_Bal)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData = ibc.WalletData{
@@ -168,15 +176,21 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
-
-	height, err = rollappX.Height(ctx)
+	rollappYHeight, err := rollappX.Height(ctx)
 	require.NoError(t, err)
-	erc20_Bal, err = rollappXUser.GetERC20Balance(rollappX.JsonRPCAddr, erc20Contract, int64(height))
+
+	fmt.Println(rollappYHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err = hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	height, err = rollappY.Height(ctx)
+	require.NoError(t, err)
+	erc20_Bal, err = rollappYUser.GetERC20Balance(rollappY.JsonRPCAddr, erc20Contract, int64(height))
 	require.NoError(t, err)
 	fmt.Println(erc20_Bal)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
 
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
 }
