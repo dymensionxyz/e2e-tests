@@ -180,7 +180,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -509,7 +509,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -864,7 +864,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1277,7 +1277,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1684,7 +1684,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2065,7 +2065,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2447,7 +2447,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2758,7 +2758,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -3069,7 +3069,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -3455,7 +3455,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -3805,7 +3805,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -4110,7 +4110,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -4415,7 +4415,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -4741,7 +4741,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
