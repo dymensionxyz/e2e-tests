@@ -27,6 +27,15 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 		GasAdjustment: "1.1",
 		Denom:         "adym",
 	}
+	mocha := cosmos.CosmosChain{
+		RPCAddr:       "rpc.celestia.test-eu1.ccvalidators.com:443",
+		GrpcAddr:      "mocha-4-consensus.mesa.newmetric.xyz:9090",
+		ChainID:       "mocha-4",
+		Bin:           "celestia-appd",
+		GasPrices:     "0utia",
+		GasAdjustment: "1.1",
+		Denom:         "utia",
+	}
 	rollappX := cosmos.CosmosChain{
 		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "3.123.185.77:9090",
@@ -48,6 +57,9 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 
+	mochaUser, err := mocha.CreateUser("mocha1")
+	require.NoError(t, err)
+
 	// create market maker
 	marketMaker, err := hub.CreateUser("dym2")
 	require.NoError(t, err)
@@ -55,7 +67,10 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	require.NoError(t, err)
 	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
+
 	err = hub.NewClient("https://" + hub.RPCAddr)
+	require.NoError(t, err)
+	err = mocha.NewClient("https://" + mocha.RPCAddr)
 	require.NoError(t, err)
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
@@ -63,11 +78,11 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
+	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 2, hub)
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
-	testutil.WaitForBlocks(ctx, 2, hub)
+	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
@@ -89,9 +104,9 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
-	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
+	mochaOrigBal, err := mochaUser.GetBalance(ctx, mochaUser.Denom, mocha.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(erc20_OrigBal)
+	fmt.Println(mochaOrigBal)
 
 	transferAmountMM := math.NewInt(100000000000)
 	// Compose an IBC transfer and send from rollappx -> marketmaker
