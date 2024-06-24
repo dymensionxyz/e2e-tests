@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sync"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
@@ -280,14 +282,56 @@ func TestDelayackRollappToHubNoFinalized_Live(t *testing.T) {
 	// Amount should not be received by hub yet
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, sdkmath.NewInt(0))
 
-	// wait for hub to finalize
-	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
+	// Check the state info status every 5 seconds to ensure it is always pending
+	// Run QueryRollappState in parallel with WaitForBlocks
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Channel to capture errors
+	errChan := make(chan error, 1)
+
+	// Goroutine to query Rollapp state every 5 seconds
+	go func() {
+		defer wg.Done()
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		timeout := time.After(400 * time.Second) // Set a timeout for the whole check
+
+		for {
+			select {
+			case <-ticker.C:
+				res, err := hub.QueryRollappState(rollappX.ChainID, false)
+				if err != nil {
+					errChan <- err
+					return
+				}
+				if res.StateInfo.Status != "PENDING" {
+					errChan <- fmt.Errorf("unexpected state: %s", res.StateInfo.Status)
+					return
+				}
+			case <-timeout:
+				return
+			}
+		}
+	}()
+
+	// Goroutine to wait for blocks
+	go func() {
+		defer wg.Done()
+		testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
+		fmt.Println("wait for blocks done")
+	}()
+
+	// Wait for both goroutines to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for errors from goroutines
+	if err := <-errChan; err != nil {
+		require.NoError(t, err)
+	}
 
 	// TODO: sub bridging fee on new version
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 
-	// Check rollapp is not yet have finalized state
-	res, err := cosmos.QueryRollappState(hub, rollappX.ChainID, false)
-	require.NoError(t, err)
-	fmt.Println("rollapp state: ", res)
 }
