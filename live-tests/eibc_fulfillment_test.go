@@ -3,7 +3,6 @@ package livetests
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -107,7 +106,13 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToMm, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 80, hub)
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappXHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// TODO: Minus 0.1% of transfer amount for bridge fee
 	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount
@@ -137,7 +142,7 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	// get eIbc event
 
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 10, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -145,19 +150,19 @@ func TestEIBCFulfill_Live(t *testing.T) {
 
 	var fulfill_demand_order = false
 	// fulfill demand orders from rollapp 1
-	for _, eibcEvent := range eibcEvents {
-		re := regexp.MustCompile(`^\d+`)
-		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
-			fmt.Println("EIBC Event:", eibcEvent)
-			txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
-			require.NoError(t, err)
-			eibcEvent := getEibcEventFromTx(t, &hub, *txResp)
-			if eibcEvent != nil {
-				fmt.Println("After order fulfillment:", eibcEvent)
-			}
-			fulfill_demand_order = true
-		}
-	}
+	// for _, eibcEvent := range eibcEvents {
+	// 	re := regexp.MustCompile(`^\d+`)
+	// 	if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+	// 		fmt.Println("EIBC Event:", eibcEvent)
+	// 		txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
+	// 		require.NoError(t, err)
+	// 		eibcEvent := getEibcEventFromTx(t, &hub, *txResp)
+	// 		if eibcEvent != nil {
+	// 			fmt.Println("After order fulfillment:", eibcEvent)
+	// 		}
+	// 		fulfill_demand_order = true
+	// 	}
+	// }
 
 	require.Equal(t, true, fulfill_demand_order)
 }
