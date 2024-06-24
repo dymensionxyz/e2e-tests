@@ -47,10 +47,16 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				Type:    "rollapp-dym",
+				Name:    "rollapp-temp",
+				ChainID: "rollappevm_1234-1",
+				Images: []ibc.DockerImage{
+					{
+						Repository: "ghcr.io/decentrio/rollapp-evm",
+						Version:    "hardfork",
+						UidGid:     "1025:1025",
+					},
+				},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -69,14 +75,20 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
+				Type:    "hub-dym",
+				Name:    "dymension",
+				ChainID: "dymension_100-1",
+				Images: []ibc.DockerImage{
+					{
+						Repository: "ghcr.io/dymensionxyz/dymension",
+						Version:    "02748502",
+						UidGid:     "1025:1025",
+					},
+				},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -102,7 +114,7 @@ func TestHardFork_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 
 	ic := test.NewSetup().
@@ -349,10 +361,16 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "new_rollapp",
 			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_1234-2",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				Type:    "rollapp-dym",
+				Name:    "rollapp-temp2",
+				ChainID: "rollappevm_1234-2",
+				Images: []ibc.DockerImage{
+					{
+						Repository: "ghcr.io/decentrio/rollapp-evm",
+						Version:    "hardfork",
+						UidGid:     "1025:1025",
+					},
+				},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -382,7 +400,7 @@ func TestHardFork_EVM(t *testing.T) {
 	newRollApp := chains[0].(*dym_rollapp.DymRollApp)
 
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
 
 	ic = test.NewSetup().
@@ -548,7 +566,7 @@ func TestHardFork_Wasm(t *testing.T) {
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
-				CoinType:            "118",
+				CoinType:            "60",
 				GasPrices:           "0.0adym",
 				EncodingConfig:      encodingConfig(),
 				GasAdjustment:       1.1,
@@ -574,7 +592,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage("ghcr.io/dymensionxyz/go-relayer", "main-dym", "100:1000"),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
 
 	ic := test.NewSetup().

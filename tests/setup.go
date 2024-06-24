@@ -58,7 +58,7 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
@@ -78,7 +78,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "hardfork",
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -306,7 +306,7 @@ var (
 func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		dymensionVersion = "02748502"
+		dymensionVersion = "latest"
 	}
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
