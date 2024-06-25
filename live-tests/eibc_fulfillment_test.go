@@ -3,6 +3,7 @@ package livetests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -137,10 +138,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToHub, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 5, hub)
-
-	// get eIbc event
-
 	encoding := encodingConfig()
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 10, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
@@ -148,21 +145,22 @@ func TestEIBCFulfill_Live(t *testing.T) {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
-	var fulfill_demand_order = false
-	// fulfill demand orders from rollapp 1
-	// for _, eibcEvent := range eibcEvents {
-	// 	re := regexp.MustCompile(`^\d+`)
-	// 	if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
-	// 		fmt.Println("EIBC Event:", eibcEvent)
-	// 		txResp, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
-	// 		require.NoError(t, err)
-	// 		eibcEvent := getEibcEventFromTx(t, &hub, *txResp)
-	// 		if eibcEvent != nil {
-	// 			fmt.Println("After order fulfillment:", eibcEvent)
-	// 		}
-	// 		fulfill_demand_order = true
-	// 	}
-	// }
+	testutil.WaitForBlocks(ctx, 10, hub)
 
-	require.Equal(t, true, fulfill_demand_order)
+	// Check non-fulfill
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+	// get eIbc event
+
+	// fulfill demand orders from rollapp 1
+	for _, eibcEvent := range eibcEvents {
+		re := regexp.MustCompile(`^\d+`)
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+			fmt.Println("EIBC Event:", eibcEvent)
+			output, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
+			require.NoError(t, err)
+			fmt.Println(string(output))
+		}
+	}
+	testutil.WaitForBlocks(ctx, 5, hub)
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount.Sub(eibcFee))
 }
