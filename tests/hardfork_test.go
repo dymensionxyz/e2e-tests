@@ -1000,6 +1000,17 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
+	// Custom dymension epoch for faster disconnection
+	modifyGenesisKV := append(
+		dymModifyGenesisKV,
+		[]cosmos.GenesisKV{
+			{
+				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+			},
+		}...,
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1056,7 +1067,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1385,4 +1396,16 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, dymension, new_rollapp_id, []byte(genesis))
 	require.NoError(t, err)
+
+	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
+
+	propTx, err = dymension.SubmitUpdateClientProposal(ctx, dymensionUser.KeyName(), "07-tendermint-0", "07-tendermint-1", deposit)
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err = dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 }
