@@ -39,21 +39,9 @@ func TestEIBC_Invalid_Fee_Live(t *testing.T) {
 		Denom:         "arolx",
 	}
 
-	rollappY := cosmos.CosmosChain{
-		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "18.153.150.111:9090",
-		ChainID:       "rollappy_700002-1",
-		Bin:           "rollapp-wasm",
-		GasPrices:     "0.0aroly",
-		GasAdjustment: "1.1",
-		Denom:         "aroly",
-	}
-
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
-	require.NoError(t, err)
-	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
@@ -62,12 +50,8 @@ func TestEIBC_Invalid_Fee_Live(t *testing.T) {
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 
-	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
-	require.NoError(t, err)
-
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
@@ -83,16 +67,6 @@ func TestEIBC_Invalid_Fee_Live(t *testing.T) {
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappXOrigBal)
-
-	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappYOrigBal)
-
-	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_OrigBal)
-
-	testutil.WaitForBlocks(ctx, 3, hub)
 
 	var options ibc.TransferOptions
 
@@ -125,14 +99,24 @@ func TestEIBC_Invalid_Fee_Live(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
-	testutil.WaitForBlocks(ctx, 10, hub)
-
 	// get eIbc event
 
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappXHeight)
+
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 20, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
+	require.True(t, len(eibcEvents) == 1) // verify 1 EIBC event was registered on the hub
+
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
 }
