@@ -419,6 +419,9 @@ e2e-live-test-ibc-transfer-success: clean-e2e-live
 e2e-live-test-eibc-timeout: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .
 
+e2e-live-test-eibc-invalid-fee: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Invalid_Fee_Live .
+	
 e2e-live-test-eibc-fulfillment: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFulfill_Live .
 	
