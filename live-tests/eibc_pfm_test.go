@@ -1,12 +1,13 @@
 package livetests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
-	"bytes"
+
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/decentrio/e2e-testing-live/cosmos"
@@ -69,7 +70,6 @@ func TestEIBCPFM_Live(t *testing.T) {
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	// rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
@@ -88,10 +88,6 @@ func TestEIBCPFM_Live(t *testing.T) {
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappXOrigBal)
-
-	// rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
-	// require.NoError(t, err)
-	// fmt.Println(rollappYOrigBal)
 
 	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
@@ -128,7 +124,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	rollappXHeight, err := rollappX.Height(ctx)
 	require.NoError(t, err)
 	encodingConfig := encodingConfig()
-	ack, err := testutil.PollForAck(ctx, rollappX, encodingConfig.InterfaceRegistry,  rollappXHeight, rollappXHeight+30, tx.Packet)
+	ack, err := testutil.PollForAck(ctx, rollappX, encodingConfig.InterfaceRegistry, rollappXHeight, rollappXHeight+30, tx.Packet)
 	require.NoError(t, err)
 	testutil.WaitForBlocks(ctx, 10, hub)
 
