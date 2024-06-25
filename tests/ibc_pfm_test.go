@@ -130,7 +130,7 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+		}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -380,7 +380,7 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+		}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -630,7 +630,7 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+		}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -876,7 +876,7 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	})
+		}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
