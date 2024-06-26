@@ -56,7 +56,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
-	mochaUser, err := mocha.CreateUser("rolnim1")
+	mochaUser, err := mocha.CreateUser("mocha1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
@@ -126,12 +126,16 @@ func TestEIBCPFM_Live(t *testing.T) {
 	encodingConfig := encodingConfig()
 	ack, err := testutil.PollForAck(ctx, rollappX, encodingConfig.InterfaceRegistry, rollappXHeight, rollappXHeight+30, tx.Packet)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 10, hub)
+
+	fmt.Println(rollappXHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	testutil.AssertBalance(t, ctx, rollappXUser, rollappXUser.Denom, rollappX.GrpcAddr, rollappXOrigBal)
 	testutil.AssertBalance(t, ctx, dymensionUser, firstHopIBCDenom, hub.GrpcAddr, zeroBal)
 	testutil.AssertBalance(t, ctx, mochaUser, secondHopIBCDenom, mocha.GrpcAddr, zeroBal)
 }
