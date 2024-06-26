@@ -115,6 +115,15 @@ body:
       options:
         - label: "Yes"
 
+  - type: textarea
+    id: comments
+    attributes:
+      label: Comments
+      description: Any comments or blockers for writing this test the tester should be aware of
+      placeholder: "Comments/blockers.."
+    validations:
+      required: false
+
   - type: markdown
     attributes:
       value: |

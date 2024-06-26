@@ -42,21 +42,21 @@ func TestEIBCPFM_Live(t *testing.T) {
 		Denom:         "arolx",
 	}
 
-	rollappNim := cosmos.CosmosChain{
-		RPCAddr:       "rpc.nimtwo.evm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "grpc.nimtwo.evm.ra.blumbus.noisnemyd.xyz:443",
-		ChainID:       "nim_9999-1",
-		Bin:           "rollapp-evm",
-		GasPrices:     "0.0anim",
+	mocha := cosmos.CosmosChain{
+		RPCAddr:       "rpc.celestia.test-eu1.ccvalidators.com:443",
+		GrpcAddr:      "mocha-4-consensus.mesa.newmetric.xyz:9090",
+		ChainID:       "mocha-4",
+		Bin:           "celestia-appd",
+		GasPrices:     "0utia",
 		GasAdjustment: "1.1",
-		Denom:         "anim",
+		Denom:         "utia",
 	}
 
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
-	rollappNimUser, err := rollappNim.CreateUser("rolnim1")
+	mochaUser, err := mocha.CreateUser("rolnim1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
@@ -65,7 +65,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 
-	err = rollappNim.NewClient("https://" + rollappNim.RPCAddr)
+	err = mocha.NewClient("https://" + mocha.RPCAddr)
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
@@ -78,7 +78,7 @@ func TestEIBCPFM_Live(t *testing.T) {
 	firstHopDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
 	firstHopIBCDenom := transfertypes.ParseDenomTrace(firstHopDenom).IBCDenom()
 
-	secondHopDenom := transfertypes.GetPrefixedDenom("transfer", channelIDNimDym, firstHopDenom)
+	secondHopDenom := transfertypes.GetPrefixedDenom("transfer", channelIDMochaDym, firstHopDenom)
 	secondHopIBCDenom := transfertypes.ParseDenomTrace(secondHopDenom).IBCDenom()
 
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
@@ -101,8 +101,8 @@ func TestEIBCPFM_Live(t *testing.T) {
 	}
 
 	forwardMetadata := &ForwardMetadata{
-		Receiver: rollappNimUser.Address,
-		Channel:  channelIDDymNim,
+		Receiver: mochaUser.Address,
+		Channel:  channelIDDymMocha,
 		Port:     "transfer",
 		Timeout:  5 * time.Minute,
 	}
@@ -133,5 +133,5 @@ func TestEIBCPFM_Live(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, rollappXUser, rollappXUser.Denom, rollappX.GrpcAddr, rollappXOrigBal)
 	testutil.AssertBalance(t, ctx, dymensionUser, firstHopIBCDenom, hub.GrpcAddr, zeroBal)
-	testutil.AssertBalance(t, ctx, rollappNimUser, secondHopIBCDenom, rollappNim.GrpcAddr, zeroBal)
+	testutil.AssertBalance(t, ctx, mochaUser, secondHopIBCDenom, mocha.GrpcAddr, zeroBal)
 }
