@@ -416,6 +416,9 @@ clean-e2e-live:
 e2e-live-test-ibc-transfer-success: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
 
+e2e-live-test-delayedack-rollapp-to-hub: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHub_Live .
+
 e2e-live-test-eibc-timeout: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .
 
