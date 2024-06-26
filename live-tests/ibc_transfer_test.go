@@ -429,8 +429,13 @@ func TestDelayackRollappToHub_Live(t *testing.T) {
 	// Amount should not be received by hub yet
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, sdkmath.NewInt(0))
 
-	// wait for hub to finalize
-	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappXHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	fmt.Println("rollapp x ibc denom: ", rollappXIBCDenom, dymensionUser)
 	// TODO: sub bridging fee on new version
