@@ -436,3 +436,6 @@ e2e-live-test-delayack-rollapp-to-hub-no-finalized: clean-e2e-live
 
 e2e-live-test-eibc-no-memo: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_No_Memo_Live .
+
+e2e-live-test-eibc-eibc-fee-bgt-amount: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFeeBgtAmount_Live .
