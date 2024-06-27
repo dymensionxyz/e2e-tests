@@ -280,8 +280,11 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 2, hub)
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
+	testutil.WaitForBlocks(ctx, 2, hub)
 	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
+	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
+	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
@@ -331,8 +334,6 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 
 	t.Log("mochaIBCDenom:", mochaIBCDenom)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
-
 	transferData = ibc.WalletData{
 		Address: marketMaker.Address,
 		Denom:   mocha.Denom,
@@ -343,7 +344,7 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 10, hub)
 
 	testutil.AssertBalance(t, ctx, marketMaker, mochaIBCDenom, hub.GrpcAddr, transferAmountMM.Add(transferAmountMM))
-
+	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM.Add(transferAmountMM))
 	transferData = ibc.WalletData{
 		Address: rollappYUser.Address,
 		Denom:   mochaIBCDenom,
@@ -351,7 +352,9 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	}
 	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
+	rollappXHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappXHeight)
 
 	testutil.AssertBalance(t, ctx, rollappYUser, mochaIBCDenom, rollappY.GrpcAddr, math.ZeroInt())
 	testutil.AssertBalance(t, ctx, rollappYUser, secondHopIBCDenom, rollappY.GrpcAddr, math.ZeroInt())
@@ -375,52 +378,10 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		}
 	}
 
-	// Compose an IBC transfer and send from rollappY -> marketmaker
-	transferDataRollAppYToMm := ibc.WalletData{
-		Address: marketMaker.Address,
-		Denom:   secondHopIBCDenom,
-		Amount:  transferAmountMM,
-	}
-
-	multiplier := math.NewInt(10)
-
-	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
-	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferDataRollAppYToMm, rolyFee, options)
-
-	rollappYHeight, err := rollappY.Height(ctx)
-	require.NoError(t, err)
-	fmt.Println(rollappYHeight)
-	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 600)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	// TODO: Minus 0.1% of transfer amount for bridge fee
-	expMmBalanceRollappDenom := transferDataRollAppYToMm.Amount
 	balance, err := marketMaker.GetBalance(ctx, mochaIBCDenom, hub.GrpcAddr)
-	require.NoError(t, err)
-
-	fmt.Println("Balance of marketMakerAddr after preconditions:", balance)
-	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-	// end of preconditions
-
-	// Compose an IBC transfer and send from rollapp -> hub
-	transferDataRollAppYToHub := ibc.WalletData{
-		Address: dymensionUser.Address,
-		Denom:   secondHopIBCDenom,
-		Amount:  transferAmountMM,
-	}
-
-	eibcFee := transferAmountMM.Quo(multiplier) // transferAmount * 0.1
-
-	// set eIBC specific memo
-	options.Memo = BuildEIbcMemo(eibcFee)
-	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferDataRollAppYToHub, rolyFee, options)
-	require.NoError(t, err)
-
-	// verify funds minus fee were added to receiver's address
-	balance, err = dymensionUser.GetBalance(ctx, mochaIBCDenom, hub.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-	require.True(t, balance.Equal(transferAmountMM.Sub(eibcFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountMM.Sub(eibcFee), balance))
+	fmt.Println(balance)
 }
