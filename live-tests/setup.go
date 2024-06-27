@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -32,6 +33,8 @@ var (
 	channelIDMochaDym                        = "channel-28"
 	channelIDRollappXDym                     = "channel-0"
 	channelIDRollappYDym                     = "channel-0"
+	channelIDDymMocha                        = "channel-2"
+	channelIDMochaDym                        = "channel-28"
 	dymFee                                   = "6000000000000000adym"
 	rolxFee                                  = "10000000000000arolx"
 	rolyFee                                  = "2000000000000000aroly"
@@ -41,7 +44,18 @@ var (
 	erc20IBCDenom                            = "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D"
 	transferAmount                           = sdkmath.NewInt(1_000_000)
 	disputed_period_plus_batch_submit_blocks = 80
+	zeroBal                                  = sdkmath.ZeroInt()
 )
+
+type ForwardMetadata struct {
+	Receiver       string        `json:"receiver"`
+	Port           string        `json:"port"`
+	Channel        string        `json:"channel"`
+	Timeout        time.Duration `json:"timeout"`
+	Retries        *uint8        `json:"retries,omitempty"`
+	Next           *string       `json:"next,omitempty"`
+	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
+}
 
 func BuildEIbcMemo(eibcFee sdkmath.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())

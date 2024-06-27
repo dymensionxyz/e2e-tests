@@ -416,6 +416,9 @@ clean-e2e-live:
 e2e-live-test-ibc-transfer-success: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
 
+e2e-live-test-delayedack-rollapp-to-hub: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHub_Live .
+
 e2e-live-test-eibc-timeout: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .
 
@@ -424,9 +427,18 @@ e2e-live-test-eibc-3rd-token: clean-e2e-live
 
 e2e-live-test-eibc-3rd-token-timeout: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_Timeout_Live .
+
+e2e-live-test-eibc-pfm: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCPFM_Live .
+	
+e2e-live-test-eibc-invalid-fee: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Invalid_Fee_Live .
 	
 e2e-live-test-eibc-fulfillment: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFulfill_Live .
 	
 e2e-live-test-delayack-rollapp-to-hub-no-finalized: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubNoFinalized_Live .
+
+e2e-live-test-eibc-no-memo: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_No_Memo_Live .
