@@ -1416,10 +1416,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channsNewRollApp, 2)
 
-	channDymNewRollApp := channsNewRollApp[0].Counterparty
+	channDymNewRollApp := channsNewRollApp[1].Counterparty
 	require.NotEmpty(t, channDymNewRollApp.ChannelID)
 
-	channsNewRollAppDym := channsNewRollApp[0]
+	channsNewRollAppDym := channsNewRollApp[1]
 	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
 
 	// check client before submit update client proposal

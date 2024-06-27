@@ -17,7 +17,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.3.1
 	github.com/decentrio/e2e-testing-live v0.0.0-20240625044106-8c30706a657a
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240625085416-1d80e1b572c2
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240627202050-a9c0a0a8c62b
 	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc01.0.20240404003005-53ccf8a922fd
 	github.com/evmos/ethermint v0.22.0
