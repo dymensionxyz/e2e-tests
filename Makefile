@@ -413,4 +413,4 @@ e2e-live-test-delayack-rollapp-to-hub-no-finalized: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubNoFinalized_Live .
 
 e2e-live-test-delayack-ack-error-from-dym: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEibcAckErrorDymLive .
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_EVM_Live .

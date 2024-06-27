@@ -1,6 +1,7 @@
 package livetests
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -32,6 +33,16 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 		Denom:         "adym",
 	}
 
+	mocha := cosmos.CosmosChain{
+		RPCAddr:       "rpc.celestia.test-eu1.ccvalidators.com:443",
+		GrpcAddr:      "mocha-4-consensus.mesa.newmetric.xyz:9090",
+		ChainID:       "mocha-4",
+		Bin:           "celestia-appd",
+		GasPrices:     "0utia",
+		GasAdjustment: "1.1",
+		Denom:         "utia",
+	}
+
 	rollappX := cosmos.CosmosChain{
 		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "3.123.185.77:9090",
@@ -54,12 +65,17 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
+	mochaUser, err := mocha.CreateUser("mocha1")
+	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
 	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
+	require.NoError(t, err)
+
+	err = mocha.NewClient("https://" + mocha.RPCAddr)
 	require.NoError(t, err)
 
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
@@ -69,6 +85,7 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
+	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
@@ -77,10 +94,10 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 
 	// Get the IBC denom
 	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
+	// rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
-	rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
+	mochaTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymMocha, mocha.Denom)
+	mochaIBCDenom := transfertypes.ParseDenomTrace(mochaTokenDenom).IBCDenom()
 
 	hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
 	hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
@@ -97,33 +114,52 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
 
+	mochaOrigBal, err := mochaUser.GetBalance(ctx, mochaUser.Denom, mocha.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(mochaOrigBal)
+
 	// Get ERC20 balance
 	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(erc20_OrigBal)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferAmount := math.NewInt(1000)
+	// Use mocha to trigger ack error because rollapp isn't registered with mocha token
+	var options ibc.TransferOptions
+
+	// Compose an IBC transfer and send mocha from mocha -> dymension
 	transferData := ibc.WalletData{
-		Address: rollappXUser.Address,
-		Denom:   dymensionUser.Denom,
+		Address: dymensionUser.Address,
+		Denom:   mocha.Denom,
 		Amount:  transferAmount,
 	}
 
-	testutil.WaitForBlocks(ctx, 3, hub)
+	_, err = cosmos.SendIBCTransfer(mocha, channelIDMochaDym, mochaUser.Address, transferData, mochaFee, options)
+	require.NoError(t, err)
 
-	// Set a short timeout for IBC transfer
-	options := ibc.TransferOptions{
-		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
-		},
+	t.Log("mochaIBCDenom:", mochaIBCDenom)
+
+	testutil.WaitForBlocks(ctx, 10, hub)
+
+	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, mochaOrigBal.Add(transferAmount))
+
+	// Compose an IBC transfer and send mocha from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappXUser.Address,
+		Denom:   mochaIBCDenom,
+		Amount:  transferAmount,
 	}
 
-	dymFee := "1000adym"
 	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferData, dymFee, options)
 	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 3, hub)
+
+	rollappHeight, err := rollappX.Height(ctx)
+	require.NoError(t, err)
+
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Compose an IBC transfer and send from rollapp -> hub
 	transferData = ibc.WalletData{
@@ -137,50 +173,34 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 
 	// Set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
-	rolxFee := "1000arolx" // example fee
-	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
+	txResp, err := cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 10, hub)
 
 	erc20_Bal, err := GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
 	require.NoError(t, err)
-	fmt.Println(erc20_Bal)
-	fmt.Println(rollappXIBCDenom)
+	fmt.Println("rollapp user balance right after ibc transfer from rollapp -> hub: ", erc20_Bal, rollappXTokenDenom)
 
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	require.Equal(t, erc20_OrigBal, erc20_Bal)
+	// testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+	// require.Equal(t, erc20_OrigBal, erc20_Bal)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappYUser.Address,
-		Denom:   dymensionUser.Denom,
-		Amount:  transferAmount,
-	}
-
-	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
+	ibcTx, err := cosmos.GetIbcTxFromTxResponse(*txResp)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 3, hub)
-
-	// Compose an IBC transfer and send from rollapp -> hub
-	transferData = ibc.WalletData{
-		Address: dymensionUser.Address,
-		Denom:   rollappYUser.Denom,
-		Amount:  transferAmount,
-	}
-
-	rolyFee := "1000aroly"
-	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
+	// catch ACK errors
+	rollappHeight, err = rollappX.Height(ctx)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
-
-	erc20_Bal, err = GetERC20Balance(ctx, hubIBCDenom, rollappX.GrpcAddr)
+	encodingConfig := encodingConfig()
+	ack, err := testutil.PollForAck(ctx, rollappX, encodingConfig.InterfaceRegistry, rollappHeight, rollappHeight+30, ibcTx.Packet)
 	require.NoError(t, err)
-	fmt.Println(erc20_Bal)
-	fmt.Println(rollappYIBCDenom)
 
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappYIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	require.Equal(t, erc20_OrigBal, erc20_Bal)
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	testutil.AssertBalance(t, ctx, rollappXUser, rollappXTokenDenom, rollappX.GrpcAddr, rollappXOrigBal)
+
+	// At the moment, the ack returned and the demand order status became "finalized"
+	// We will execute the ibc transfer again and try to fulfill the demand order
+	// txResp, err = cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
+	// require.NoError(t, err)
 }
