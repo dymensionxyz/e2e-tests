@@ -33,8 +33,6 @@ var (
 	channelIDMochaDym                        = "channel-28"
 	channelIDRollappXDym                     = "channel-0"
 	channelIDRollappYDym                     = "channel-0"
-	channelIDDymMocha                        = "channel-2"
-	channelIDMochaDym                        = "channel-28"
 	dymFee                                   = "6000000000000000adym"
 	rolxFee                                  = "10000000000000arolx"
 	rolyFee                                  = "2000000000000000aroly"
