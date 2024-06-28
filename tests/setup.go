@@ -306,17 +306,17 @@ var (
 func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion string) {
 	dymensionVersion, found := os.LookupEnv("DYMENSION_CI")
 	if !found {
-		dymensionVersion = "latest"
+		dymensionVersion = "a74ffb0c"
 	}
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "latest"
+		rollappEVMVersion = "dad400ce"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
 	if !found {
-		rollappWasmVersion = "latest"
+		rollappWasmVersion = "7b60edee"
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
