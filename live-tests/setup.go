@@ -29,6 +29,8 @@ import (
 var (
 	channelIDDymRollappX                     = "channel-17"
 	channelIDDymRollappY                     = "channel-22"
+	channelIDDymMocha                        = "channel-2"
+	channelIDMochaDym                        = "channel-28"
 	channelIDRollappXDym                     = "channel-0"
 	channelIDRollappYDym                     = "channel-0"
 	channelIDDymMocha                        = "channel-2"
