@@ -311,7 +311,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 
 	rollappEVMVersion, found = os.LookupEnv("ROLLAPP_EVM_CI")
 	if !found {
-		rollappEVMVersion = "dad400ce"
+		rollappEVMVersion = "43d647f8"
 	}
 
 	rollappWasmVersion, found = os.LookupEnv("ROLLAPP_WASM_CI")
