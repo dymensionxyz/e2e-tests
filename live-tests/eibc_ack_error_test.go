@@ -93,18 +93,12 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	// rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
-	// rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
-
 	mochaTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymMocha, mocha.Denom)
 	mochaIBCDenom := transfertypes.ParseDenomTrace(mochaTokenDenom).IBCDenom()
 
 	// tia from rollapp -> hub
 	mochaRollappYDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappYDym, mochaTokenDenom)
 	mochaRollappYIBCDenom := transfertypes.ParseDenomTrace(mochaRollappYDenom).IBCDenom()
-
-	// hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
-	// hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
 
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
@@ -197,16 +191,13 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	encodingConfig := encodingConfig()
-	ack, err := testutil.PollForAck(ctx, rollappY, encodingConfig.InterfaceRegistry, rollappHeight, rollappHeight+10, ibcTx.Packet)
+	ack, err := testutil.PollForAck(ctx, rollappY, encodingConfig.InterfaceRegistry, rollappHeight, rollappHeight+120, ibcTx.Packet)
 	require.NoError(t, err)
 
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+	// fund was return to roly user and dym user balance stay the same
+	testutil.AssertBalance(t, ctx, rollappYUser, mochaRollappYIBCDenom, rollappX.GrpcAddr, transferAmountMM)
+	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
 
-	// testutil.AssertBalance(t, ctx, rollappXUser, mochaRollappYIBCDenom, rollappX.GrpcAddr, erc20_Bal)
-
-	// At the moment, the ack returned and the demand order status became "finalized"
-	// We will execute the ibc transfer again and try to fulfill the demand order
-	// txResp, err = cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
-	// require.NoError(t, err)
 }
