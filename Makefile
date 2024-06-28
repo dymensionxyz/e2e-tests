@@ -164,6 +164,9 @@ e2e-test-erc20-rollapp-to-hub-evm: clean-e2e
 e2e-test-rollapp-hardfork-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestHardFork_EVM .
 
+e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestHardForkRecoverIbcClient_EVM .	
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
