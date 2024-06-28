@@ -157,7 +157,15 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 3, hub)
+	rollappYHeight, err := rollappY.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappYHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 500)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	testutil.AssertBalance(t, ctx, rollappYUser, mochaRollappYIBCDenom, rollappY.GrpcAddr, transferAmountMM)
 
 	fmt.Println("Ibc denom of mocha on rollapp x:", mochaRollappYIBCDenom)
 	// Compose an IBC transfer and send from rollapp -> hub
@@ -176,19 +184,10 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
 
-	rollappYHeight, err := rollappY.Height(ctx)
-	require.NoError(t, err)
-	fmt.Println(rollappYHeight)
-	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 500)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM.Mul(math.NewInt(2)))
 	Mocha_Rolly_Bal, err := rollappYUser.GetBalance(ctx, mochaRollappYIBCDenom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println("rollapp user mocha balance right after ibc transfer from rollapp -> hub: ", Mocha_Rolly_Bal, mochaRollappYIBCDenom)
-	require.Equal(t, transferAmountMM, Mocha_Rolly_Bal)
+	require.Equal(t, zeroBal, Mocha_Rolly_Bal)
 
 	ibcTx, err := cosmos.GetIbcTxFromTxResponse(*txResp)
 	require.NoError(t, err)
@@ -198,7 +197,7 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	encodingConfig := encodingConfig()
-	ack, err := testutil.PollForAck(ctx, rollappY, encodingConfig.InterfaceRegistry, rollappHeight, rollappHeight+30, ibcTx.Packet)
+	ack, err := testutil.PollForAck(ctx, rollappY, encodingConfig.InterfaceRegistry, rollappHeight, rollappHeight+10, ibcTx.Packet)
 	require.NoError(t, err)
 
 	// Make sure that the ack contains error
