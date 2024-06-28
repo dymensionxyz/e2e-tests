@@ -24,13 +24,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
-	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
-	ethermint "github.com/evmos/ethermint/types"
 )
 
 var (
@@ -40,8 +33,6 @@ var (
 	channelIDMochaDym                        = "channel-28"
 	channelIDRollappXDym                     = "channel-0"
 	channelIDRollappYDym                     = "channel-0"
-	channelIDDymMocha                        = "channel-2"
-	channelIDMochaDym                        = "channel-28"
 	dymFee                                   = "6000000000000000adym"
 	rolxFee                                  = "10000000000000arolx"
 	rolyFee                                  = "2000000000000000aroly"
