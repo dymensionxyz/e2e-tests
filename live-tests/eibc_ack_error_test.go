@@ -154,7 +154,7 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 		Amount:  transferAmountMM,
 	}
 
-	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappX, dymensionUser.Address, transferData, dymFee, options)
+	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
 	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 3, hub)
@@ -170,14 +170,19 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	txResp, err := cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	// wait for dispute period
-	testutil.WaitForBlocks(ctx, disputed_period_plus_batch_submit_blocks, hub)
+	rollappYHeight, err := rollappY.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappYHeight)
+	// wait until the packet is finalized on Rollapp 1
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 500)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	Mocha_Rolly_Bal, err := rollappYUser.GetBalance(ctx, mochaRollappYIBCDenom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println("rollapp user mocha balance right after ibc transfer from rollapp -> hub: ", Mocha_Rolly_Bal, mochaRollappYIBCDenom)
 
-	testutil.AssertBalance(t, ctx, dymensionUser, mochaRollappYIBCDenom, hub.GrpcAddr, transferAmountMM)
+	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
 	require.Equal(t, transferAmountMM, Mocha_Rolly_Bal)
 
 	ibcTx, err := cosmos.GetIbcTxFromTxResponse(*txResp)
