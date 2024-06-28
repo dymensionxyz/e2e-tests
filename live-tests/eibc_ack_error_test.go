@@ -172,7 +172,7 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	}
 
 	txResp, err := cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
 
