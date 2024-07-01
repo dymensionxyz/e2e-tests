@@ -332,8 +332,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/decentrio/e2e-testing-live v0.0.0-20240626080125-7e66d52b4559 h1:3A7InbStjHv1Iy4zmdzFdHCoWcTjjsV8JbZNpODhIvQ=
 github.com/decentrio/e2e-testing-live v0.0.0-20240626080125-7e66d52b4559/go.mod h1:3tzjRRKCMwk2t/Ujt+aPSTXk3XzJOIvj4p2+EPnmA0w=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240627202050-a9c0a0a8c62b h1:89x23hHLRZSRn3TTPBnZLN4UlFTatw3UwC54LdSGIJ8=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240627202050-a9c0a0a8c62b/go.mod h1:kslnOTBoqMTES+SQ5H3hzR3aO11Sf4vaGbAxzKZCD/Y=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240701042051-a860a3314d48 h1:tKmnb20j5opUBld40mWR4bwPeB2zBN0dfQ8WnERMtXU=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240701042051-a860a3314d48/go.mod h1:UPgkdcEMw0mmbP8JK+jkNc4gBTyfTQ9QURErRRgdmzQ=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
