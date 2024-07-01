@@ -219,19 +219,19 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	rollapp1_params := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1_params := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2_params := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp2_params := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
+	// triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -592,19 +592,19 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	rollapp1_params := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1_params := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2_params := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp2_params := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
+	// triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -955,12 +955,12 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -1269,12 +1269,12 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channsRollApp1[0].Counterparty.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channsRollApp1[0].Counterparty.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -1576,17 +1576,17 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	rollapp1_params := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	rollapp2_params := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
+	// rollapp1_params := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// rollapp2_params := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -2003,17 +2003,17 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	channGaiaDym := gaiaChannels[0]
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channsRollApp1[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channsRollApp2[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channsRollApp1[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channsRollApp2[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -2397,16 +2397,16 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	channGaiaDym := gaiaChannels[0]
 	require.NotEmpty(t, channGaiaDym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channsRollApp1[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channsRollApp2[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channsRollApp1[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channsRollApp2[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -2756,19 +2756,19 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	rollapp1_params := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1_params := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2_params := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp2_params := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
+	// triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -3009,19 +3009,19 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	channDymRollApp2 := dymChannel_ra2[0].Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	rollapp1_params := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1_params := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2_params := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp2_params := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
+	// triggerHubGenesisEvent(t, dymension, rollapp1_params, rollapp2_params)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)

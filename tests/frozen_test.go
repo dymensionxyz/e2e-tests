@@ -248,16 +248,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -582,16 +582,16 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -947,16 +947,16 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1360,16 +1360,16 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1767,16 +1767,16 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -2148,16 +2148,16 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -2530,16 +2530,16 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -2841,16 +2841,16 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -3154,16 +3154,16 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -3540,16 +3540,16 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	channsRollApp2Dym := channsRollApp2[0]
 	require.NotEmpty(t, channsRollApp2Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -3860,12 +3860,12 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -4165,12 +4165,12 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -4470,12 +4470,12 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -4796,12 +4796,12 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom

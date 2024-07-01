@@ -12,7 +12,6 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -470,19 +469,19 @@ type rollappParam struct {
 	rollappID, channelID, userKey string
 }
 
-func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
-	ctx := context.Background()
-	for i, r := range rollapps {
-		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
-		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-		require.NoError(t, err)
-		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
-		err = testutil.WaitForBlocks(ctx, 20, dymension)
-		require.NoError(t, err)
-		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
-		require.NoError(t, err)
-	}
-}
+// func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
+// 	ctx := context.Background()
+// 	for i, r := range rollapps {
+// 		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
+// 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+// 		require.NoError(t, err)
+// 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
+// 		err = testutil.WaitForBlocks(ctx, 20, dymension)
+// 		require.NoError(t, err)
+// 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
+// 		require.NoError(t, err)
+// 	}
+// }
 
 func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
 	ctx := context.Background()

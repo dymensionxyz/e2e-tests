@@ -193,8 +193,8 @@ func TestHardFork_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
-	require.NoError(t, err)
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -448,8 +448,8 @@ func TestHardFork_EVM(t *testing.T) {
 	channsNewRollAppDym := channsNewRollApp[1]
 	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
-	require.NoError(t, err)
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Get the IBC denom
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
@@ -671,8 +671,8 @@ func TestHardFork_Wasm(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
-	require.NoError(t, err)
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -920,8 +920,8 @@ func TestHardFork_Wasm(t *testing.T) {
 	channsNewRollAppDym := channsNewRollApp[1]
 	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
-	require.NoError(t, err)
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Get the IBC denom
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
@@ -1166,8 +1166,8 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
-	require.NoError(t, err)
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
@@ -1441,9 +1441,9 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
-	
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
-	require.NoError(t, err)
+
+	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	// require.NoError(t, err)
 
 	// Get the IBC denom
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)

@@ -317,18 +317,18 @@ func TestHubUpgrade(t *testing.T) {
 	println("port dym rollapp2: ", channDymRollApp2.PortID)
 	println("channel dym rollapp2: ", channDymRollApp2.ChannelID)
 	// Trigger genesis event for rollapp1
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser1.KeyName(),
-	}
+	// rollapp1Param := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser1.KeyName(),
+	// }
 
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser2.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	// rollapp2Param := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser2.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)

@@ -220,16 +220,16 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channsRollApp1[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channsRollApp2[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channsRollApp1[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channsRollApp2[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -570,16 +570,16 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	triggerHubGenesisEvent(t, dymension,
-		rollappParam{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channsRollApp1[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		}, rollappParam{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channsRollApp2[0].Counterparty.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		})
+	// triggerHubGenesisEvent(t, dymension,
+	// 	rollappParam{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channsRollApp1[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	}, rollappParam{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channsRollApp2[0].Counterparty.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	})
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)

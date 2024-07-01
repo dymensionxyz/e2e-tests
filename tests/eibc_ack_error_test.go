@@ -237,20 +237,20 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -595,20 +595,20 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channRollApp1Dym.PortID, channRollApp1Dym.ChannelID, rollapp1.Config().Denom)
@@ -930,20 +930,20 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for rollapp 2 urax on Hub
 	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp2.PortID, channDymRollApp2.ChannelID, rollapp2.Config().Denom)
@@ -1294,20 +1294,20 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -1651,20 +1651,20 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channRollApp1Dym.PortID, channRollApp1Dym.ChannelID, rollapp1.Config().Denom)
@@ -1986,20 +1986,20 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for both rollapps
-	rollapps := []rollappParam{
-		{
-			rollappID: rollapp1.Config().ChainID,
-			channelID: channDymRollApp1.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-		{
-			rollappID: rollapp2.Config().ChainID,
-			channelID: channDymRollApp2.ChannelID,
-			userKey:   dymensionUser.KeyName(),
-		},
-	}
+	// rollapps := []rollappParam{
+	// 	{
+	// 		rollappID: rollapp1.Config().ChainID,
+	// 		channelID: channDymRollApp1.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// 	{
+	// 		rollappID: rollapp2.Config().ChainID,
+	// 		channelID: channDymRollApp2.ChannelID,
+	// 		userKey:   dymensionUser.KeyName(),
+	// 	},
+	// }
 
-	triggerHubGenesisEvent(t, dymension, rollapps...)
+	// triggerHubGenesisEvent(t, dymension, rollapps...)
 
 	// Get the IBC denom for rollapp 2 urax on Hub
 	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp2.PortID, channDymRollApp2.ChannelID, rollapp2.Config().Denom)
