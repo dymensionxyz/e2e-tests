@@ -161,12 +161,12 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channel.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Get the IBC denom of Hub on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -375,12 +375,12 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channel.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData := ibc.WalletData{

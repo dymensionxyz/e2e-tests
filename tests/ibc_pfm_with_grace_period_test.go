@@ -240,12 +240,12 @@ func TestIBCPFMWithGracePeriod_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -534,12 +534,12 @@ func TestIBCPFMWithGracePeriod_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia, funds received on gaia after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -835,18 +835,18 @@ func TestIBCPFM_RollApp1To2WithErc20_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
 
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymRollApp1Chan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1Param := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymRollApp1Chan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: dymRollApp2Chan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	// rollapp2Param := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: dymRollApp2Chan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	t.Run("multihop rollapp1->dym->rollapp2, funds received on rollapp2 after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymRollApp1Chan.PortID, dymRollApp1Chan.ChannelID, rollapp1.Config().Denom)
@@ -1186,18 +1186,18 @@ func TestIBCPFM_RollApp1To2WithOutErc20_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
 
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymRollApp1Chan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1Param := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymRollApp1Chan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: dymRollApp2Chan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	// rollapp2Param := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: dymRollApp2Chan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	t.Run("multihop rollapp1->dym->rollapp2, funds received on rollapp2 after grace period", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymRollApp1Chan.PortID, dymRollApp1Chan.ChannelID, rollapp1.Config().Denom)

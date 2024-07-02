@@ -209,12 +209,12 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataDymToRollApp, ibc.TransferOptions{})
@@ -489,12 +489,12 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataDymToRollApp, ibc.TransferOptions{})
@@ -764,12 +764,12 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1022,12 +1022,12 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1279,12 +1279,12 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1551,12 +1551,12 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymChannel))
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymChannel[0].ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymChannel[0].ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)

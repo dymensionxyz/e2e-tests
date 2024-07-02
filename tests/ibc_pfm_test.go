@@ -130,7 +130,7 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-		}, nil, "", nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -212,12 +212,12 @@ func TestIBCTransferMultiHop_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -380,7 +380,7 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-		}, nil, "", nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -462,12 +462,12 @@ func TestIBCTransferMultiHop_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop rollapp->dym->gaia", func(t *testing.T) {
 		firstHopDenom := transfertypes.GetPrefixedDenom(channDymRollApp.PortID, channDymRollApp.ChannelID, rollapp1.Config().Denom)
@@ -630,7 +630,7 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-		}, nil, "", nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -707,12 +707,12 @@ func TestIBCTransferGaiaToRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymRollAppChan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymRollAppChan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop gaia->dym->rollapp", func(t *testing.T) {
 
@@ -876,7 +876,7 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-		}, nil, "", nil)
+	}, nil, "", nil)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -953,12 +953,12 @@ func TestIBCTransferGaiaToRollApp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: dymRollAppChan.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	// rollapp := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: dymRollAppChan.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp)
 
 	t.Run("multihop gaia->dym->rollapp", func(t *testing.T) {
 
