@@ -12,9 +12,6 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
-	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -73,9 +70,8 @@ var (
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
-		// TODO: revert after fix
-		Version: "e2e",
-		UidGid:  "1025:1025",
+		Version:    dymensionVersion,
+		UidGid:     "1025:1025",
 	}
 
 	rollappEVMImage = ibc.DockerImage{
@@ -175,12 +171,28 @@ var (
 			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
 		},
+		// Bank denom metadata
 		{
-			Key: "app_state.hubgenesis.state.genesis_tokens",
+			Key: "app_state.bank.denom_metadata",
 			Value: []interface{}{
 				map[string]interface{}{
-					"denom":  "urax",
-					"amount": dymension.GenesisEventAmount.String(),
+					"base": "urax",
+					"denom_units": []interface{}{
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "urax",
+							"exponent": "0",
+						},
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "rax",
+							"exponent": "18",
+						},
+					},
+					"description": "Denom metadata for Rollapp EVM",
+					"display":     "rax",
+					"name":        "rax",
+					"symbol":      "rax",
 				},
 			},
 		},
@@ -546,26 +558,5 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.NoError(t, err)
-}
-
-func EnableIbcTransferToRA(ctx context.Context, t *testing.T, hub *dym_hub.DymHub, rollapp *dym_rollapp.DymRollApp, hubAddr string, RolUserAddr string, DymChannel string) {
-	transferData := ibc.WalletData{
-		Address: hubAddr,
-		Denom:   rollapp.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// enable ibc transfer from rollapp
-	genesis_memo := `{"genesis_transfer": {"denom": {"description": "The native staking and governance token of the ` + rollapp.Config().ChainID + `","denom_units": [{"denom": "urax"},{"denom": "rax","exponent": 18} ], "base": "urax", "display": "rax", "name": "rax", "symbol": "rax" }, "total_num_transfers": 42 } }`
-
-	// Do genesis transactions from Rollapp then do a normal transfer to mark the end of genesis
-	_, err := rollapp.SendIBCTransfer(ctx, DymChannel, RolUserAddr, transferData, ibc.TransferOptions{
-		Memo: genesis_memo,
-	})
-	require.NoError(t, err)
-
-	// wait for hub to receive ack and enable transfer to rollapp
-	err = testutil.WaitForBlocks(ctx, 10, hub, rollapp)
 	require.NoError(t, err)
 }
