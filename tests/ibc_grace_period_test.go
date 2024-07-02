@@ -1292,6 +1292,8 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
+	EnableIbcTransferToRA(ctx, t, dymension, rollapp1, dymensionUserAddr, rollapp1UserAddr, dymChannel[0].ChannelID)
+
 	transferData := ibc.WalletData{
 		Address: rollapp1UserAddr,
 		Denom:   dymension.Config().Denom,
