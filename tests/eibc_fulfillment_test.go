@@ -325,7 +325,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
 			fmt.Println(txhash)
 			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -700,7 +700,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
 			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			if eibcEvent != nil {
@@ -1027,7 +1027,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1334,7 +1334,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1695,7 +1695,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 
 	// fulfill demand orders
 	for _, eibcEvent := range eibcEvents {
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -2110,7 +2110,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -2504,7 +2504,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)

@@ -163,14 +163,10 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	// rollapp := rollappParam{
-	// 	rollappID: rollapp1.Config().ChainID,
-	// 	channelID: channel.ChannelID,
-	// 	userKey:   dymensionUser.KeyName(),
-	// }
-	// triggerHubGenesisEvent(t, dymension, rollapp)
-
 	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
@@ -187,7 +183,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -198,12 +194,12 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
 	// attempt to fulfill demand order without having required denom balance
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	txData, err := dymension.GetTransaction(txhash)

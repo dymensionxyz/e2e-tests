@@ -329,7 +329,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -669,7 +669,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1035,7 +1035,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1386,7 +1386,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1725,7 +1725,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -2091,7 +2091,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
