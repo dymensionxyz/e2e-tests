@@ -990,7 +990,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp2Height, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -2523,7 +2523,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp2Height, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -3171,7 +3171,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp2Height, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -3224,7 +3224,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
