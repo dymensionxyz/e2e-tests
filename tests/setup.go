@@ -86,6 +86,12 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	preUpgradeRollappEVMImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "pre-upgrade-non-state-breaking",
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dym",
 		Name:                "dymension",
