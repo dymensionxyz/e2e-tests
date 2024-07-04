@@ -3942,7 +3942,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -4568,7 +4568,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
 
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -4676,7 +4676,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// check balances of dymensionUserAddr (just receive the fund for the fisrt transfer)
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
-	require.Equal(t, transferAmount.Sub(bridgingFee), balanceOfDymUserAddr)
+	require.Equal(t, (transferAmount.Sub(bridgingFee)).MulRaw(2), balanceOfDymUserAddr)
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {

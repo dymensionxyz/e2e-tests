@@ -50,9 +50,13 @@ var (
 
 	transferAmount = math.NewInt(1_000_000)
 
+	bigTransferAmount = math.NewInt(1_000_000_000)
+
 	zeroBal = math.ZeroInt()
 
 	bridgingFee = math.NewInt(1_000)
+
+	bigBridgingFee = math.NewInt(1_000_000)
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
