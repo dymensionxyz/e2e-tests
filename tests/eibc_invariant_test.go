@@ -238,10 +238,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -262,10 +259,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	channel, err = ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
-	require.NoError(t, err)
-
-	_, err = rollapp2.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
