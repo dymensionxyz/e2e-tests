@@ -1521,9 +1521,6 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
 
-	// err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
-	// require.NoError(t, err)
-
 	// Get the IBC denom
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
 
