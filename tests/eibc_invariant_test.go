@@ -191,16 +191,18 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
+	dymensionUser, marketMaker, rollappUser, rollapp2User := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	marketMakerAddr := marketMaker.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
+	rollapp2UserAddr := rollapp2User.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount)
 
 	multiplier := math.NewInt(10)
 
@@ -220,22 +222,62 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.Len(t, channsRollApp2, 1)
 	require.Len(t, dymChannels, 2)
 
-	// triggerHubGenesisEvent(t, dymension,
-	// 	rollappParam{
-	// 		rollappID: rollapp1.Config().ChainID,
-	// 		channelID: channsRollApp1[0].Counterparty.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	}, rollappParam{
-	// 		rollappID: rollapp2.Config().ChainID,
-	// 		channelID: channsRollApp2[0].Counterparty.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	})
-
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA1 -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Send a normal ibc tx from RA2 -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	channel, err = ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
+	require.NoError(t, err)
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	newParams, err := dymension.QueryParam(ctx, "delayedack", "EpochIdentifier")
 	require.NoError(t, err)
@@ -243,7 +285,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: marketMakerAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount.MulRaw(10),
@@ -257,11 +299,11 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
