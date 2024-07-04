@@ -259,7 +259,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2[0].ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
