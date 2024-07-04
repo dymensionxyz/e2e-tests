@@ -291,7 +291,7 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee).Mul(math.NewInt(2)), balance))
+	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee).Mul(math.NewInt(2))), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee).Mul(math.NewInt(2)), balance))
 
 	t.Cleanup(
 		func() {
