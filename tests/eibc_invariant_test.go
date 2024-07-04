@@ -259,7 +259,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp2.SendIBCTransfer(ctx, channsRollApp2[0].ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
@@ -326,11 +326,10 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
-	zeroBalance := math.NewInt(0)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
