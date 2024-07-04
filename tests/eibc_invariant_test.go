@@ -344,19 +344,19 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill 2 demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[3].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[3].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -694,19 +694,19 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill 2 demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[3].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[3].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)

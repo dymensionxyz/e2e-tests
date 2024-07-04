@@ -422,12 +422,12 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Events:", eibcEvents)
 
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker1Addr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker1Addr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -534,12 +534,12 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Events:", eibcEvents)
 
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker2Addr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker2Addr, eibcFee)
 	require.NoError(t, err)
-	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)

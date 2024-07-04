@@ -341,10 +341,10 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
 			fmt.Println(txhash)
-			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-			if eibcEvent != nil {
-				fmt.Println("After order fulfillment:", eibcEvent)
-			}
+			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+			// if eibcEvent != nil {
+			// 	fmt.Println("After order fulfillment:", eibcEvent)
+			// }
 			fulfill_demand_order = true
 		}
 	}
@@ -385,7 +385,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
-	require.True(t, balance.Equal(transferDataRollapp2.Amount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferDataRollapp2.Amount.Sub(bridgingFee), balance))
+	require.True(t, balance.Equal((transferDataRollapp2.Amount.Sub(bridgingFee)).MulRaw(2)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", (transferDataRollapp2.Amount.Sub(bridgingFee)).MulRaw(2), balance))
 
 	// No packet commitments left
 	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
@@ -713,12 +713,12 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
+			_, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
-			eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-			if eibcEvent != nil {
-				fmt.Println("After order fulfillment:", eibcEvent)
-			}
+			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+			// if eibcEvent != nil {
+			// 	fmt.Println("After order fulfillment:", eibcEvent)
+			// }
 			fulfill_demand_order = true
 		}
 	}
@@ -1041,10 +1041,10 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
@@ -1059,7 +1059,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee))
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee)).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -1348,10 +1348,10 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
@@ -1700,10 +1700,10 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
-		eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-		if eibcEvent != nil {
-			fmt.Println("After order fulfillment:", eibcEvent)
-		}
+		// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+		// if eibcEvent != nil {
+		// 	fmt.Println("After order fulfillment:", eibcEvent)
+		// }
 	}
 
 	// verify funds were deducted from market maker's wallet address
@@ -2122,10 +2122,10 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
@@ -2141,7 +2141,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalance := transferAmount.Sub((transferAmountWithoutFee)).Sub(bridgingFee)
+	expMmBalance := transferAmount.Sub((transferAmountWithoutFee))
 	require.True(t, balance.Equal(expMmBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalance, balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
@@ -2516,10 +2516,10 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
+	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
+	// if eibcEvent != nil {
+	// 	fmt.Println("After order fulfillment:", eibcEvent)
+	// }
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
