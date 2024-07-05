@@ -96,6 +96,12 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	preUpgradeRollappWasmImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/rollapp-wasm",
+		Version:    "debug",
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dym",
 		Name:                "dymension",
