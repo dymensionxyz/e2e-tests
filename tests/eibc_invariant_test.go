@@ -648,14 +648,14 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill 2 demand order
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {
 	// 	fmt.Println("After order fulfillment:", eibcEvent)
 	// }
 
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[3].ID, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[2].ID, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {

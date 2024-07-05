@@ -1073,7 +1073,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	bridgeFee := transferAmount.Quo(multiplier)
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgeFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
 }
 
 func TestHardForkRecoverIbcClient_EVM(t *testing.T) {

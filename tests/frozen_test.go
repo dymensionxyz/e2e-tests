@@ -1993,7 +1993,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -4291,7 +4291,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -4954,7 +4954,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
