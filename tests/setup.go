@@ -97,7 +97,7 @@ var (
 	}
 
 	preUpgradeRollappWasmImage = ibc.DockerImage{
-		Repository: "RollappWasmMainRepo",
+		Repository: RollappWasmMainRepo,
 		Version:    "9a4756e0",
 		UidGid:     "1025:1025",
 	}
