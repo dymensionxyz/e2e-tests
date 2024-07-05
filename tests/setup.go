@@ -214,6 +214,34 @@ var (
 		},
 	}
 
+	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		// Bank denom metadata
+		{
+			Key: "app_state.bank.denom_metadata",
+			Value: []interface{}{
+				map[string]interface{}{
+					"base": "urax",
+					"denom_units": []interface{}{
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "urax",
+							"exponent": "0",
+						},
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "rax",
+							"exponent": "18",
+						},
+					},
+					"description": "Denom metadata for Rollapp EVM",
+					"display":     "rax",
+					"name":        "rax",
+					"symbol":      "rax",
+				},
+			},
+		},
+	}
+
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		// gov params
 		{

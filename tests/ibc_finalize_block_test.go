@@ -602,12 +602,13 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.transfer.params.receive_enabled",
 			Value: false,
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -814,7 +815,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1013,7 +1014,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
