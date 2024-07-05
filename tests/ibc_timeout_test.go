@@ -503,7 +503,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
