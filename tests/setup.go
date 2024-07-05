@@ -97,8 +97,8 @@ var (
 	}
 
 	preUpgradeRollappWasmImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-wasm",
-		Version:    "debug",
+		Repository: RollappWasmMainRepo,
+		Version:    "9a4756e0",
 		UidGid:     "1025:1025",
 	}
 
@@ -187,6 +187,34 @@ var (
 			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
 		},
+		// Bank denom metadata
+		{
+			Key: "app_state.bank.denom_metadata",
+			Value: []interface{}{
+				map[string]interface{}{
+					"base": "urax",
+					"denom_units": []interface{}{
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "urax",
+							"exponent": "0",
+						},
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "rax",
+							"exponent": "18",
+						},
+					},
+					"description": "Denom metadata for Rollapp EVM",
+					"display":     "rax",
+					"name":        "rax",
+					"symbol":      "rax",
+				},
+			},
+		},
+	}
+
+	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
