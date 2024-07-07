@@ -233,7 +233,7 @@ var (
 							"exponent": "18",
 						},
 					},
-					"description": "Denom metadata for Rollapp EVM",
+					"description": "Denom metadata for Rollapp Wasm",
 					"display":     "rax",
 					"name":        "rax",
 					"symbol":      "rax",

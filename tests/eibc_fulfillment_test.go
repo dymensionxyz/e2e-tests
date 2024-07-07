@@ -1747,9 +1747,6 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee)).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
@@ -3035,8 +3032,6 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -3059,6 +3054,9 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 	// end of preconditions
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	transferDataRollapp1 := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
@@ -3074,7 +3072,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 

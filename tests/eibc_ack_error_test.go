@@ -1212,10 +1212,6 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 			},
-			{
-				Key:   "app_state.transfer.params.receive_enabled",
-				Value: false,
-			},
 		}...,
 	)
 	// Create chain factory with dymension
@@ -1351,19 +1347,15 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, rollapp2)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, marketMaker, rollappUser := users[0], users[1], users[2]
+	dymensionUser, marketMaker, rollappUser, rollapp2User := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	marketMakerAddr := marketMaker.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
+	rollapp2UserAddr := rollapp2User.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
@@ -1395,21 +1387,52 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	channDymRollApp2 := channRollApp2Dym.Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	// Trigger genesis event for both rollapps
-	// rollapps := []rollappParam{
-	// 	{
-	// 		rollappID: rollapp1.Config().ChainID,
-	// 		channelID: channDymRollApp1.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// 	{
-	// 		rollappID: rollapp2.Config().ChainID,
-	// 		channelID: channDymRollApp2.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// }
+	// Wait a few blocks for relayer to start
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1, rollapp2)
+	require.NoError(t, err)
 
-	// triggerHubGenesisEvent(t, dymension, rollapps...)
+	// enable ibc transfer for both rollapp
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Send a normal ibc tx from RA2 -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -1441,6 +1464,27 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+		// prop to disable ibc transfer on rollapp
+		receiveEnableParams := json.RawMessage(`false`)
+		_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
+			&utils.ParamChangeProposalJSON{
+				Title:       "Change receive params",
+				Description: "Disable ibc-transfer transfer receive",
+				Changes: utils.ParamChangesJSON{
+					utils.NewParamChangeJSON("transfer", "ReceiveEnabled", receiveEnableParams),
+				},
+				Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+			})
+		require.NoError(t, err)
+
+		err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+		require.NoError(t, err, "failed to submit votes")
+
+		height, err := dymension.Height(ctx)
+		require.NoError(t, err, "error fetching height")
+		_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+		require.NoError(t, err, "proposal status did not change to passed")
 
 		transferData = ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -1504,12 +1548,12 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 		require.NoError(t, err)
 		fmt.Println("Balance changed of dymensionUserAddr after fulfilling the order:", balance.Sub(dymensionUserBalance))
-		require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance.Sub(dymensionUserBalance)))
+		require.True(t, balance.Sub(dymensionUserBalance).Equal(transferAmountWithoutFee.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee), balance.Sub(dymensionUserBalance)))
 		// verify funds were deducted from market maker's wallet address
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee))
+		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
@@ -1568,10 +1612,6 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-			{
-				Key:   "app_state.transfer.params.receive_enabled",
-				Value: false,
 			},
 		}...,
 	)
@@ -1752,25 +1792,31 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	channDymRollApp2 := channRollApp2Dym.Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	// Trigger genesis event for both rollapps
-	// rollapps := []rollappParam{
-	// 	{
-	// 		rollappID: rollapp1.Config().ChainID,
-	// 		channelID: channDymRollApp1.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// 	{
-	// 		rollappID: rollapp2.Config().ChainID,
-	// 		channelID: channDymRollApp2.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// }
-
-	// triggerHubGenesisEvent(t, dymension, rollapps...)
-
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channRollApp1Dym.PortID, channRollApp1Dym.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	// enable ibc transfer for both rollapp
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	var options ibc.TransferOptions
 
@@ -1787,6 +1833,27 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
 		// end of preconditions
 
+		// prop to disable ibc transfer on rollapp
+		receiveEnableParams := json.RawMessage(`false`)
+		_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
+			&utils.ParamChangeProposalJSON{
+				Title:       "Change receive params",
+				Description: "Disable ibc-transfer transfer receive",
+				Changes: utils.ParamChangesJSON{
+					utils.NewParamChangeJSON("transfer", "ReceiveEnabled", receiveEnableParams),
+				},
+				Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+			})
+		require.NoError(t, err)
+
+		err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+		require.NoError(t, err, "failed to submit votes")
+
+		height, err := dymension.Height(ctx)
+		require.NoError(t, err, "error fetching height")
+		_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+		require.NoError(t, err, "proposal status did not change to passed")
+
 		transferData = ibc.WalletData{
 			Address: dymensionUserAddr,
 			Denom:   rollapp1.Config().Denom,
@@ -1802,7 +1869,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		balance, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
-		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+		require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 		// catch ACK errors
 		rollapp1Height, err := rollapp1.Height(ctx)
@@ -1814,7 +1881,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		// Make sure that the ack contains error
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+		// We transfered once to enable ibc-transfer from dym to rollapp
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
@@ -1843,12 +1911,12 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-		require.True(t, balance.Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance))
+		require.True(t, balance.Equal(transferAmountWithoutFee.Add(transferAmount).Sub(bridgingFee.Mul(math.NewInt(2)))), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Add(transferAmount).Sub(bridgingFee.Mul(math.NewInt(2))), balance))
 		// verify funds were deducted from market maker's wallet address
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
+		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
@@ -1865,7 +1933,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 	})
 }
 
@@ -1901,10 +1969,6 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 			{
 				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-			{
-				Key:   "app_state.transfer.params.receive_enabled",
-				Value: false,
 			},
 		}...,
 	)
@@ -2087,22 +2151,6 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	channDymRollApp2 := channRollApp2Dym.Counterparty
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
-	// Trigger genesis event for both rollapps
-	// rollapps := []rollappParam{
-	// 	{
-	// 		rollappID: rollapp1.Config().ChainID,
-	// 		channelID: channDymRollApp1.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// 	{
-	// 		rollappID: rollapp2.Config().ChainID,
-	// 		channelID: channDymRollApp2.ChannelID,
-	// 		userKey:   dymensionUser.KeyName(),
-	// 	},
-	// }
-
-	// triggerHubGenesisEvent(t, dymension, rollapps...)
-
 	// Get the IBC denom for rollapp 2 urax on Hub
 	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp2.PortID, channDymRollApp2.ChannelID, rollapp2.Config().Denom)
 	thirdPartyDenom := transfertypes.ParseDenomTrace(rollapp2TokenDenom).IBCDenom()
@@ -2115,6 +2163,28 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 			rollapp2.Config().Denom,
 		),
 	).IBCDenom()
+
+	// enable ibc transfer for both rollapp
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	var options ibc.TransferOptions
 
@@ -2152,6 +2222,27 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
 		// end of preconditions
+
+		// prop to disable ibc transfer on rollapp
+		receiveEnableParams := json.RawMessage(`false`)
+		_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
+			&utils.ParamChangeProposalJSON{
+				Title:       "Change receive params",
+				Description: "Disable ibc-transfer transfer receive",
+				Changes: utils.ParamChangesJSON{
+					utils.NewParamChangeJSON("transfer", "ReceiveEnabled", receiveEnableParams),
+				},
+				Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
+			})
+		require.NoError(t, err)
+
+		err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+		require.NoError(t, err, "failed to submit votes")
+
+		height, err := dymension.Height(ctx)
+		require.NoError(t, err, "error fetching height")
+		_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+		require.NoError(t, err, "proposal status did not change to passed")
 
 		transferData = ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -2209,12 +2300,12 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-		require.True(t, balance.Equal(transferAmountWithoutFee), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee, balance))
+		require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee), balance))
 		// verify funds were deducted from market maker's wallet address
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee))
+		expMmBalanceRollappDenom := transferAmount.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
@@ -2231,6 +2322,6 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 	})
 }

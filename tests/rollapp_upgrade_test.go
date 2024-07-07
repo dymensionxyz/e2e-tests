@@ -369,10 +369,46 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
 
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
 	rollapp1.UpgradeVersion(ctx, client, RollappWasmMainRepo, rollappWasmVersion)
 
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err, "error starting node(s)")
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	// Assert funds were returned to the sender after the timeout has occured
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
+	// minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, (transferAmount.Sub(bridgingFee)).MulRaw(2))
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData = ibc.WalletData{
@@ -394,38 +430,6 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
-	// minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, (transferAmount.Sub(bridgingFee)).MulRaw(2))
 }
 
 func TestRollapp_EVM_Upgrade(t *testing.T) {
