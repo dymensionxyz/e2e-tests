@@ -162,7 +162,10 @@ e2e-test-rollapp-hardfork-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestHardFork_EVM .
 
 e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
-	cd tests && go test -timeout=25m -race -v -run TestHardForkRecoverIbcClient_EVM .	
+	cd tests && go test -timeout=25m -race -v -run TestHardForkRecoverIbcClient_EVM .
+
+e2e-test-rollapp-genesis-transfer-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestGenesisTransfer_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
