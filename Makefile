@@ -92,9 +92,6 @@ e2e-test-other-rollapp-not-affected-evm: clean-e2e
 e2e-test-freeze-packets-rollback-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestPacketRollbacked_EVM .
 
-e2e-test-rollapp-genesis-event-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestRollappGenesisEvent_EVM .
-
 e2e-test-dym-finalize-block-on-recv-packet-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestDymFinalizeBlock_OnRecvPacket_EVM .
 
@@ -314,7 +311,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-disconnection-evm \
 	e2e-test-rollapp-freeze-evm \
   	e2e-test-other-rollapp-not-affected-evm \
-	e2e-test-rollapp-genesis-event-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \
@@ -374,7 +370,6 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-disconnection-evm \
 	e2e-test-rollapp-freeze-evm \
   	e2e-test-other-rollapp-not-affected-evm \
-	e2e-test-rollapp-genesis-event-evm \
 	e2e-test-sequencer-invariant-evm \
 	e2e-test-rollapp-invariant-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-evm \

@@ -12,8 +12,6 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
-	"github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -52,9 +50,13 @@ var (
 
 	transferAmount = math.NewInt(1_000_000)
 
+	bigTransferAmount = math.NewInt(1_000_000_000)
+
 	zeroBal = math.ZeroInt()
 
 	bridgingFee = math.NewInt(1_000)
+
+	bigBridgingFee = math.NewInt(1_000_000)
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
@@ -85,6 +87,18 @@ var (
 	rollappWasmImage = ibc.DockerImage{
 		Repository: RollappWasmMainRepo,
 		Version:    rollappWasmVersion,
+		UidGid:     "1025:1025",
+	}
+
+	preUpgradeRollappEVMImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "pre-upgrade-non-state-breaking",
+		UidGid:     "1025:1025",
+	}
+
+	preUpgradeRollappWasmImage = ibc.DockerImage{
+		Repository: RollappWasmMainRepo,
+		Version:    "9a4756e0",
 		UidGid:     "1025:1025",
 	}
 
@@ -173,12 +187,56 @@ var (
 			Key:   "app_state.erc20.params.enable_evm_hook",
 			Value: false,
 		},
+		// Bank denom metadata
 		{
-			Key: "app_state.hubgenesis.state.genesis_tokens",
+			Key: "app_state.bank.denom_metadata",
 			Value: []interface{}{
 				map[string]interface{}{
-					"denom":  "urax",
-					"amount": dymension.GenesisEventAmount.String(),
+					"base": "urax",
+					"denom_units": []interface{}{
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "urax",
+							"exponent": "0",
+						},
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "rax",
+							"exponent": "18",
+						},
+					},
+					"description": "Denom metadata for Rollapp EVM",
+					"display":     "rax",
+					"name":        "rax",
+					"symbol":      "rax",
+				},
+			},
+		},
+	}
+
+	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		// Bank denom metadata
+		{
+			Key: "app_state.bank.denom_metadata",
+			Value: []interface{}{
+				map[string]interface{}{
+					"base": "urax",
+					"denom_units": []interface{}{
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "urax",
+							"exponent": "0",
+						},
+						map[string]interface{}{
+							"aliases":  []interface{}{},
+							"denom":    "rax",
+							"exponent": "18",
+						},
+					},
+					"description": "Denom metadata for Rollapp Wasm",
+					"display":     "rax",
+					"name":        "rax",
+					"symbol":      "rax",
 				},
 			},
 		},
@@ -470,19 +528,19 @@ type rollappParam struct {
 	rollappID, channelID, userKey string
 }
 
-func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
-	ctx := context.Background()
-	for i, r := range rollapps {
-		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
-		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-		require.NoError(t, err)
-		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
-		err = testutil.WaitForBlocks(ctx, 20, dymension)
-		require.NoError(t, err)
-		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
-		require.NoError(t, err)
-	}
-}
+// func triggerHubGenesisEvent(t *testing.T, dymension *dym_hub.DymHub, rollapps ...rollappParam) {
+// 	ctx := context.Background()
+// 	for i, r := range rollapps {
+// 		keyDir := dymension.GetRollApps()[i].GetSequencerKeyDir()
+// 		sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+// 		require.NoError(t, err)
+// 		registerGenesisEventTriggerer(t, dymension.CosmosChain, r.userKey, sequencerAddr, "rollapp", "DeployerWhitelist")
+// 		err = testutil.WaitForBlocks(ctx, 20, dymension)
+// 		require.NoError(t, err)
+// 		err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", r.rollappID, r.channelID, keyDir)
+// 		require.NoError(t, err)
+// 	}
+// }
 
 func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
 	ctx := context.Background()

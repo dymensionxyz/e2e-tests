@@ -237,18 +237,18 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for rollapp1
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1Param := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	// rollapp2Param := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	multiplier := math.NewInt(10)
 
@@ -356,7 +356,7 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
@@ -378,7 +378,7 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -516,18 +516,18 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	require.NotEmpty(t, channDymRollApp2.ChannelID)
 
 	// Trigger genesis event for rollapp1
-	rollapp1Param := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channDymRollApp1.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
+	// rollapp1Param := rollappParam{
+	// 	rollappID: rollapp1.Config().ChainID,
+	// 	channelID: channDymRollApp1.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
 
-	rollapp2Param := rollappParam{
-		rollappID: rollapp2.Config().ChainID,
-		channelID: channDymRollApp2.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
+	// rollapp2Param := rollappParam{
+	// 	rollappID: rollapp2.Config().ChainID,
+	// 	channelID: channDymRollApp2.ChannelID,
+	// 	userKey:   dymensionUser.KeyName(),
+	// }
+	// triggerHubGenesisEvent(t, dymension, rollapp1Param, rollapp2Param)
 
 	multiplier := math.NewInt(10)
 

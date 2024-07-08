@@ -140,21 +140,41 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
+	rollappDymChannel, err := ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	require.NoError(t, err)
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
 	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymChannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -178,7 +198,7 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
@@ -338,14 +358,31 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("channel: ", channel1)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel0.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
+	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel0.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -485,21 +522,41 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
+	rollappDymchannel, err := ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	require.NoError(t, err)
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
 	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymchannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -523,7 +580,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
@@ -545,12 +602,13 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	modifyGenesisKV := []cosmos.GenesisKV{
-		{
+	modifyGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
 			Key:   "app_state.transfer.params.receive_enabled",
 			Value: false,
 		},
-	}
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -652,21 +710,40 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
+	rollappDymChannel, err := ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
+	require.NoError(t, err)
+
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymChannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -691,7 +768,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
@@ -738,7 +815,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -851,14 +928,31 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("channel: ", channel1)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel0.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
+	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel0.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -920,7 +1014,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1002,18 +1096,34 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	rollapp := rollappParam{
-		rollappID: rollapp1.Config().ChainID,
-		channelID: channel.ChannelID,
-		userKey:   dymensionUser.KeyName(),
-	}
-	triggerHubGenesisEvent(t, dymension, rollapp)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
 
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -1037,6 +1147,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }

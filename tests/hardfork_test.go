@@ -38,6 +38,14 @@ func TestHardFork_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -47,16 +55,10 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp-dym",
-				Name:    "rollapp-temp",
-				ChainID: "rollappevm_1234-1",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp-evm",
-						Version:    "hardfork",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -75,16 +77,10 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "hub-dym",
-				Name:    "dymension",
-				ChainID: "dymension_100-1",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/dymensionxyz/dymension",
-						Version:    "02748502",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -94,7 +90,7 @@ func TestHardFork_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -143,19 +139,6 @@ func TestHardFork_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// Start relayer
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -193,12 +176,50 @@ func TestHardFork_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// Start relayer
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
-	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
 	dymToRollappIbcDenom := GetIBCDenom(channsRollApp1Dym.PortID, channsRollApp1Dym.ChannelID, dymension.Config().Denom)
 
 	// Get origin rollapp1 denom balance
@@ -234,7 +255,7 @@ func TestHardFork_EVM(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	// IBC Transfer working between rollapp1 <-> Dymension
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
@@ -242,10 +263,7 @@ func TestHardFork_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
-	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
-	require.NoError(t, err)
-
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -287,7 +305,7 @@ func TestHardFork_EVM(t *testing.T) {
 	deposit := "500000000000" + dymension.Config().Denom
 
 	// Get new height after frozen
-	rollappHeight, err := rollapp1.Height(ctx)
+	rollappHeight, err = rollapp1.Height(ctx)
 	require.NoError(t, err)
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
@@ -361,16 +379,10 @@ func TestHardFork_EVM(t *testing.T) {
 		{
 			Name: "new_rollapp",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp-dym",
-				Name:    "rollapp-temp2",
-				ChainID: "rollappevm_1234-2",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp-evm",
-						Version:    "hardfork",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappevm_1234-2",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -425,6 +437,27 @@ func TestHardFork_EVM(t *testing.T) {
 	require.NoError(t, err)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
 
+	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsNewRollApp, 2)
+
+	channDymNewRollApp := channsNewRollApp[1].Counterparty
+	require.NotEmpty(t, channDymNewRollApp.ChannelID)
+
+	channsNewRollAppDym := channsNewRollApp[1]
+	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
+
+	// Create user account on new roll app
+	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
+
+	// Get our Bech32 encoded user addresses
+	newRollAppUser := users[0]
+	newRollAppUserAddr := newRollAppUser.FormattedAddress()
+	// Get original account balance
+	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, newRollAppOrigBal)
+
 	// Start relayer
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
@@ -438,33 +471,37 @@ func TestHardFork_EVM(t *testing.T) {
 		},
 	)
 
-	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	err = testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	require.NoError(t, err)
-	require.Len(t, channsNewRollApp, 2)
 
-	channDymNewRollApp := channsNewRollApp[1].Counterparty
-	require.NotEmpty(t, channDymNewRollApp.ChannelID)
-
-	channsNewRollAppDym := channsNewRollApp[1]
-	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
-
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	// Send a normal ibc tx from RA -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   newRollApp.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Get the IBC denom
-	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
-
-	// Create user account on new roll app
-	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
-
-	// Get our Bech32 encoded user addresses
-	newRollAppUser := users[0]
-	newRollAppUserAddr := newRollAppUser.FormattedAddress()
-	// Get original account balance
-	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, newRollAppOrigBal)
 
 	// IBC Transfer working between Dymension <-> new roll app
 	transferDataFromDym = ibc.WalletData{
@@ -497,11 +534,11 @@ func TestHardFork_EVM(t *testing.T) {
 	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferDataFromNewRollApp, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	newRollAppHeight, err = newRollApp.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -509,7 +546,7 @@ func TestHardFork_EVM(t *testing.T) {
 	bridgeFee := transferAmount.Quo(multiplier)
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgeFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
 }
 
 func TestHardFork_Wasm(t *testing.T) {
@@ -526,6 +563,15 @@ func TestHardFork_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
+
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+	)
+
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
 	// Create chain factory with dymension
@@ -550,7 +596,7 @@ func TestHardFork_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -572,7 +618,7 @@ func TestHardFork_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -621,19 +667,6 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// Start relayer
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -671,12 +704,50 @@ func TestHardFork_Wasm(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// Start relayer
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
-	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
 	dymToRollappIbcDenom := GetIBCDenom(channsRollApp1Dym.PortID, channsRollApp1Dym.ChannelID, dymension.Config().Denom)
 
 	// Get origin rollapp1 denom balance
@@ -712,7 +783,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	// IBC Transfer working between rollapp1 <-> Dymension
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
@@ -720,10 +791,7 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
-	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
-	require.NoError(t, err)
-
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -765,7 +833,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	deposit := "500000000000" + dymension.Config().Denom
 
 	// Get new height after frozen
-	rollappHeight, err := rollapp1.Height(ctx)
+	rollappHeight, err = rollapp1.Height(ctx)
 	require.NoError(t, err)
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
@@ -852,7 +920,7 @@ func TestHardFork_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -897,6 +965,27 @@ func TestHardFork_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
 
+	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsNewRollApp, 2)
+
+	channDymNewRollApp := channsNewRollApp[1].Counterparty
+	require.NotEmpty(t, channDymNewRollApp.ChannelID)
+
+	channsNewRollAppDym := channsNewRollApp[1]
+	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
+
+	// Create user account on new roll app
+	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
+
+	// Get our Bech32 encoded user addresses
+	newRollAppUser := users[0]
+	newRollAppUserAddr := newRollAppUser.FormattedAddress()
+	// Get original account balance
+	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, newRollAppOrigBal)
+
 	// Start relayer
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
@@ -910,33 +999,36 @@ func TestHardFork_Wasm(t *testing.T) {
 		},
 	)
 
-	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	err = testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	require.NoError(t, err)
-	require.Len(t, channsNewRollApp, 2)
 
-	channDymNewRollApp := channsNewRollApp[1].Counterparty
-	require.NotEmpty(t, channDymNewRollApp.ChannelID)
-
-	channsNewRollAppDym := channsNewRollApp[1]
-	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
-
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
+	// Send a normal ibc tx from RA -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   newRollApp.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// Get the IBC denom
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
+
+	// Get the IBC denom
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
-
-	// Create user account on new roll app
-	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
-
-	// Get our Bech32 encoded user addresses
-	newRollAppUser := users[0]
-	newRollAppUserAddr := newRollAppUser.FormattedAddress()
-	// Get original account balance
-	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, newRollAppOrigBal)
 
 	// IBC Transfer working between Dymension <-> new roll app
 	transferDataFromDym = ibc.WalletData{
@@ -969,11 +1061,11 @@ func TestHardFork_Wasm(t *testing.T) {
 	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferDataFromNewRollApp, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	newRollAppHeight, err = newRollApp.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -981,7 +1073,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	bridgeFee := transferAmount.Quo(multiplier)
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgeFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
 }
 
 func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
@@ -1020,16 +1112,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp-dym",
-				Name:    "rollapp-temp",
-				ChainID: "rollappevm_1234-1",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp-evm",
-						Version:    "hardfork",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -1048,16 +1134,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "hub-dym",
-				Name:    "dymension",
-				ChainID: "dymension_100-1",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/dymensionxyz/dymension",
-						Version:    "02748502",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
 				Bin:                 "dymd",
 				Bech32Prefix:        "dym",
 				Denom:               "adym",
@@ -1116,19 +1196,6 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// Start relayer
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err = r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -1166,12 +1233,50 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	channsRollApp1Dym := channsRollApp1[0]
 	require.NotEmpty(t, channsRollApp1Dym.ChannelID)
 
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", rollapp1.Config().ChainID, channDymRollApp1.ChannelID, dymension.GetRollApps()[0].GetSequencerKeyDir())
+	// Start relayer
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+
+	t.Cleanup(
+		func() {
+			err = r.StopRelayer(ctx, eRep)
+			if err != nil {
+				t.Logf("an error occurred while stopping the relayer: %s", err)
+			}
+		},
+	)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Confirm previous ibc transfers were successful (dymension -> rollapp1)
 	// Get the IBC denom
-	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
 	dymToRollappIbcDenom := GetIBCDenom(channsRollApp1Dym.PortID, channsRollApp1Dym.ChannelID, dymension.Config().Denom)
 
 	// Get origin rollapp1 denom balance
@@ -1207,7 +1312,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	// IBC Transfer working between rollapp1 <-> Dymension
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
@@ -1215,10 +1320,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
-	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
-	require.NoError(t, err)
-
-	require.Equal(t, true, dymUserRollapp1bal.Equal(zeroBal), "dym hub balance changed")
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -1260,7 +1362,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	deposit := "500000000000" + dymension.Config().Denom
 
 	// Get new height after frozen
-	rollappHeight, err := rollapp1.Height(ctx)
+	rollappHeight, err = rollapp1.Height(ctx)
 	require.NoError(t, err)
 
 	fraudHeight := fmt.Sprint(rollappHeight - 5)
@@ -1334,16 +1436,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		{
 			Name: "new_rollapp",
 			ChainConfig: ibc.ChainConfig{
-				Type:    "rollapp-dym",
-				Name:    "rollapp-temp2",
-				ChainID: "rollappevm_1234-2",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/rollapp-evm",
-						Version:    "hardfork",
-						UidGid:     "1025:1025",
-					},
-				},
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp2",
+				ChainID:             "rollappevm_1234-2",
+				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
 				Denom:               "urax",
@@ -1399,6 +1495,27 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, newRollApp.CosmosChain, anotherIbcPath)
 
+	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsNewRollApp, 2)
+
+	channDymNewRollApp := channsNewRollApp[1].Counterparty
+	require.NotEmpty(t, channDymNewRollApp.ChannelID)
+
+	channsNewRollAppDym := channsNewRollApp[1]
+	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
+
+	// Create user account on new roll app
+	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
+
+	// Get our Bech32 encoded user addresses
+	newRollAppUser := users[0]
+	newRollAppUserAddr := newRollAppUser.FormattedAddress()
+	// Get original account balance
+	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, walletAmount, newRollAppOrigBal)
+
 	// Start relayer
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
@@ -1412,15 +1529,34 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		},
 	)
 
-	channsNewRollApp, err := r2.GetChannels(ctx, eRep, newRollApp.GetChainID())
+	err = testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	require.NoError(t, err)
-	require.Len(t, channsNewRollApp, 2)
 
-	channDymNewRollApp := channsNewRollApp[1].Counterparty
-	require.NotEmpty(t, channDymNewRollApp.ChannelID)
+	// Send a normal ibc tx from RA -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   newRollApp.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	channsNewRollAppDym := channsNewRollApp[1]
-	require.NotEmpty(t, channsNewRollAppDym.ChannelID)
+	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// Get the IBC denom for urax on Hub
+	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// check client before submit update client proposal
 	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
@@ -1441,24 +1577,9 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
-	
-	err = dymension.GetNode().TriggerGenesisEvent(ctx, "sequencer", newRollApp.Config().ChainID, channDymNewRollApp.ChannelID, newRollApp.GetSequencerKeyDir())
-	require.NoError(t, err)
 
 	// Get the IBC denom
-	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
-
-	// Create user account on new roll app
-	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, newRollApp)
-
-	// Get our Bech32 encoded user addresses
-	newRollAppUser := users[0]
-	newRollAppUserAddr := newRollAppUser.FormattedAddress()
-	// Get original account balance
-	newRollAppOrigBal, err := newRollApp.GetBalance(ctx, newRollAppUserAddr, newRollApp.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, walletAmount, newRollAppOrigBal)
 
 	// IBC Transfer working between Dymension <-> new roll app
 	transferDataFromDym = ibc.WalletData{
@@ -1491,11 +1612,11 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	_, err = newRollApp.SendIBCTransfer(ctx, channsNewRollAppDym.ChannelID, newRollAppUserAddr, transferDataFromNewRollApp, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	newRollAppHeight, err := newRollApp.GetNode().Height(ctx)
+	newRollAppHeight, err = newRollApp.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, newRollApp.GetChainID(), newRollAppHeight, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1503,5 +1624,5 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	bridgeFee := transferAmount.Quo(multiplier)
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgeFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
 }
