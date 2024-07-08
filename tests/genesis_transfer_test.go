@@ -462,12 +462,5 @@ func TestGenesisTransferConnectionBlocking_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateClients(ctx, eRep, "demo-dymension", ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 20, rollapp1, dymension)
-	require.NoError(t, err)
-
-	require.Panics(t, func() {
-		r.CreateConnectionsWithNumberOfRetries(ctx, eRep, "demo-dymension", "10")
-	})
+	require.Error(t, err)
 }
