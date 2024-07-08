@@ -14,6 +14,9 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-ADMC-hub-to-RA-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
+
 e2e-test-ibc-transfer-reserved-word-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestGenesisIBCTransferReservedMemo_EVM .
 
