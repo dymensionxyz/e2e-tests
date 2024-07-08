@@ -19,7 +19,7 @@ import (
 )
 
 // TestGenesisTransfer_EVM
-func TestGenesisTransfer_EVM(t *testing.T) {
+func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -167,7 +167,7 @@ func TestGenesisTransfer_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
-func TestGenesisTransfer_Wasm(t *testing.T) {
+func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
