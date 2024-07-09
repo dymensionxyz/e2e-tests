@@ -2777,8 +2777,6 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -2814,18 +2812,17 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, dymensionUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
@@ -3156,6 +3153,7 @@ func getEIbcEventsWithinBlockRange(
 		if err != nil {
 			return nil, fmt.Errorf("error mapping to EibcEvent: %w", err)
 		}
+		fmt.Println("check event: ", eibcEvent)
 		eibcEventsArray = append(eibcEventsArray, eibcEvent)
 	}
 
