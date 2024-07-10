@@ -176,8 +176,8 @@ e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
 
-e2e-test-admc-issue-297-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestADMC_Issue297_EVM .
+e2e-test-admc-originates-hub-to-rollapp-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Originates_HubtoRA_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
@@ -308,8 +308,8 @@ e2e-test-rollapp-hardfork-wasm: clean-e2e
 e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestGenesisTransferBridgeBlocking_Wasm .
 
-e2e-test-admc-issue-297-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestADMC_Issue297_Wasm .
+e2e-test-admc-originates-hub-to-rollapp-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Originates_HubtoRA_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \

@@ -18,7 +18,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-func TestADMC_Issue297_EVM(t *testing.T) {
+func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -183,7 +183,7 @@ func TestADMC_Issue297_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
 }
 
-func TestADMC_Issue297_Wasm(t *testing.T) {
+func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
