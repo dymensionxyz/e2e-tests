@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"encoding/json"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
@@ -17,8 +16,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 func TestADMC_Issue297_EVM(t *testing.T) {
@@ -134,37 +131,13 @@ func TestADMC_Issue297_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	denomMetadata := banktypes.Metadata{
-		Description: "Denom of the rollapp",
-		Base:        "urax",
-		Display:     "RAX",
-		Name:        "RAX",
-		Symbol:      "urax",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "urax",
-				Exponent: 0,
-			}, {
-				Denom:    "RAX",
-				Exponent: 18,
-			},
-		},
-	}
-
-	memoData :=  &memoData{
-		MemoData: denommetadatatypes.MemoData{
-			DenomMetadata: &denomMetadata,
-		},
-	}
-
-	memo := mustMarshalJSON(memoData)
  	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{Memo: memo})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -201,23 +174,11 @@ func TestADMC_Issue297_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
+	
+	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, "urax", resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
-}
-
-type memoData struct {
-	denommetadatatypes.MemoData
-	User *userData `json:"user,omitempty"`
-}
-
-type userData struct {
-	Data string `json:"data"`
-}
-
-func mustMarshalJSON(v any) string {
-	bz, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return string(bz)
 }

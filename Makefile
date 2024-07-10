@@ -176,8 +176,8 @@ e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
 
-e2e-test-admc-hub-issue-297-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestADMC_Pr297_EVM .
+e2e-test-admc-issue-297-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Issue297_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
