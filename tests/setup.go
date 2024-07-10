@@ -181,7 +181,7 @@ var (
 		},
 		{
 			Key:   "app_state.erc20.params.enable_erc20",
-			Value: false,
+			Value: true,
 		},
 		{
 			Key:   "app_state.erc20.params.enable_evm_hook",
