@@ -320,8 +320,13 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channsRollApp1[0].Counterparty.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{
 		Memo: `{"transferinject":{}}`,
 	})
-	fmt.Println(err)
-	require.Error(t, err)
+	// check for ack err later
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	// with the use of the reserved word in the memo, the transfer should be rejected
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
