@@ -16,6 +16,9 @@ e2e-test-ibc-success-evm: clean-e2e
 
 e2e-test-ADMC-hub-to-RA-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
+
+e2e-test-ADMC-hub-to-RA-3rd-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_EVM .
 	
 e2e-test-bridge-fee-param-change-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestChangeBridgeFeeParam_EVM .
