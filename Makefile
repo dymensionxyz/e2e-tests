@@ -308,6 +308,9 @@ e2e-test-rollapp-hardfork-wasm: clean-e2e
 e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestGenesisTransferBridgeBlocking_Wasm .
 
+e2e-test-admc-issue-297-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Issue297_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
