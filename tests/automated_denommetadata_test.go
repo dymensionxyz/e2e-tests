@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -317,11 +318,20 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	}
 
 	// Second hop
-	_, err = dymension.SendIBCTransfer(ctx, channsRollApp1[0].Counterparty.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channsRollApp1[0].Counterparty.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{
 		Memo: `{"transferinject":{}}`,
 	})
-	// check for ack err later
 	require.NoError(t, err)
+
+	// catch ACK errors
+	rollapp1Height, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+	require.NoError(t, err)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
