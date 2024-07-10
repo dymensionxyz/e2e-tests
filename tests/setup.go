@@ -91,8 +91,8 @@ var (
 	}
 
 	preUpgradeRollappEVMImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "pre-upgrade-non-state-breaking",
+		Repository: RollappEVMMainRepo,
+		Version:    "latest",
 		UidGid:     "1025:1025",
 	}
 

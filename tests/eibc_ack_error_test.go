@@ -307,7 +307,10 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.True(t, isFinalized)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+		require.NoError(t, err)
+		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 		//
 		// prop to disable ibc transfer on rollapp
@@ -1072,7 +1075,11 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
+		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+		require.NoError(t, err)
+		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, thirdPartyIBCDenomOnRA, transferData.Amount)
+
 		// end of preconditions
 
 		// prop to disable ibc transfer on rollapp

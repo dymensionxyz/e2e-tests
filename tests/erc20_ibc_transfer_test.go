@@ -186,6 +186,15 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
+
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.DemandOrders))
+
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -205,15 +214,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
-	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
-	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[0])
-
-	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
-	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
 
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
