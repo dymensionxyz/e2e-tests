@@ -234,13 +234,14 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-	balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
-	require.True(t, balance.Equal(walletAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
+	require.True(t, balance.Equal(walletAmount.Sub(transferAmount)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", walletAmount.Sub(transferAmount), balance))
 
 	t.Cleanup(
 		func() {

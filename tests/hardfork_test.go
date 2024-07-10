@@ -518,7 +518,10 @@ func TestHardFork_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub
@@ -1597,7 +1600,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub
