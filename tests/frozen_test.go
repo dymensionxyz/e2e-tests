@@ -1139,10 +1139,10 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollapp2IbcDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp2, erc20MAccAddr, dymToRollapp2IbcDenom, transferData.Amount)
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
