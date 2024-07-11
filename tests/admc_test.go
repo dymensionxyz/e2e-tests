@@ -354,6 +354,22 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
+
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.Add(transferData.Amount))
 }
 
 func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
@@ -886,6 +902,22 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
+
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount.Add(transferAmount))
 }
 
 func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
