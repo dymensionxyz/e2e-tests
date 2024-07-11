@@ -182,6 +182,9 @@ e2e-test-admc-originates-hub-to-rollapp-evm: clean-e2e
 e2e-test-admc-migrate-empty-user-memo-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Migrate_Empty_User_Memo_EVM .
 
+e2e-test-admc-migrate-with-user-memo-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Migrate_With_User_Memo_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -317,6 +320,9 @@ e2e-test-admc-originates-hub-to-rollapp-wasm: clean-e2e
 e2e-test-admc-migrate-empty-user-memo-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Migrate_Empty_User_Memo_Wasm .
 
+e2e-test-admc-migrate-with-user-memo-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Migrate_With_User_Memo_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
@@ -348,7 +354,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
-	e2e-test-admc-migrate-empty-user-memo-wasm \
+	e2e-test-admc-migrate-empty-user-memo-evm \
+	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -378,7 +385,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm \
 	e2e-test-rollapp-hardfork-wasm \ 
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm \
-	e2e-test-admc-migrate-empty-user-memo-wasm
+	e2e-test-admc-migrate-empty-user-memo-wasm \
+	e2e-test-admc-migrate-with-user-memo-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -412,7 +420,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
-	e2e-test-admc-migrate-empty-user-memo-wasm \
+	e2e-test-admc-migrate-empty-user-memo-evm \
+	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -442,7 +451,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-upgrade-non-state-breaking-wasm \
 	e2e-test-rollapp-hardfork-wasm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm \
-	e2e-test-admc-migrate-empty-user-memo-wasm
+	e2e-test-admc-migrate-empty-user-memo-wasm \
+	e2e-test-admc-migrate-with-user-memo-wasm
 
 ###############################################################################
 ###                              E2E live tests                             ###

@@ -20,11 +20,11 @@ import (
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
+	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
-	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 var rollappDenomMetadata = banktypes.Metadata{
