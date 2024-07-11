@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
@@ -17,7 +16,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
@@ -515,30 +513,30 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	denomMetadata := banktypes.Metadata{
-		Description: "Denom of the Hub",
-		Base:        "adym",
-		Display:     "dym",
-		Name:        "dym",
-		Symbol:      "adym",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "adym",
-				Exponent: 0,
-			}, {
-				Denom:    "dym",
-				Exponent: 18,
-			},
-		},
-	}
+	// denomMetadata := banktypes.Metadata{
+	// 	Description: "Denom of the Hub",
+	// 	Base:        "adym",
+	// 	Display:     "dym",
+	// 	Name:        "dym",
+	// 	Symbol:      "adym",
+	// 	DenomUnits: []*banktypes.DenomUnit{
+	// 		{
+	// 			Denom:    "adym",
+	// 			Exponent: 0,
+	// 		}, {
+	// 			Denom:    "dym",
+	// 			Exponent: 18,
+	// 		},
+	// 	},
+	// }
 	userData := userData{
 		Data: "some user data",
 	}
 
 	memoData := &memoData{
-		MemoData: denommetadatatypes.MemoData{
-			DenomMetadata: &denomMetadata,
-		},
+		// MemoData: denommetadatatypes.MemoData{
+		// 	DenomMetadata: &denomMetadata,
+		// },
 		User: &userData,
 	}
 
@@ -569,6 +567,22 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Memo: memo})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.Add(transferAmount))
 }
 
 func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
@@ -1060,30 +1074,30 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	denomMetadata := banktypes.Metadata{
-		Description: "Denom of the Hub",
-		Base:        "adym",
-		Display:     "dym",
-		Name:        "dym",
-		Symbol:      "adym",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "adym",
-				Exponent: 0,
-			}, {
-				Denom:    "dym",
-				Exponent: 18,
-			},
-		},
-	}
+	// denomMetadata := banktypes.Metadata{
+	// 	Description: "Denom of the Hub",
+	// 	Base:        "adym",
+	// 	Display:     "dym",
+	// 	Name:        "dym",
+	// 	Symbol:      "adym",
+	// 	DenomUnits: []*banktypes.DenomUnit{
+	// 		{
+	// 			Denom:    "adym",
+	// 			Exponent: 0,
+	// 		}, {
+	// 			Denom:    "dym",
+	// 			Exponent: 18,
+	// 		},
+	// 	},
+	// }
 	userData := userData{
 		Data: "some user data",
 	}
 
 	memoData := &memoData{
-		MemoData: denommetadatatypes.MemoData{
-			DenomMetadata: &denomMetadata,
-		},
+		// MemoData: denommetadatatypes.MemoData{
+		// 	DenomMetadata: &denomMetadata,
+		// },
 		User: &userData,
 	}
 
@@ -1097,10 +1111,6 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Memo: memo})
-	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
@@ -1118,4 +1128,20 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Memo: memo})
+	require.NoError(t, err)
+
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
+
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount.Add(transferAmount))
+
 }
