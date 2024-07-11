@@ -663,7 +663,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount.Sub(bridgingFee),
+		Amount:  transferAmount,
 	}
 
 	// Compose an IBC transfer and send from Hub -> rollapp
