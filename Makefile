@@ -179,6 +179,9 @@ e2e-test-non-rollapp-unaffected-evm: clean-e2e
 e2e-test-admc-originates-hub-to-rollapp-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Originates_HubtoRA_EVM .
 
+e2e-test-admc-user-memo-too-large-hub-to-rollapp-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_UserMemoTooLarge_HubtoRA_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -342,6 +345,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
+	e2e-test-admc-user-memo-too-large-hub-to-rollapp-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -404,6 +408,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
+	e2e-test-admc-user-memo-too-large-hub-to-rollapp-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
