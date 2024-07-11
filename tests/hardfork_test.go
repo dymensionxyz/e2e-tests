@@ -240,10 +240,10 @@ func TestHardFork_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferData.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -518,7 +518,10 @@ func TestHardFork_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub
@@ -1297,10 +1300,11 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferData.Amount)
 
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -1596,7 +1600,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub
