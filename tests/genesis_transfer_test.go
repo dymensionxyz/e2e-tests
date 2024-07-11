@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
@@ -159,7 +160,7 @@ func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-	
+
 	// after a while, refund token
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
@@ -308,7 +309,7 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-	
+
 	// after a while, refund token
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
@@ -462,5 +463,31 @@ func TestGenesisTransferConnectionBlocking_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateClients(ctx, eRep, "demo-dymension", ibc.DefaultClientOpts())
-	require.Error(t, err)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 20, rollapp1, dymension)
+	require.NoError(t, err)
+
+	require.PanicsWithValue(t, "failed to create connection", func() {
+        panicsOnTimeout(20 * time.Minute, func() {
+			r.CreateConnectionsWithNumberOfRetries(ctx, eRep, "demo-dymension", "10")
+		})
+    }, "Did not panic due to timeout as expected")
+}
+
+func panicsOnTimeout(timeout time.Duration, f func()) {
+	done := make(chan bool)
+
+	go func() {
+		defer close(done)
+		f()
+	}()
+
+	select {
+	case <-done:
+		// Operation completed within the timeout
+	case <-time.After(timeout):
+		// Operation timed out
+		panic("operation timed out")
+	}
 }
