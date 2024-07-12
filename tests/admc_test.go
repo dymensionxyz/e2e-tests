@@ -513,30 +513,11 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// denomMetadata := banktypes.Metadata{
-	// 	Description: "Denom of the Hub",
-	// 	Base:        "adym",
-	// 	Display:     "dym",
-	// 	Name:        "dym",
-	// 	Symbol:      "adym",
-	// 	DenomUnits: []*banktypes.DenomUnit{
-	// 		{
-	// 			Denom:    "adym",
-	// 			Exponent: 0,
-	// 		}, {
-	// 			Denom:    "dym",
-	// 			Exponent: 18,
-	// 		},
-	// 	},
-	// }
 	userData := userData{
 		Data: "some user data",
 	}
 
 	memoData := &memoData{
-		// MemoData: denommetadatatypes.MemoData{
-		// 	DenomMetadata: &denomMetadata,
-		// },
 		User: &userData,
 	}
 
@@ -1073,31 +1054,11 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// denomMetadata := banktypes.Metadata{
-	// 	Description: "Denom of the Hub",
-	// 	Base:        "adym",
-	// 	Display:     "dym",
-	// 	Name:        "dym",
-	// 	Symbol:      "adym",
-	// 	DenomUnits: []*banktypes.DenomUnit{
-	// 		{
-	// 			Denom:    "adym",
-	// 			Exponent: 0,
-	// 		}, {
-	// 			Denom:    "dym",
-	// 			Exponent: 18,
-	// 		},
-	// 	},
-	// }
 	userData := userData{
 		Data: "some user data",
 	}
 
 	memoData := &memoData{
-		// MemoData: denommetadatatypes.MemoData{
-		// 	DenomMetadata: &denomMetadata,
-		// },
 		User: &userData,
 	}
 
