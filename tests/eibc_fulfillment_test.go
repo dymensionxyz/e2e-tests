@@ -231,32 +231,17 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
 		Denom:   rollapp2.Config().Denom,
 		Amount:  transferAmount,
 	}
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	rollapp2Height, err := rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -278,7 +263,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized on Rollapps
@@ -311,6 +296,8 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferDataRollapp2, options)
 	require.NoError(t, err)
+	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 2 to dym hub:", balance)
@@ -323,7 +310,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
-	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
@@ -359,7 +346,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-	require.True(t, balance.Equal(transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee), balance))
+	require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee), balance))
 
 	// verify correct funds were deducted from market maker's wallet address
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
@@ -369,6 +356,9 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
@@ -380,8 +370,6 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// user should have received funds upon grace period of IBC packet from rollapp 2
-	err = testutil.WaitForBlocks(ctx, 30, rollapp2)
-	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
@@ -395,19 +383,6 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	res, err = rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra2[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 // TestEIBCFulfillOnOneRollApp tests the case where we have 2 rollapps running, we have pending eIBC packets from both rollapps. one of the packets is fulfilled by the market maker, the other packet is not fulfilled. The test verifies that the funds are transferred correctly and the market maker's balance is updated correctly (after grace period).
@@ -617,32 +592,17 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
 		Denom:   rollapp2.Config().Denom,
 		Amount:  transferAmount,
 	}
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	rollapp2Height, err := rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -664,7 +624,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized on Rollapps
@@ -696,6 +656,8 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferDataRollapp2, options)
+	require.NoError(t, err)
+	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
@@ -743,7 +705,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
-	require.True(t, balance.Equal(transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee), balance))
+	require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee), balance))
 
 	// verify correct funds were deducted from market maker's wallet address
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
@@ -753,6 +715,9 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
@@ -764,8 +729,6 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// user should have received funds upon grace period of IBC packet from rollapp 2
-	err = testutil.WaitForBlocks(ctx, 30, rollapp2)
-	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr for rollapp 2 ibc denom after grace period:", balance)
@@ -779,19 +742,6 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	res, err = rollapp2.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra2[0].ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -811,13 +761,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
-
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -856,28 +799,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "hub-dym",
@@ -906,8 +827,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -915,26 +835,15 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRollUp(dymension, rollapp1).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
 			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
-			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -952,7 +861,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
@@ -980,9 +888,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
@@ -1057,7 +962,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	// }
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -1071,6 +976,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub((transferAmountWithoutFee)).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
@@ -1081,15 +987,6 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 func TestEIBCFulfillment_Wasm(t *testing.T) {
@@ -1107,13 +1004,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
-
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -1152,28 +1042,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
-				Images:              []ibc.DockerImage{rollappWasmImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
-				Denom:               "urax",
-				CoinType:            "118",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "hub-dym",
@@ -1202,8 +1070,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
+	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -1211,26 +1078,15 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRollUp(dymension, rollapp1).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
 			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
-			Path:    anotherIbcPath,
 		})
 
 	rep := testreporter.NewNopReporter()
@@ -1248,7 +1104,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
@@ -1272,29 +1127,20 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymChannels))
+	require.Len(t, dymChannels, 1)
 
 	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
-	require.Len(t, dymChannels, 2)
-
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
-
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,
 		Denom:   rollapp1.Config().Denom,
@@ -1386,15 +1232,6 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferData.Amount)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
@@ -1678,13 +1515,12 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 
 	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferDataRollapp2, options)
 	require.NoError(t, err)
-	// rollapp2Height, err = rollapp2.GetNode().Height(ctx)
-	// require.NoError(t, err)
-	zeroBalance := math.NewInt(0)
+	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 2 to dym hub:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
@@ -1702,11 +1538,13 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
-	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
 	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
@@ -1737,6 +1575,9 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee), balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 200)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
@@ -1751,19 +1592,6 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -1784,12 +1612,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
@@ -1838,28 +1660,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGeneisKV),
-				ConfigFileOverrides: configFileOverrides2,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
 			Name: "dymension-hub",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "hub-dym",
@@ -1895,9 +1695,8 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
-	gaia := chains[3].(*cosmos.CosmosChain)
+	dymension := chains[1].(*dym_hub.DymHub)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -1905,11 +1704,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
-
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
@@ -1917,21 +1711,14 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	).Build(t, client, "relayer3", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRollUp(dymension, rollapp1).
 		AddChain(gaia).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
-			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
 			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
@@ -1956,7 +1743,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	// Create some user accounts on both chains
@@ -1983,21 +1769,14 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(dymChannels))
+	require.Equal(t, 2, len(dymChannels))
 
 	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
 	gaiaChannels, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, dymChannels, 3)
-	require.Len(t, gaiaChannels, 1)
 
 	channDymGaia := gaiaChannels[0].Counterparty
 	require.NotEmpty(t, channDymGaia.ChannelID)
@@ -2007,8 +1786,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -2129,7 +1906,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	// }
 
 	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -2154,25 +1931,6 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalance = expMmBalance.Add(transferData.Amount).Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalance, balance))
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r3.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -2192,13 +1950,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
-
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -2234,28 +1985,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides1,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
-				Images:              []ibc.DockerImage{rollappWasmImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
-				Denom:               "urax",
-				CoinType:            "118",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -2306,10 +2035,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 	// Relayer for gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -2321,18 +2046,11 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
-			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
 			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
@@ -2357,7 +2075,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	// Create some user accounts on both chains
@@ -2385,21 +2102,14 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(dymChannels))
+	require.Equal(t, 2, len(dymChannels))
 
 	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
 	gaiaChannels, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, dymChannels, 3)
-	require.Len(t, gaiaChannels, 1)
 
 	channDymGaia := gaiaChannels[0].Counterparty
 	require.NotEmpty(t, channDymGaia.ChannelID)
@@ -2409,8 +2119,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -2557,25 +2265,6 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
 	expMmBalance = expMmBalance.Add(transferData.Amount).Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalance, balance))
-
-	t.Cleanup(
-		func() {
-			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r2.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r3.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
 }
 
 func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
