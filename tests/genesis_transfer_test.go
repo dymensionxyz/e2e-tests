@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
@@ -468,26 +467,11 @@ func TestGenesisTransferConnectionBlocking_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 20, rollapp1, dymension)
 	require.NoError(t, err)
 
-	require.PanicsWithValue(t, "failed to create connection", func() {
-        panicsOnTimeout(20 * time.Minute, func() {
-			r.CreateConnectionsWithNumberOfRetries(ctx, eRep, "demo-dymension", "10")
-		})
-    }, "Did not panic due to timeout as expected")
-}
+	err = r.CreateConnectionsWithNumberOfRetries(ctx, eRep, "demo-dymension", "3")
+	require.NoError(t, err)
 
-func panicsOnTimeout(timeout time.Duration, f func()) {
-	done := make(chan bool)
-
-	go func() {
-		defer close(done)
-		f()
-	}()
-
-	select {
-	case <-done:
-		// Operation completed within the timeout
-	case <-time.After(timeout):
-		// Operation timed out
-		panic("operation timed out")
-	}
+	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(connections))
+	require.Equal(t, "connection-0", connections[0].ID)
 }
