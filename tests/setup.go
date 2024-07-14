@@ -18,12 +18,48 @@ import (
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
+	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
+
+var rollappDenomMetadata = banktypes.Metadata{
+	Description: "Denom of the rollapp",
+	Base:        "urax",
+	Display:     "RAX",
+	Name:        "RAX",
+	Symbol:      "urax",
+	DenomUnits: []*banktypes.DenomUnit{
+		{
+			Denom:    "urax",
+			Exponent: 0,
+		}, {
+			Denom:    "RAX",
+			Exponent: 18,
+		},
+	},
+}
+
+type memoData struct {
+	denommetadatatypes.MemoData
+	User *userData `json:"user,omitempty"`
+}
+
+type userData struct {
+	Data string `json:"data"`
+}
+
+func MustMarshalJSON(v any) string {
+	bz, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
+}
 
 type PacketMetadata struct {
 	Forward *ForwardMetadata `json:"forward"`
@@ -91,14 +127,14 @@ var (
 	}
 
 	preUpgradeRollappEVMImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "pre-upgrade-non-state-breaking",
+		Repository: RollappEVMMainRepo,
+		Version:    "latest",
 		UidGid:     "1025:1025",
 	}
 
 	preUpgradeRollappWasmImage = ibc.DockerImage{
 		Repository: RollappWasmMainRepo,
-		Version:    "9a4756e0",
+		Version:    "a00a8c6d",
 		UidGid:     "1025:1025",
 	}
 
@@ -181,7 +217,7 @@ var (
 		},
 		{
 			Key:   "app_state.erc20.params.enable_erc20",
-			Value: false,
+			Value: true,
 		},
 		{
 			Key:   "app_state.erc20.params.enable_evm_hook",

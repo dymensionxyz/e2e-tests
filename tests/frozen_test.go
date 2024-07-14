@@ -1127,9 +1127,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	dymUserOriginBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp2IbcDenom)
 	require.NoError(t, err)
 
-	rollapp2UserOriginBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
-	require.NoError(t, err)
-
 	// IBC Transfer working between Dymension <-> rollapp2
 	transferData = ibc.WalletData{
 		Address: rollapp2UserAddr,
@@ -1142,10 +1139,10 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 
-	rollapp2UserUpdateBal, err := rollapp2.GetBalance(ctx, rollapp2UserAddr, dymToRollapp2IbcDenom)
+	erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp2UserUpdateBal.Sub(transferAmount).Equal(rollapp2UserOriginBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp2, erc20MAccAddr, dymToRollapp2IbcDenom, transferData.Amount)
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1799,10 +1796,10 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollapp1IbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount.Quo(math.NewInt(4))).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollapp1IbcDenom, transferDataFromDym.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -3199,10 +3196,10 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollapp1IbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount.Quo(math.NewInt(4))).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollapp1IbcDenom, transferDataFromDym.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -3941,10 +3938,10 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferDataFromDym.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -4583,10 +4580,10 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferDataFromDym.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
