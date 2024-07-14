@@ -317,7 +317,7 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 }
 
-func TestGenesisTransferConnectionBlocking_EVM(t *testing.T) {
+func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -476,7 +476,7 @@ func TestGenesisTransferConnectionBlocking_EVM(t *testing.T) {
 	require.Equal(t, "connection-0", connections[0].ID)
 }
 
-func TestGenesisTransferConnectionBlocking_Wasm(t *testing.T) {
+func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
