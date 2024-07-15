@@ -330,6 +330,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
+	var demand_order_id string
 	var fulfill_demand_order = false
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
@@ -338,6 +339,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 			fmt.Println("EIBC Event:", eibcEvent)
 			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
+			demand_order_id = eibcEvent.ID
 			fmt.Println(txhash)
 			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			// if eibcEvent != nil {
@@ -350,7 +352,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.Equal(t, true, fulfill_demand_order)
 
 	// attempt to update the fee amount required by demand order that has already been fulfilled
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].ID, dymensionUserAddr, eibcFee.MulRaw(2))
+	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.Error(t, err)
 	fmt.Println("err fulfilling already fulfilled demand order:", err)
 
