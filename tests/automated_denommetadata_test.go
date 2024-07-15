@@ -326,7 +326,7 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, secondHopIBCDenom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, secondHopIBCDenom, zeroBal)
 
 	t.Cleanup(
 		func() {

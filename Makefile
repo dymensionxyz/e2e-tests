@@ -186,6 +186,12 @@ e2e-test-non-rollapp-unaffected-evm: clean-e2e
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
 
+e2e-test-ADMC-hub-to-RA-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_Wasm .
+
+e2e-test-ADMC-hub-to-RA-3rd-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_Wasm .
+
 e2e-test-ibc-transfer-reserved-word-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestGenesisIBCTransferReservedMemo_Wasm .
 
