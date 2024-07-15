@@ -1212,7 +1212,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	// transfer should be successful
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
 	require.NoError(t, err)
-	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
+	require.True(t, balance.Equal(bigTransferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
 
 	t.Cleanup(
 		func() {
