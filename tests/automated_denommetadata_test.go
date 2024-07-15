@@ -318,24 +318,9 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 
 	// Second hop
 	_, err = dymension.SendIBCTransfer(ctx, channsRollApp1[0].Counterparty.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{
-		Memo: `{"transferinject":{}}`,
+		Memo: `{"denom_metadata":{}}`,
 	})
-	require.NoError(t, err)
-
-	// catch ACK errors
-	// rollapp1Height, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+80, ibcTx.Packet)
-	// require.NoError(t, err)
-
-	// // Make sure that the ack contains error
-	// require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	require.Error(t, err)
 
 	// with the use of the reserved word in the memo, the transfer should be rejected
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
@@ -561,11 +546,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, gaia.Config().Denom, walletAmount)
-
-	// multiplier := math.NewInt(10)
-
-	// eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
-	// transferAmountWithoutFee := transferAmount.Sub(eibcFee)
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
