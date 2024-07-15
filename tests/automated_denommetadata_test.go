@@ -43,13 +43,6 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -104,24 +97,8 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -371,13 +348,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -432,24 +402,8 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -695,7 +649,7 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
+	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	// Create chain factory with dymension
@@ -716,7 +670,7 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -738,7 +692,7 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -751,24 +705,8 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -1015,7 +953,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "rollappwasm_12345-1"
 	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
+	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
 	// Create chain factory with dymension
@@ -1036,7 +974,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -1058,7 +996,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
@@ -1071,24 +1009,8 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
