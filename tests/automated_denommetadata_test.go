@@ -384,10 +384,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, zeroBal)
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, walletAmount)
 
 	// Rollapp record on the hub updated with new token metadata (”adym”)
 	_, err = dymension.Validators[0].QueryDenomMetadata(ctx, "adym")
