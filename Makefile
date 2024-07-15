@@ -186,6 +186,9 @@ e2e-test-admc-originates-hub-to-rollapp-evm: clean-e2e
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
 
+e2e-hub-to-RA-migrate-dym-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_Migrate_Dym_Wasm .
+
 e2e-test-ibc-transfer-reserved-word-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestGenesisIBCTransferReservedMemo_Wasm .
 
