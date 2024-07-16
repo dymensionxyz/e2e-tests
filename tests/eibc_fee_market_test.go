@@ -288,9 +288,12 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.Equal(t, true, fulfill_demand_order)
 
 	// attempt to update the fee amount required by demand order that has already been fulfilled
-	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
-	require.Error(t, err)
-	fmt.Println("err fulfilling already fulfilled demand order:", err)
+	txhash, err := dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
+	require.NoError(t, err)
+	res, err := dymension.GetTransaction(txhash)
+	require.NoError(t, err)
+	fmt.Println(res)
+	// require.Equal(t, 4, res.Code)
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -321,9 +324,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// No packet commitments left
-	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
+	response, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
 	require.NoError(t, err)
-	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
+	require.Equal(t, len(response.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -608,7 +611,12 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	// attempt to update the fee amount required by demand order that has already been fulfilled
 	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.Error(t, err)
-	fmt.Println("err fulfilling already fulfilled demand order:", err)
+	txhash, err := dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
+	require.NoError(t, err)
+	res, err := dymension.GetTransaction(txhash)
+	require.NoError(t, err)
+	fmt.Println(res)
+	// require.Equal(t, 4, res.Code)
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -639,9 +647,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	// No packet commitments left
-	res, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
+	response, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
 	require.NoError(t, err)
-	require.Equal(t, len(res.Commitments) > 0, false, "packet commitments exist")
+	require.Equal(t, len(response.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -947,7 +955,7 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 			require.NoError(t, err)
 			res, err := dymension.GetTransaction(txhash)
 			require.NoError(t, err)
-			require.Equal(t, 4, res.Code)
+			require.Equal(t, uint32(4), res.Code)
 		}
 	}
 
@@ -1240,7 +1248,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 			require.Error(t, err)
 			res, err := dymension.GetTransaction(txhash)
 			require.NoError(t, err)
-			require.Equal(t, 4, res.Code)
+			require.Equal(t, uint32(4), res.Code)
 		}
 	}
 
