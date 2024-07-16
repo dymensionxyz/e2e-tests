@@ -883,7 +883,6 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-
 	transferDataRollapp1 := ibc.WalletData{
 		Address: marketMakerAddr,
 		Denom:   rollapp1.Config().Denom,
@@ -938,7 +937,6 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	// 	fmt.Println(i, "EIBC Event:", eibcEvent)
 	// }
 
-	var demand_order_updated = false
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
@@ -946,12 +944,13 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 			fmt.Println("EIBC Event:", eibcEvent)
 			// attempt to update the fee amount required by demand order with an unallowed signer
 			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee.MulRaw(2))
-			require.Error(t, err)
-			fmt.Println("error from unallowed signer:", txhash, err)
+			require.NoError(t, err)
+			res, err := dymension.GetTransaction(txhash)
+			require.NoError(t, err)
+			require.Equal(t, 4, res.Code)
 		}
 	}
 
-	require.Equal(t, false, demand_order_updated)
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
@@ -1231,7 +1230,6 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	// 	fmt.Println(i, "EIBC Event:", eibcEvent)
 	// }
 
-	var demand_order_updated = false
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
@@ -1240,11 +1238,12 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 			// attempt to update the fee amount required by demand order with an unallowed signer
 			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee.MulRaw(2))
 			require.Error(t, err)
-			fmt.Println("error from unallowed signer:", txhash, err)
+			res, err := dymension.GetTransaction(txhash)
+			require.NoError(t, err)
+			require.Equal(t, 4, res.Code)
 		}
 	}
 
-	require.Equal(t, false, demand_order_updated)
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
