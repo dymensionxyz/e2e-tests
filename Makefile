@@ -14,6 +14,12 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-ADMC-hub-to-RA-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
+
+e2e-test-ADMC-hub-to-RA-3rd-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_EVM .
+
 e2e-hub-to-RA-migrate-dym-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_Migrate_Dym_EVM .
 
@@ -191,6 +197,12 @@ e2e-test-admc-migrate-with-user-memo-evm: clean-e2e
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
+
+e2e-test-ADMC-hub-to-RA-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_Wasm .
+
+e2e-test-ADMC-hub-to-RA-3rd-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_Wasm .
 
 e2e-hub-to-RA-migrate-dym-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_Migrate_Dym_Wasm .
