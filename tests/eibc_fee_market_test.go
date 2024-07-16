@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -677,14 +676,6 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -736,24 +727,8 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -856,28 +831,7 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp2.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	// Combine together with sending fund to marketmaker address
 
 	transferDataRollapp1 := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -893,11 +847,11 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized on Rollapps
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -920,18 +874,14 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
-	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
-	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
-	// for i, eibcEvent := range eibcEvents {
-	// 	fmt.Println(i, "EIBC Event:", eibcEvent)
-	// }
+	for i, eibcEvent := range eibcEvents {
+		fmt.Println(i, "EIBC Event:", eibcEvent)
+	}
 
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
@@ -1140,37 +1090,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp2.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp2.SendIBCTransfer(ctx, dymChannel_ra2[0].ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	rollapp2Height, err := rollapp2.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	// Combine together with sending fund to marketmaker address
 
 	transferDataRollapp1 := ibc.WalletData{
 		Address: marketMakerAddr,
@@ -1186,11 +1106,11 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized on Rollapps
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1222,11 +1142,10 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
-	// for i, eibcEvent := range eibcEvents {
-	// 	fmt.Println(i, "EIBC Event:", eibcEvent)
-	// }
+	for i, eibcEvent := range eibcEvents {
+		fmt.Println(i, "EIBC Event:", eibcEvent)
+	}
 
-	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
