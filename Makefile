@@ -14,6 +14,15 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-ADMC-hub-to-RA-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
+
+e2e-test-ADMC-hub-to-RA-3rd-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_EVM .
+
+e2e-hub-to-RA-migrate-dym-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_Migrate_Dym_EVM .
+
 e2e-test-bridge-fee-param-change-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestChangeBridgeFeeParam_EVM .
 
@@ -173,6 +182,9 @@ e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
 e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestGenesisTransferBridgeBlocking_EVM .
 
+e2e-test-rollapp-genesis-transfer-connection-blocking-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestGenesisTransferConnectionBlock_EVM .
+
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
 
@@ -187,10 +199,22 @@ e2e-test-admc-migrate-with-user-memo-evm: clean-e2e
 
 e2e-test-eibc-fee-market-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBC_Fee_Market_Success_EVM .
+	
+e2e-test-admc-metadata-not-found-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
+
+e2e-test-ADMC-hub-to-RA-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_Wasm .
+
+e2e-test-ADMC-hub-to-RA-3rd-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_3rd_Party_Wasm .
+
+e2e-hub-to-RA-migrate-dym-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_Migrate_Dym_Wasm .
 
 e2e-test-ibc-transfer-reserved-word-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestGenesisIBCTransferReservedMemo_Wasm .
@@ -320,6 +344,8 @@ e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm: clean-e2e
 e2e-test-admc-originates-hub-to-rollapp-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Originates_HubtoRA_Wasm .
 
+e2e-test-rollapp-genesis-transfer-connection-blocking-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestGenesisTransferConnectionBlock_Wasm .
 e2e-test-admc-migrate-empty-user-memo-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Migrate_Empty_User_Memo_Wasm .
 
@@ -328,6 +354,9 @@ e2e-test-admc-migrate-with-user-memo-wasm: clean-e2e
 
 e2e-test-eibc-fee-market-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBC_Fee_Market_Success_Wasm .
+	
+e2e-test-admc-metadata-not-found-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
@@ -359,10 +388,12 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
+	e2e-test-rollapp-genesis-transfer-connection-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
 	e2e-test-admc-migrate-empty-user-memo-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
+	e2e-test-admc-metadata-not-found-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -394,7 +425,8 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm \
 	e2e-test-admc-migrate-empty-user-memo-wasm \
 	e2e-test-admc-migrate-with-user-memo-wasm \
-	e2e-test-eibc-fee-market-success-wasm
+	e2e-test-eibc-fee-market-success-wasm \
+	e2e-test-admc-metadata-not-found-wasm
 
 .PHONY: clean-e2e \
 	e2e-test-all \
@@ -427,10 +459,12 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-erc20-hub-to-rollapp-without-register \
 	e2e-test-rollapp-hardfork-evm \
 	e2e-test-rollapp-genesis-transfer-bridge-blocking-evm \
+	e2e-test-rollapp-genesis-transfer-connection-blocking-evm \
 	e2e-test-non-rollapp-unaffected-evm \
 	e2e-test-admc-migrate-empty-user-memo-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
+	e2e-test-admc-metadata-not-found-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -463,6 +497,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-admc-migrate-empty-user-memo-wasm \
 	e2e-test-admc-migrate-with-user-memo-wasm \
 	e2e-test-eibc-fee-market-success-wasm
+	e2e-test-admc-metadata-not-found-wasm
 
 ###############################################################################
 ###                              E2E live tests                             ###
