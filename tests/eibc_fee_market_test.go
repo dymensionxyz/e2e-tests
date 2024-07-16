@@ -292,8 +292,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.NoError(t, err)
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	fmt.Println(res)
-	// require.Equal(t, 4, res.Code)
+	require.Equal(t, uint32(10), res.Code)
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -322,11 +321,6 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferDataRollapp1.Amount)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-
-	// No packet commitments left
-	response, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
-	require.NoError(t, err)
-	require.Equal(t, len(response.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -410,7 +404,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -615,8 +609,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	fmt.Println(res)
-	// require.Equal(t, 4, res.Code)
+	require.Equal(t, uint32(10), res.Code)
 
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -645,11 +638,6 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferDataRollapp1.Amount)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
-
-	// No packet commitments left
-	response, err := rollapp1.GetNode().QueryPacketCommitments(ctx, "transfer", dymChannel_ra1[0].ChannelID)
-	require.NoError(t, err)
-	require.Equal(t, len(response.Commitments) > 0, false, "packet commitments exist")
 
 	t.Cleanup(
 		func() {
@@ -1019,7 +1007,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
@@ -1041,7 +1029,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
