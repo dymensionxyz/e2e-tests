@@ -211,7 +211,7 @@ e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
 
 e2e-eibc-update-already-fulfill-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestEIBCFulfillAlreadyFulfilledDemand_Wasm .
+	cd tests && go test -timeout=30m -race -v -run TestEIBCAlreadyFulfilledDemand_Wasm .
 
 e2e-eibc-update-unallowed-signer-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCUnallowedSigner_Wasm .

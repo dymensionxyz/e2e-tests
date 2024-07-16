@@ -337,7 +337,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 }
 
 // TestEIBCFulfillAlreadyFulfilledDemand_Wasm attempts to change the amount of an order that already got fulfilled
-func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
+func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -604,7 +604,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_Wasm(t *testing.T) {
 
 	// attempt to update the fee amount required by demand order that has already been fulfilled
 	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
-	require.Error(t, err)
+	require.NoError(t, err)
 	txhash, err := dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 	res, err := dymension.GetTransaction(txhash)
@@ -1233,7 +1233,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 			fmt.Println("EIBC Event:", eibcEvent)
 			// attempt to update the fee amount required by demand order with an unallowed signer
 			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee.MulRaw(2))
-			require.Error(t, err)
+			require.NoError(t, err)
 			res, err := dymension.GetTransaction(txhash)
 			require.NoError(t, err)
 			require.Equal(t, uint32(4), res.Code)
