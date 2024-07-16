@@ -1281,6 +1281,11 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 		Amount:  transferAmount.Sub(bridgingFee),
 	}
 
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, rollappIBCDenom, resp.Metadatas[0].Base)
+
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -1465,6 +1470,11 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 		Denom:   rollappIBCDenom,
 		Amount:  transferAmount.Sub(bridgingFee),
 	}
+
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, rollappIBCDenom, resp.Metadatas[0].Base)
 
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
