@@ -607,7 +607,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee).Sub(eibcFee).Add(bridgingFee)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmount.Sub(eibcFee.MulRaw(2))).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -1210,7 +1210,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee).Add(bridgingFee).Sub(eibcFee)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee.Sub(eibcFee)).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
