@@ -13,6 +13,12 @@ e2e-test: clean-e2e
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_EVM .
+	
+e2e-eibc-update-already-fulfill-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCFulfillAlreadyFulfilledDemand_EVM .
+
+e2e-eibc-update-unallowed-signer-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUnallowedSigner_EVM .
 
 e2e-test-ADMC-hub-to-RA-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
@@ -207,6 +213,12 @@ e2e-test-admc-metadata-not-found-evm: clean-e2e
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
 
+e2e-eibc-update-already-fulfill-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCAlreadyFulfilledDemand_Wasm .
+
+e2e-eibc-update-unallowed-signer-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUnallowedSigner_Wasm .
+  
 e2e-test-ADMC-hub-to-RA-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_Wasm .
 
