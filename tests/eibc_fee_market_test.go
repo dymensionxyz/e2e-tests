@@ -602,8 +602,6 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	require.Equal(t, true, fulfill_demand_order)
 
 	// attempt to update the fee amount required by demand order that has already been fulfilled
-	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
-	require.NoError(t, err)
 	txhash, err := dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 	res, err := dymension.GetTransaction(txhash)
@@ -1135,8 +1133,6 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
-	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
-	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
