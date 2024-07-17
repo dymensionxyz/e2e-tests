@@ -306,6 +306,17 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, secondHopIBCDenom, zeroBal)
 
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount.QuoRaw(2),
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{
+		Memo: `{"denom_metadata":{}}`,
+	})
+	require.Error(t, err)
+
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
@@ -912,6 +923,17 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
 	require.NoError(t, err)
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount.QuoRaw(2),
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{
+		Memo: `{"denom_metadata":{}}`,
+	})
+	require.Error(t, err)
 
 	t.Cleanup(
 		func() {
