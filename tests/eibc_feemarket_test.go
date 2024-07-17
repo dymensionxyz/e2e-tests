@@ -1240,17 +1240,14 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappwasm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "10s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
@@ -1259,6 +1256,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1270,19 +1268,19 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
+				ChainID:             "rollappwasm_1234-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "60",
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -1310,6 +1308,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 			NumFullNodes:  &numHubFullNodes,
 		},
 	})
+
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
@@ -1494,7 +1493,6 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	)
 }
 
-
 func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -1572,6 +1570,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 			NumFullNodes:  &numHubFullNodes,
 		},
 	})
+
 	// Get chains from the chain factory
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
