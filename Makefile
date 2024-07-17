@@ -20,6 +20,9 @@ e2e-eibc-update-already-fulfill-evm: clean-e2e
 e2e-eibc-update-unallowed-signer-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCUnallowedSigner_EVM .
 
+e2e-test-update-do-ackerr-timeout-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnAckErrAndTimeout_EVM .
+
 e2e-test-ADMC-hub-to-RA-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_Hub_to_RA_reserved_EVM .
 
@@ -369,6 +372,9 @@ e2e-test-eibc-fee-market-success-wasm: clean-e2e
 	
 e2e-test-admc-metadata-not-found-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_Wasm .
+
+e2e-test-update-do-ackerr-timeout-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnAckErrAndTimeout_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
