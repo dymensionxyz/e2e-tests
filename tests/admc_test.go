@@ -299,7 +299,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -520,7 +520,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -914,7 +914,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -1132,7 +1132,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -1270,15 +1270,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 			},
 		}...,
 	)
-	modifyRollappGenesisKV := append(
-		rollappEVMGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.bank.denom_metadata",
-				Value: []interface{}{},
-			},
-		}...,
-	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1302,7 +1294,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1474,15 +1466,6 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 		}...,
 	)
 
-	modifyRollappGenesisKV := append(
-		rollappWasmGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.bank.denom_metadata",
-				Value: []interface{}{},
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1506,7 +1489,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRollappGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
