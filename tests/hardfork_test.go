@@ -359,7 +359,7 @@ func TestHardFork_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -890,7 +890,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -1420,7 +1420,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis

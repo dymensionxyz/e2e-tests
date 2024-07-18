@@ -645,7 +645,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		latestIndex := res.StateInfo.StateInfoIndex.Index
-		parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
+		parsedIndex, err := strconv.ParseInt(latestIndex, 10, 64)
 		require.NoError(t, err)
 
 		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {

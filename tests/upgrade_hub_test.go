@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	haltHeightDelta    = uint64(20)
-	blocksAfterUpgrade = uint64(10)
+	haltHeightDelta    = int64(20)
+	blocksAfterUpgrade = int64(10)
 )
 
 var (
