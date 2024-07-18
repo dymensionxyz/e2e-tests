@@ -9,7 +9,7 @@ package tests
 
 // 	"cosmossdk.io/math"
 // 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-// 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+// 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 // 	test "github.com/decentrio/rollup-e2e-testing"
 // 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 // 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"

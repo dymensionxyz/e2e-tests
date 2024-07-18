@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -446,18 +445,18 @@ func GetPullRelayerImage() (pullRelayerImage bool) {
 	return pullRelayerImage
 }
 
-func encodingConfig() *simappparams.EncodingConfig {
+func encodingConfig() *util.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
 	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
-	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
+	// hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
 
-func defaultConfig() *simappparams.EncodingConfig {
+func defaultConfig() *util.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	return &cfg
