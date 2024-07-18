@@ -2182,7 +2182,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].ID, dymensionUserAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 
 	res, err := dymension.GetTransaction(txhash)
