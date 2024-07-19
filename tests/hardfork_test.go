@@ -312,7 +312,7 @@ func TestHardFork_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -843,7 +843,7 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1373,7 +1373,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
