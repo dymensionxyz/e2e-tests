@@ -300,7 +300,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rollapp1Clients, err := r1.GetClients(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(rollapp1Clients))
+	require.Equal(t, 1, len(rollapp1Clients))
 
 	propTx, err := dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
