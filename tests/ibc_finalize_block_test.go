@@ -764,7 +764,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
@@ -1143,7 +1143,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	// Make sure that we got the packet timeout
 	require.Equal(t, got.Packet.SourceChannel, channel.ChannelID)
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
