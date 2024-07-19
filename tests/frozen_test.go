@@ -300,7 +300,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rollapp1Clients, err := r1.GetClients(ctx, eRep, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(rollapp1Clients))
+	require.Equal(t, 2, len(rollapp1Clients))
 
 	propTx, err := dymension.SubmitFraudProposal(
 		ctx, dymensionUser.KeyName(),
@@ -662,7 +662,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	dymClients, err := r1.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, len(dymClients), 3)
 
 	for _, client := range dymClients {
 		if client.ClientState.ChainID == rollapp1.Config().ChainID {
@@ -1043,7 +1043,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1477,7 +1477,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1867,7 +1867,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2189,7 +2189,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2535,7 +2535,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2870,7 +2870,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -3273,7 +3273,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -3683,7 +3683,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4013,7 +4013,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4334,7 +4334,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4997,7 +4997,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
