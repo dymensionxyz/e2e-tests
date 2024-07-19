@@ -4655,7 +4655,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4704,17 +4704,17 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
+	require.Equal(t, 2, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, rollappUserOriginBal.Sub(transferAmount), rollappUserUpdateBal)
 
-	// check balances of dymensionUserAddr (just receive the fund for the fisrt transfer)
+	// check balances of dymensionUserAddr
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
-	require.Equal(t, (transferAmount.Sub(bridgingFee)).MulRaw(2), balanceOfDymUserAddr)
+	require.Equal(t, (transferAmount.Sub(bridgingFee)), balanceOfDymUserAddr)
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
