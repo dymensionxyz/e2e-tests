@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -297,6 +297,10 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -316,6 +320,10 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
@@ -344,7 +352,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -369,6 +377,32 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.Add(transferData.Amount))
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
 }
 
 func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
@@ -484,6 +518,10 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -503,6 +541,10 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
@@ -540,7 +582,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -565,6 +607,31 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.Add(transferAmount))
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{Memo: memo})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
 }
 
 func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
@@ -845,6 +912,10 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -864,6 +935,10 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
@@ -892,7 +967,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -914,6 +989,32 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount.Add(transferAmount))
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
 }
 
 func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
@@ -1029,6 +1130,10 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1052,6 +1157,10 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
@@ -1084,7 +1193,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -1105,6 +1214,31 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount.Add(transferAmount))
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{Memo: memo})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferAmount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(resp.Metadatas))
+
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
 
 }
 
@@ -1136,6 +1270,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 			},
 		}...,
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1293,6 +1428,10 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Metadatas))
+
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
@@ -1326,6 +1465,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 			},
 		}...,
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1482,6 +1622,10 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
+
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.Metadatas))
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

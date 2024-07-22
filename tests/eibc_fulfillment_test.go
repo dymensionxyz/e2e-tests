@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -3126,7 +3126,7 @@ func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) 
 func getEIbcEventsWithinBlockRange(
 	ctx context.Context,
 	dymension *dym_hub.DymHub,
-	blockRange uint64,
+	blockRange int64,
 	breakOnFirstOccurence bool,
 ) ([]dymensiontesting.EibcEvent, error) {
 	var eibcEventsArray []dymensiontesting.EibcEvent
@@ -3162,7 +3162,7 @@ func getEIbcEventsWithinBlockRange(
 	return eibcEventsArray, nil
 }
 
-func getEventsOfType(chain *cosmos.CosmosChain, startHeight uint64, endHeight uint64, eventType string, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
+func getEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight int64, eventType string, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
 	var eventTypeArray []blockdb.Event
 	shouldReturn := false
 

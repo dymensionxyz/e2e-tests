@@ -202,14 +202,14 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 
 	command = []string{}
 	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
 	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
 	require.NoError(t, err)
@@ -468,14 +468,14 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 
 	command = []string{}
 	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
 	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "{\"Moniker\":\"myrollapp-sequencer\",\"Identity\":\"\",\"Website\":\"\",\"SecurityContact\":\"\",\"Details\":\"\"}", "1000000000adym",
-		"--broadcast-mode", "block")
+		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
 	require.NoError(t, err)

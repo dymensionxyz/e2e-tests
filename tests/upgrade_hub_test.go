@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	haltHeightDelta    = uint64(20)
-	blocksAfterUpgrade = uint64(10)
+	haltHeightDelta    = int64(20)
+	blocksAfterUpgrade = int64(10)
 )
 
 var (
