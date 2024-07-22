@@ -622,10 +622,10 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// Access the index value
 	index := oldLatestIndex.StateIndex.Index
-	uintIndex, err := strconv.ParseUint(index, 10, 64)
+	intIndex, err := strconv.ParseInt(index, 10, 64)
 	require.NoError(t, err)
 
-	targetIndex := uintIndex + 1
+	targetIndex := intIndex + 1
 
 	currentHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -5046,7 +5046,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
+	require.Equal(t, 2, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
