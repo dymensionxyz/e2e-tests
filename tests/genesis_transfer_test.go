@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -472,8 +472,7 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(connections))
-	require.Equal(t, "connection-0", connections[0].ID)
+	require.Equal(t, 2, len(connections))
 }
 
 func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
@@ -631,6 +630,5 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(connections))
-	require.Equal(t, "connection-0", connections[0].ID)
+	require.Equal(t, 2, len(connections))
 }

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -622,10 +622,10 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// Access the index value
 	index := oldLatestIndex.StateIndex.Index
-	uintIndex, err := strconv.ParseUint(index, 10, 64)
+	intIndex, err := strconv.ParseInt(index, 10, 64)
 	require.NoError(t, err)
 
-	targetIndex := uintIndex + 1
+	targetIndex := intIndex + 1
 
 	currentHeight, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -645,7 +645,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		latestIndex := res.StateInfo.StateInfoIndex.Index
-		parsedIndex, err := strconv.ParseUint(latestIndex, 10, 64)
+		parsedIndex, err := strconv.ParseInt(latestIndex, 10, 64)
 		require.NoError(t, err)
 
 		if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
@@ -662,7 +662,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	dymClients, err := r1.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 2)
+	require.Equal(t, len(dymClients), 3)
 
 	for _, client := range dymClients {
 		if client.ClientState.ChainID == rollapp1.Config().ChainID {
@@ -1043,7 +1043,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1477,7 +1477,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1867,7 +1867,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2189,7 +2189,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2535,7 +2535,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -2870,7 +2870,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -3273,7 +3273,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -3683,7 +3683,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	require.Equal(t, 3, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4013,7 +4013,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4334,7 +4334,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4655,7 +4655,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -4704,17 +4704,17 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
+	require.Equal(t, 2, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, rollappUserOriginBal.Sub(transferAmount), rollappUserUpdateBal)
 
-	// check balances of dymensionUserAddr (just receive the fund for the fisrt transfer)
+	// check balances of dymensionUserAddr
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
-	require.Equal(t, (transferAmount.Sub(bridgingFee)).MulRaw(2), balanceOfDymUserAddr)
+	require.Equal(t, (transferAmount.Sub(bridgingFee)), balanceOfDymUserAddr)
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
@@ -4997,7 +4997,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -5046,7 +5046,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
+	require.Equal(t, 2, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)

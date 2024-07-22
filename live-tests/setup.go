@@ -9,14 +9,14 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/types"
+	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	bankTypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/decentrio/e2e-testing-live/cosmos"
 	"github.com/decentrio/e2e-testing-live/testutil"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
+	cosmosrollup "github.com/decentrio/rollup-e2e-testing/cosmos"
 	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
-	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
@@ -76,14 +76,14 @@ func GetERC20Balance(ctx context.Context, denom, grpcAddr string) (sdkmath.Int, 
 	return res.Balance.Amount, nil
 }
 
-func encodingConfig() *simappparams.EncodingConfig {
-	cfg := cosmos.DefaultEncoding()
+func encodingConfig() *util.TestEncodingConfig {
+	cfg := cosmosrollup.DefaultEncoding()
 
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
 	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
-	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
+	// hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
 

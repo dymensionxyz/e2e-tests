@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	// transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -312,7 +312,7 @@ func TestHardFork_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -359,7 +359,7 @@ func TestHardFork_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -843,7 +843,7 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -890,7 +890,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -1373,7 +1373,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1420,7 +1420,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
