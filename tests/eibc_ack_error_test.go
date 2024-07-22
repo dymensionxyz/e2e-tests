@@ -367,6 +367,12 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
+		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of rollappUserAddr right before sending eIBC transfer (that fulfilled):", balance)
+		balance, err = rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of moduleAccAddr right before sending eIBC transfer (that fulfilled):", balance)
 		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
 		require.NoError(t, err)
 
@@ -417,8 +423,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
-		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferAmount)
 	})
 
 	t.Cleanup(
@@ -1060,6 +1066,15 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 			Amount:  transferAmount,
 		}
 
+		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+		require.NoError(t, err)
+		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+		balance, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, thirdPartyIBCDenomOnRA)
+		require.NoError(t, err)
+		fmt.Println("Balance of rollappUserAddr right before sending eIBC transfer:", balance, thirdPartyIBCDenomOnRA)
+		balance, err = rollapp1.GetBalance(ctx, erc20MAccAddr, thirdPartyIBCDenomOnRA)
+		require.NoError(t, err)
+		fmt.Println("Balance of moduleAccAddr right before sending eIBC transfer (that fulfilled):", balance, thirdPartyIBCDenomOnRA)
 		_, err = dymension.Validators[0].SendIBCTransfer(ctx, channDymRollApp1.ChannelID, "validator", transferData, options)
 		require.NoError(t, err)
 
@@ -1074,9 +1089,6 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-		require.NoError(t, err)
-		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, thirdPartyIBCDenomOnRA, transferData.Amount)
 
 		// end of preconditions
@@ -1115,7 +1127,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		ibcTx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollapp1UserAddr, transferData, options)
 		require.NoError(t, err)
 
-		balance, err := dymension.GetBalance(ctx, dymensionUserAddr, thirdPartyDenom)
+		balance, err = dymension.GetBalance(ctx, dymensionUserAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
