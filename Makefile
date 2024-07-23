@@ -212,6 +212,9 @@ e2e-test-eibc-fee-market-success-evm: clean-e2e
 e2e-test-admc-metadata-not-found-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_EVM .
 
+e2e-test-update-do-timeout-unallowed-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnTimeout_Unallowed_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -373,8 +376,11 @@ e2e-test-eibc-fee-market-success-wasm: clean-e2e
 e2e-test-admc-metadata-not-found-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_Wasm .
 
-e2e-test-update-do-ackerr-timeout-evm: clean-e2e
+e2e-test-update-do-ackerr-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnAckErrAndTimeout_Wasm .
+
+e2e-test-update-do-timeout-unallowed-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnTimeout_Unallowed_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
