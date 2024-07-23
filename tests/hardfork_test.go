@@ -1560,7 +1560,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// check client before submit update client proposal
 	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
