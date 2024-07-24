@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -1048,6 +1050,49 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 
 	var options ibc.TransferOptions
 
+	// register ibc denom on rollapp1
+	metadata := banktypes.Metadata{
+		Description: "IBC token from rollapp 2",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    thirdPartyIBCDenomOnRA,
+				Exponent: 0,
+				Aliases:  []string{"urax"},
+			},
+			{
+				Denom:    "urax",
+				Exponent: 6,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    thirdPartyIBCDenomOnRA,
+		Display: "urax",
+		Name:    "urax",
+		Symbol:  "urax",
+	}
+
+	data := map[string][]banktypes.Metadata{
+		"metadata": {metadata},
+	}
+
+	contentFile, err := json.Marshal(data)
+	require.NoError(t, err)
+	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	deposit := "500000000000" + rollapp1.Config().Denom
+	rollapp1.GetNode().HostName()
+	_, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollapp1UserAddr, deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
+	require.NoError(t, err)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
 		transferData := ibc.WalletData{
 			Address: marketMakerAddr,
@@ -1142,7 +1187,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// Make sure that the ack contains error
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, thirdPartyIBCDenomOnRA, transferAmount)
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
