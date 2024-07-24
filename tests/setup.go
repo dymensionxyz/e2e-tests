@@ -108,8 +108,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: DymensionMainRepo,
-		Version:    dymensionVersion,
+		Repository: "ghcr.io/decentrio/dymension",
+		Version:    "new-flow",
 		UidGid:     "1025:1025",
 	}
 
