@@ -461,6 +461,9 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 	err = r.GeneratePath(ctx, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID, "demo-dymension")
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	err = r.CreateClients(ctx, eRep, "demo-dymension", ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
@@ -614,6 +617,9 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Try to open a connection with the relayer with RA as chainA
 	err = r.GeneratePath(ctx, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID, "demo-dymension")
