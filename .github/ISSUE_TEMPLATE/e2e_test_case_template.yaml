@@ -68,6 +68,7 @@ body:
         - "automated denom-metadata"
         - "eibc fee market"
         - "full node sync"
+        - "base layer disconnection"
     validations:
       required: true
 

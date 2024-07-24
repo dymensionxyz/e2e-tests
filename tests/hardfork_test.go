@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	// transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -240,10 +240,10 @@ func TestHardFork_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferData.Amount)
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -312,7 +312,7 @@ func TestHardFork_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -359,7 +359,7 @@ func TestHardFork_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -498,7 +498,7 @@ func TestHardFork_EVM(t *testing.T) {
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Get the IBC denom
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
@@ -518,7 +518,10 @@ func TestHardFork_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub
@@ -840,7 +843,7 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -887,7 +890,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -1025,7 +1028,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	// Get the IBC denom
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// Get the IBC denom
 	dymToNewRollappIbcDenom := GetIBCDenom(channsNewRollAppDym.PortID, channsNewRollAppDym.ChannelID, dymension.Config().Denom)
@@ -1297,10 +1300,11 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 
-	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymToRollappIbcDenom, transferData.Amount)
 
-	require.Equal(t, true, rollapp1OriginBal1.Add(transferAmount).Equal(rollapp1UserUpdateBal), "rollapp balance did not change")
 	// verified ibc transfers worked
 
 	// Create some pending eIBC packet
@@ -1369,7 +1373,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(dymClients))
+	require.Equal(t, 2, len(dymClients))
 
 	var rollapp1ClientOnDym string
 
@@ -1416,7 +1420,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	lastHeightFinalized := rollappState.StateInfo.BlockDescriptors.BD[len(rollappState.StateInfo.BlockDescriptors.BD)-1].Height
-	height, err = strconv.ParseUint(lastHeightFinalized, 10, 64)
+	height, err = strconv.ParseInt(lastHeightFinalized, 10, 64)
 	require.NoError(t, err)
 
 	// export genesis
@@ -1556,7 +1560,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	newRollAppIbcDenom := GetIBCDenom(channsNewRollAppDym.Counterparty.PortID, channsNewRollAppDym.Counterparty.ChannelID, newRollApp.Config().Denom)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// check client before submit update client proposal
 	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
@@ -1596,7 +1600,10 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	testutil.WaitForBlocks(ctx, 10, dymension, newRollApp)
 	// check assets balance
-	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
+	erc20MAcc, err = newRollApp.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, newRollApp, erc20MAccAddr, dymToNewRollappIbcDenom, transferDataFromDym.Amount)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymBalanceBefore.Sub(transferDataFromDym.Amount))
 
 	// new roll app to hub

@@ -8,7 +8,7 @@ import (
 
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -186,6 +186,15 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	require.NoError(t, err)
+	fmt.Println("Event:", eibcEvents[0])
+
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
+	require.NoError(t, err)
+	require.Equal(t, 1, len(resp.DemandOrders))
+
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
@@ -206,15 +215,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
-	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[0])
-
-	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
-	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.DemandOrders))
-
 	balance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
@@ -234,13 +234,14 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-	balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
-	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
-	require.True(t, balance.Equal(walletAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount, balance))
+	require.True(t, balance.Equal(walletAmount.Sub(transferAmount)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", walletAmount.Sub(transferAmount), balance))
 
 	t.Cleanup(
 		func() {

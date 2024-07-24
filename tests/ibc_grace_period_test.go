@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -252,7 +252,11 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 
 	// Assert balance was updated on the Rollapp and hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferDataDymToRollApp.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymensionIBCDenom, transferDataDymToRollApp.Amount)
+
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferDataDymToRollApp.Amount)
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1373,9 +1377,14 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 	t.Log("rollapp1UserAddr:", rollapp1UserAddr)
 	t.Log("dymIBCDenom:", dymIBCDenom)
 
+	// Check fund was set to erc20 module account on rollapp
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymIBCDenom, transferData.Amount)
+
 	// Assert balance was updated on rollapp
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, dymIBCDenom, transferData.Amount)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)

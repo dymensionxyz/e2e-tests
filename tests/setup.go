@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -18,12 +18,47 @@ import (
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 
-	hubgenesis "github.com/dymensionxyz/dymension-rdk/x/hub-genesis/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
+
+var rollappDenomMetadata = banktypes.Metadata{
+	Description: "Denom of the rollapp",
+	Base:        "urax",
+	Display:     "RAX",
+	Name:        "RAX",
+	Symbol:      "urax",
+	DenomUnits: []*banktypes.DenomUnit{
+		{
+			Denom:    "urax",
+			Exponent: 0,
+		}, {
+			Denom:    "RAX",
+			Exponent: 18,
+		},
+	},
+}
+
+type memoData struct {
+	denommetadatatypes.MemoData
+	User *userData `json:"user,omitempty"`
+}
+
+type userData struct {
+	Data string `json:"data"`
+}
+
+func MustMarshalJSON(v any) string {
+	bz, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
+}
 
 type PacketMetadata struct {
 	Forward *ForwardMetadata `json:"forward"`
@@ -91,14 +126,14 @@ var (
 	}
 
 	preUpgradeRollappEVMImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "pre-upgrade-non-state-breaking",
+		Repository: RollappEVMMainRepo,
+		Version:    "latest",
 		UidGid:     "1025:1025",
 	}
 
 	preUpgradeRollappWasmImage = ibc.DockerImage{
 		Repository: RollappWasmMainRepo,
-		Version:    "9a4756e0",
+		Version:    "a00a8c6d",
 		UidGid:     "1025:1025",
 	}
 
@@ -181,7 +216,7 @@ var (
 		},
 		{
 			Key:   "app_state.erc20.params.enable_erc20",
-			Value: false,
+			Value: true,
 		},
 		{
 			Key:   "app_state.erc20.params.enable_evm_hook",
@@ -245,7 +280,7 @@ var (
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		// gov params
 		{
-			Key:   "app_state.gov.voting_params.voting_period",
+			Key:   "app_state.gov.params.voting_period",
 			Value: "20s",
 		},
 		// staking params
@@ -410,18 +445,18 @@ func GetPullRelayerImage() (pullRelayerImage bool) {
 	return pullRelayerImage
 }
 
-func encodingConfig() *simappparams.EncodingConfig {
+func encodingConfig() *util.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	ethermint.RegisterInterfaces(cfg.InterfaceRegistry)
 	ethermintcrypto.RegisterInterfaces(cfg.InterfaceRegistry)
 	eibc.RegisterInterfaces(cfg.InterfaceRegistry)
 	rollapp.RegisterInterfaces(cfg.InterfaceRegistry)
-	hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
+	// hubgenesis.RegisterInterfaces(cfg.InterfaceRegistry)
 	return &cfg
 }
 
-func defaultConfig() *simappparams.EncodingConfig {
+func defaultConfig() *util.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	return &cfg
@@ -506,10 +541,10 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 				return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
 			}
 		}
-		if err := dyno.Set(g, "adym", "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
+		if err := dyno.Set(g, "adym", "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
 			return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
 		}
-		if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+		if err := dyno.Set(g, "10000000000", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
 			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 		}
 		if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
