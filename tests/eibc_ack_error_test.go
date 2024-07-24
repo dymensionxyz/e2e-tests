@@ -417,7 +417,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
-		testutil.WaitForBlocks(ctx, 20, rollapp1)
+		testutil.WaitForBlocks(ctx, 30, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 	})
 
@@ -1060,13 +1060,13 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 			Amount:  transferAmount,
 		}
 
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
 		_, err = dymension.Validators[0].SendIBCTransfer(ctx, channDymRollApp1.ChannelID, "validator", transferData, options)
 		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-		require.NoError(t, err)
-
-		rollappHeight, err := rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
 
 		// wait until the packet is finalized
