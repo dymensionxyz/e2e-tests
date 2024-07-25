@@ -189,9 +189,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	}
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
-		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
-		},
+		Timeout: testutil.ImmediatelyTimeout(),
 	}
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
@@ -437,9 +435,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	}
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
-		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
-		},
+		Timeout: testutil.ImmediatelyTimeout(),
 	}
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
@@ -463,7 +459,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Assert funds were returned to the sender after the timeout has occured
+	// Assert funds were returned to the sender after the timeout has occurred
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
