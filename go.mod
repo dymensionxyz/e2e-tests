@@ -13,6 +13,7 @@ require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
 	github.com/decentrio/rollup-e2e-testing v0.0.0-20240718115231-5ffec3805af4
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240717194206-54c0fca5fada
+	github.com/dymensionxyz/dymint v1.1.0-rc02.0.20240612141707-2b5d21b32ca4
 )
 
 require (
@@ -88,7 +89,8 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
+	github.com/celestiaorg/celestia-openrpc v0.4.0-rc.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -117,6 +119,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
+	github.com/dymensionxyz/cosmosclient v0.4.2-beta.0.20240421130646-b8980ec7aade // indirect
 	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
