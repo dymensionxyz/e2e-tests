@@ -53,7 +53,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/bridge"
-	p2pNetwork := "mock"
+	p2pNetwork := "arabica-11"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -153,13 +153,6 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
-	require.NoError(t, err)
-	println("check token: ", celestia_token)
-	celestia_namespace_id, err := RandomHex(10)
-	require.NoError(t, err)
-	println("check namespace: ", celestia_namespace_id)
-
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -177,6 +170,41 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
+
+	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
+	require.NoError(t, err)
+	println("check token: ", celestia_token)
+	celestia_namespace_id, err := RandomHex(10)
+	require.NoError(t, err)
+	println("check namespace: ", celestia_namespace_id)
+	da_config := fmt.Sprintf("{\"base_url\": \"http://localhost:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", celestia_namespace_id, celestia_token)
+	rollappConfigOverrides := overridesDymintTomlWithCelesSetup("celestia", celestia_namespace_id, da_config)
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err, "error stopping node(s)")
+
+	for _, v := range rollapp1.Validators {
+		v := v
+		v.Chain = rollapp1
+		v.Validator = true
+		for configFile, modifiedConfig := range rollappConfigOverrides {
+			modifiedToml, ok := modifiedConfig.(testutil.Toml)
+			require.Equal(t, true, ok)
+			err := testutil.ModifyTomlConfigFile(
+				ctx,
+				v.Logger(),
+				v.DockerClient,
+				v.TestName,
+				v.VolumeName,
+				v.Chain.Config().Name,
+				configFile,
+				modifiedToml,
+			)
+			require.NoError(t, err)
+		}
+	}
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err, "error starting node(s)")
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -235,4 +263,17 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+}
+
+func overridesDymintTomlWithCelesSetup(daLayer, namespaceId, daConfig string) map[string]any {
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+
+	dymintTomlOverrides["da_layer"] = daLayer
+	dymintTomlOverrides["namespace_id"] = namespaceId
+	dymintTomlOverrides["da_config"] = daConfig
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	return configFileOverrides
 }
