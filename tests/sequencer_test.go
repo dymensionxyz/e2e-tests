@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -36,6 +36,15 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+
+	configFileOverrides1 := make(map[string]any)
+	configTomlOverrides1 := make(testutil.Toml)
+	configTomlOverrides1["timeout_commit"] = "2s"
+	configTomlOverrides1["timeout_propose"] = "2s"
+	configTomlOverrides1["index_all_keys"] = "true"
+	configTomlOverrides1["mode"] = "validator"
+
+	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -95,10 +104,10 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				Bech32Prefix:        "celestia",
 				CoinType:            "118",
 				GasAdjustment:       1.5,
-				ConfigFileOverrides: configFileOverrides,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+			NumFullNodes:  &numRollAppFn,
 		},
 	})
 
@@ -144,7 +153,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-    celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
+	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
 	println("check token: ", celestia_token)
 	celestia_namespace_id, err := RandomHex(10)
