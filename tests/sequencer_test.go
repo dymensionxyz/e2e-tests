@@ -147,7 +147,9 @@ func TestSequencerCelestia_EVM(t *testing.T) {
     celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
 	println("check token: ", celestia_token)
-
+	celestia_namespace_id, err := RandomHex(10)
+	require.NoError(t, err)
+	println("check namespace: ", celestia_namespace_id)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
