@@ -10,6 +10,7 @@ import (
 
 	"crypto/rand"
 	"encoding/hex"
+
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
@@ -117,7 +118,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
