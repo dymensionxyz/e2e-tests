@@ -118,7 +118,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "debug",
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
