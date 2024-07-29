@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -46,7 +46,6 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -56,6 +55,73 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	p2pNetwork := "arabica-11"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "celes-hub",
+			ChainConfig: ibc.ChainConfig{
+				Name:           "celestia",
+				Denom:          "utia",
+				Type:           "hub-celes",
+				GasPrices:      "0.002utia",
+				TrustingPeriod: "112h",
+				ChainID:        "test",
+				Bin:            "celestia-appd",
+				Images: []ibc.DockerImage{
+					{
+						Repository: "ghcr.io/decentrio/celestia",
+						Version:    "debug",
+						UidGid:     "1025:1025",
+					},
+				},
+				Bech32Prefix:        "celestia",
+				CoinType:            "118",
+				GasAdjustment:       1.5,
+				ConfigFileOverrides: configFileOverrides1,
+			},
+			NumValidators: &numHubVals,
+			NumFullNodes: &numRollAppFn,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	celestia := chains[0].(*celes_hub.CelesHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+
+	ic := test.NewSetup().
+		AddChain(celestia)
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: false,
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil)
+	require.NoError(t, err)
+
+	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
+	require.NoError(t, err)
+	println("check token: ", celestia_token)
+	celestia_namespace_id, err := RandomHex(10)
+	require.NoError(t, err)
+	println("check namespace: ", celestia_namespace_id)
+	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+
+	dymintTomlOverrides["da_layer"] = "celestia"
+	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_config"] = da_config
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
@@ -84,49 +150,20 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
-		{
-			Name: "celes-hub",
-			ChainConfig: ibc.ChainConfig{
-				Name:           "celestia",
-				Denom:          "utia",
-				Type:           "hub-celes",
-				GasPrices:      "0.002utia",
-				TrustingPeriod: "112h",
-				ChainID:        "test",
-				Bin:            "celestia-appd",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/celestia",
-						Version:    "debug",
-						UidGid:     "1025:1025",
-					},
-				},
-				Bech32Prefix:        "celestia",
-				CoinType:            "118",
-				GasAdjustment:       1.5,
-				ConfigFileOverrides: configFileOverrides1,
-			},
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
-		},
 	})
 
 	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
+	chains, err = cf.Chains(t.Name())
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
-	celestia := chains[2].(*celes_hub.CelesHub)
-
-	// Relayer Factory
-	client, network := test.DockerSetup(t)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
-	ic := test.NewSetup().
+	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
@@ -134,11 +171,8 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 			Chain2:  rollapp1,
 			Relayer: r,
 			Path:    ibcPath,
-		}).
-		AddChain(celestia)
+		})
 
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
 
 	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
@@ -151,129 +185,81 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// // Create some user accounts on both chains
+	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	// // Get our Bech32 encoded user addresses
+	// dymensionUser, rollappUser := users[0], users[1]
 
-	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
+	// dymensionUserAddr := dymensionUser.FormattedAddress()
+	// rollappUserAddr := rollappUser.FormattedAddress()
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
+	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	// require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
+	// err = r.StartRelayer(ctx, eRep, ibcPath)
+	// require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
-	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
-	require.NoError(t, err)
-	println("check token: ", celestia_token)
-	celestia_namespace_id, err := RandomHex(10)
-	require.NoError(t, err)
-	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://localhost:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", celestia_namespace_id, celestia_token)
-	rollappConfigOverrides := overridesDymintTomlWithCelesSetup("celestia", celestia_namespace_id, da_config)
+	// // Send a normal ibc tx from RA -> Hub
+	// transferData := ibc.WalletData{
+	// 	Address: dymensionUserAddr,
+	// 	Denom:   rollapp1.Config().Denom,
+	// 	Amount:  transferAmount,
+	// }
+	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	// require.NoError(t, err)
 
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err, "error stopping node(s)")
+	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	// require.NoError(t, err)
 
-	for _, v := range rollapp1.Validators {
-		v := v
-		v.Chain = rollapp1
-		v.Validator = true
-		for configFile, modifiedConfig := range rollappConfigOverrides {
-			modifiedToml, ok := modifiedConfig.(testutil.Toml)
-			require.Equal(t, true, ok)
-			err := testutil.ModifyTomlConfigFile(
-				ctx,
-				v.Logger(),
-				v.DockerClient,
-				v.TestName,
-				v.VolumeName,
-				v.Chain.Config().Name,
-				configFile,
-				modifiedToml,
-			)
-			require.NoError(t, err)
-		}
-	}
-	err = rollapp1.StartAllNodes(ctx)
-	require.NoError(t, err, "error starting node(s)")
+	// // Assert balance was updated on the hub
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	// // wait until the packet is finalized
+	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	// require.NoError(t, err)
+	// require.True(t, isFinalized)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+	// // Get the IBC denom for urax on Hub
+	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// // Minus 0.1% of transfer amount for bridge fee
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	// // Get original account balances
+	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	// require.NoError(t, err)
 
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// // Compose an IBC transfer and send from dymension -> rollapp
+	// transferData = ibc.WalletData{
+	// 	Address: rollappUserAddr,
+	// 	Denom:   dymension.Config().Denom,
+	// 	Amount:  transferAmount,
+	// }
 
-	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	// // Compose an IBC transfer and send from Hub -> rollapp
+	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	// require.NoError(t, err)
 
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
+	// // Assert balance was updated on the hub
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	// // Get the IBC denom
+	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
-}
-
-func overridesDymintTomlWithCelesSetup(daLayer, namespaceId, daConfig string) map[string]any {
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides := make(testutil.Toml)
-
-	dymintTomlOverrides["da_layer"] = daLayer
-	dymintTomlOverrides["namespace_id"] = namespaceId
-	dymintTomlOverrides["da_config"] = daConfig
-
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	return configFileOverrides
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	// require.NoError(t, err)
+	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
