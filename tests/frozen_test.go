@@ -1794,7 +1794,13 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataFromDym, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
@@ -1896,7 +1902,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.Equal(t, latestIndex, lalatestIndex, "rollapp state index still increment after grace period. Rerun")
