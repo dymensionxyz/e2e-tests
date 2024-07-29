@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"crypto/rand"
+	"encoding/hex"
+
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
@@ -638,4 +641,19 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+}
+
+func RandomHex(numberOfBytes int) (string, error) {
+	bytes := make([]byte, numberOfBytes)
+
+	// Read random bytes from crypto/rand
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the bytes as a hex string
+	hexString := hex.EncodeToString(bytes)
+
+	return hexString, nil
 }
