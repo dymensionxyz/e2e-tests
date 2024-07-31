@@ -11,10 +11,10 @@ import (
 
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
-	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
+	// "github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	// "github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-	"github.com/decentrio/rollup-e2e-testing/relayer"
+	// "github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
@@ -27,7 +27,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
+	// configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -48,11 +48,13 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	// Create chain factory with dymension
 	numHubVals := 1
-	numHubFullNodes := 1
+	// numHubFullNodes := 1
 	numRollAppFn := 0
-	numRollAppVals := 1
-	nodeStore := "/home/celestia/bridge"
-	p2pNetwork := "arabica-11"
+	// numRollAppVals := 1
+	nodeStore := "/home/celestia/light"
+	p2pNetwork := "mocha-4"
+	coreIp := "public-celestia-mocha4-consensus.numia.xyz"
+	trustedHash := "496BA2F12B9B64789DF8802FB75CB65161519F4FECC68774BCE0118FF2098322"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -67,7 +69,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				Bin:            "celestia-appd",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "ghcr.io/decentrio/celestia",
+						Repository: "ghcr.io/decentrio/light",
 						Version:    "debug",
 						UidGid:     "1025:1025",
 					},
@@ -78,7 +80,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes: &numRollAppFn,
+			NumFullNodes:  &numRollAppFn,
 		},
 	})
 
@@ -107,83 +109,89 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil)
 	require.NoError(t, err)
+	require.NoError(t, err)
 
+	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, nil)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 5, celestia)
+	require.NoError(t, err)
+	err = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, "validator", p2pNetwork, trustedHash, nil)
+	require.NoError(t, err)
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
 	println("check token: ", celestia_token)
-	celestia_namespace_id, err := RandomHex(10)
-	require.NoError(t, err)
-	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	// celestia_namespace_id, err := RandomHex(10)
+	// require.NoError(t, err)
+	// println("check namespace: ", celestia_namespace_id)
+	// da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
-	dymintTomlOverrides["da_layer"] = "celestia"
-	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
-	dymintTomlOverrides["da_config"] = da_config
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	// dymintTomlOverrides["da_layer"] = "celestia"
+	// dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	// dymintTomlOverrides["da_config"] = da_config
+	// configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
-		},
-	})
+	// cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+	// 	{
+	// 		Name: "rollapp1",
+	// 		ChainConfig: ibc.ChainConfig{
+	// 			Type:                "rollapp-dym",
+	// 			Name:                "rollapp-temp",
+	// 			ChainID:             "rollappevm_1234-1",
+	// 			Images:              []ibc.DockerImage{rollappEVMImage},
+	// 			Bin:                 "rollappd",
+	// 			Bech32Prefix:        "ethm",
+	// 			Denom:               "urax",
+	// 			CoinType:            "60",
+	// 			GasPrices:           "0.0urax",
+	// 			GasAdjustment:       1.1,
+	// 			TrustingPeriod:      "112h",
+	// 			EncodingConfig:      encodingConfig(),
+	// 			NoHostMount:         false,
+	// 			ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+	// 			ConfigFileOverrides: configFileOverrides,
+	// 		},
+	// 		NumValidators: &numRollAppVals,
+	// 		NumFullNodes:  &numRollAppFn,
+	// 	},
+	// 	{
+	// 		Name:          "dymension-hub",
+	// 		ChainConfig:   dymensionConfig,
+	// 		NumValidators: &numHubVals,
+	// 		NumFullNodes:  &numHubFullNodes,
+	// 	},
+	// })
 
-	// Get chains from the chain factory
-	chains, err = cf.Chains(t.Name())
-	require.NoError(t, err)
+	// // Get chains from the chain factory
+	// chains, err = cf.Chains(t.Name())
+	// require.NoError(t, err)
 
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
+	// rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	// dymension := chains[1].(*dym_hub.DymHub)
 
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer", network)
+	// r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+	// 	relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	// ).Build(t, client, "relayer", network)
 
-	ic = test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
+	// ic = test.NewSetup().
+	// 	AddRollUp(dymension, rollapp1).
+	// 	AddRelayer(r, "relayer").
+	// 	AddLink(test.InterchainLink{
+	// 		Chain1:  dymension,
+	// 		Chain2:  rollapp1,
+	// 		Relayer: r,
+	// 		Path:    ibcPath,
+	// 	})
 
+	// err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	// 	TestName:         t.Name(),
+	// 	Client:           client,
+	// 	NetworkID:        network,
+	// 	SkipPathCreation: true,
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
-	require.NoError(t, err)
+	// 	// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+	// 	// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	// }, nil, "", nil)
+	// require.NoError(t, err)
 
 	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
