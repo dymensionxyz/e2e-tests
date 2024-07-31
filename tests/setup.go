@@ -13,7 +13,6 @@ import (
 
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -580,38 +579,38 @@ type rollappParam struct {
 // 	}
 // }
 
-func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
-	ctx := context.Background()
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
-	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer to whitelist",
-		Description: "Add current user addr to the deployer whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
+// func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
+// 	ctx := context.Background()
+// 	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
+// 	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
+// 		Title:       "Add new deployer to whitelist",
+// 		Description: "Add current user addr to the deployer whitelist",
+// 		Changes: utils.ParamChangesJSON{
+// 			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
+// 		},
+// 		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
+// 	})
+// 	require.NoError(t, err)
 
-	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+// 	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+// 	require.NoError(t, err, "failed to submit votes")
 
-	height, err := targetChain.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+// 	height, err := targetChain.Height(ctx)
+// 	require.NoError(t, err, "error fetching height")
+// 	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+// 	require.NoError(t, err, "proposal status did not change to passed")
 
-	newParams, err := targetChain.QueryParam(ctx, module, param)
-	require.NoError(t, err)
-	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
-}
+// 	newParams, err := targetChain.QueryParam(ctx, module, param)
+// 	require.NoError(t, err)
+// 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
+// }
 
 func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
 	dymintTomlOverrides["da_layer"] = "grpc"
-	dymintTomlOverrides["da_config"] = `{"host":"host.docker.internal", "port": 7980}`
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
 	dymintTomlOverrides["settlement_node_address"] = nodeAddress
 	dymintTomlOverrides["rollapp_id"] = rollappId

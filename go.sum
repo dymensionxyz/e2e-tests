@@ -760,6 +760,8 @@ github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7Do
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/danieljoos/wincred v1.1.2 h1:QLdCxFs1/Yl4zduvBdcHB8goaYk9RARS2SgLLRuAyr0=
 github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnGqR5Vl2tAx0=
+github.com/danwt/gerr v1.0.0 h1:v3Do0h1r+uctQQVYJfOTCo8uigp8oIaY4OL/wUU8LzI=
+github.com/danwt/gerr v1.0.0/go.mod h1:tIj6P8ZPBLAbr64HdWqKHGUXbWJT6HenD08Fn98oAnE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
@@ -818,10 +820,12 @@ github.com/dymensionxyz/cosmosclient v0.4.2-beta.0.20240421130646-b8980ec7aade h
 github.com/dymensionxyz/cosmosclient v0.4.2-beta.0.20240421130646-b8980ec7aade/go.mod h1:UxhLdtWOWg7l6+5Hpkm39Khd23wcr5H62YxM04rMbh8=
 github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240717194206-54c0fca5fada h1:icRxU53BU7JtUspdTwo3Gwl0U/q8DsQwmXx4sUGowFc=
 github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240717194206-54c0fca5fada/go.mod h1:a/kNkXs3uPwYrn+P139a9zh+8r1rVpPFuPi7gn08Gck=
-github.com/dymensionxyz/dymint v1.1.0-rc02.0.20240612141707-2b5d21b32ca4 h1:Qq/yf0Pe6+YFp50be43bkxT5OSwDq245eYg22MC9cZQ=
-github.com/dymensionxyz/dymint v1.1.0-rc02.0.20240612141707-2b5d21b32ca4/go.mod h1:e04A2OxeowtxMC9jl4JJj/7fmcYrHEWVIbYAlEd/Byo=
+github.com/dymensionxyz/dymint v1.2.0-rc01 h1:zFHUXmy/07Bs7/qSRzGnGdRipgCm4GGAsoxF1+OCwS8=
+github.com/dymensionxyz/dymint v1.2.0-rc01/go.mod h1:8ECqxpdco6NOSBTJCcbcUeBGTQClc+JQnHmyc5+3vKU=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050 h1:1mtlo6bDOdBihHWbDpOaai0NMC/4xHCkCHGCqdLT8WM=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050/go.mod h1:aokD0im7cUMMtR/khzNsmcGtINtxCpBfcgRvJdmLymA=
+github.com/dymensionxyz/gerr-cosmos v1.0.0 h1:oi91rgOkpJWr41oX9JOyjvvBnhGY54tj513x8VlDAEc=
+github.com/dymensionxyz/gerr-cosmos v1.0.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
