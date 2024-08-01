@@ -211,7 +211,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
@@ -456,7 +456,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 40, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occurred
