@@ -6,6 +6,11 @@ on:
         required: false
         type: string
         default: "latest"
+      dymension_ci:
+          description: "CI run on Dymension Repo"
+          required: false
+          type: string
+          default: "latest"
       upgrade_name:
         description: "Upgrade Name be used by e2e-tests"
         required: true
@@ -45,5 +50,5 @@ jobs:
       - name: Rollapp-EVM Upgrade E2E Tests
         run: make ${{ matrix.tests }}
         env:
-          DYMENSION_CI: ${{ inputs.rollapp_evm_ci }}
+          ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
           UPGRADE_ROLLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
