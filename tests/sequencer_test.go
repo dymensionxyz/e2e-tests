@@ -11,6 +11,7 @@ import (
 
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
+
 	// "github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	// "github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -53,8 +54,8 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	// numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "public-celestia-mocha4-consensus.numia.xyz"
-	trustedHash := "496BA2F12B9B64789DF8802FB75CB65161519F4FECC68774BCE0118FF2098322"
+	coreIp := "celestia-testnet-consensus.itrocket.net"
+	trustedHash := "8FED683DC1B4C05692999D2A8AA28EF8ABFFA9AE56CE14106BA154D4E01EDDD3"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -70,7 +71,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/decentrio/light",
-						Version:    "debug",
+						Version:    "latest",
 						UidGid:     "1025:1025",
 					},
 				},
@@ -109,20 +110,25 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil)
 	require.NoError(t, err)
+	go celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
+
+	// TODO: Need config overwrite here
+
+	err = testutil.WaitForBlocks(ctx, 2, celestia)
 	require.NoError(t, err)
 
-	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, nil)
+	go celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, "validator", p2pNetwork, trustedHash, nil)
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 5, celestia)
+
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
 	require.NoError(t, err)
-	err = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, "validator", p2pNetwork, trustedHash, nil)
-	require.NoError(t, err)
+
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
 	println("check token: ", celestia_token)
-	// celestia_namespace_id, err := RandomHex(10)
-	// require.NoError(t, err)
-	// println("check namespace: ", celestia_namespace_id)
+	celestia_namespace_id, err := RandomHex(10)
+	require.NoError(t, err)
+	println("check namespace: ", celestia_namespace_id)
 	// da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	// dymintTomlOverrides["da_layer"] = "celestia"
