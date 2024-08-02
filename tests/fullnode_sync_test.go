@@ -324,7 +324,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
-	numRollAppFn := 0
+	numRollAppFn := 1
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
