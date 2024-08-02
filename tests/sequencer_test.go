@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -22,10 +21,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 
-	// "github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
-	// "github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-	// "github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
@@ -46,7 +42,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "30s"
+	dymintTomlOverrides["batch_submit_max_time"] = "80s"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -65,8 +61,8 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
-	trustedHash := "\"8FED683DC1B4C05692999D2A8AA28EF8ABFFA9AE56CE14106BA154D4E01EDDD3\""
-	sampleFrom := 2388815
+	trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
+	sampleFrom := 2395649
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -82,7 +78,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/decentrio/light",
-						Version:    "latest",
+						Version:    "debug",
 						UidGid:     "1025:1025",
 					},
 				},
@@ -121,6 +117,50 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil)
 	require.NoError(t, err)
+
+	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 
@@ -159,7 +199,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
