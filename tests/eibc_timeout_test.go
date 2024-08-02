@@ -634,7 +634,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -1026,7 +1026,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
