@@ -11,6 +11,11 @@ on:
             required: false
             type: string
             default: "latest"
+        relayer_ci:
+            description: "CI run on Relayer Repo"
+            required: false
+            type: string
+            default: "main-dym"
         test:
           description: 'test name to run as standalone'
           required: false
@@ -78,5 +83,6 @@ jobs:
           env:
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
             DYMENSION_CI: ${{ inputs.dymension_ci }}
+            RELAYER_CI: ${{ inputs.relayer_ci }}
            
   

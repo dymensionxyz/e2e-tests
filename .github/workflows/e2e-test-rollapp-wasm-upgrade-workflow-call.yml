@@ -7,10 +7,15 @@ on:
         type: string
         default: "latest"
       dymension_ci:
-          description: "CI run on Dymension Repo"
-          required: false
-          type: string
-          default: "latest"
+        description: "CI run on Dymension Repo"
+        required: false
+        type: string
+        default: "latest"
+      relayer_ci:
+        description: "CI run on Relayer Repo"
+        required: false
+        type: string
+        default: "main-dym"
       upgrade_name:
         description: "Upgrade Name be used by e2e-tests"
         required: false
@@ -52,3 +57,4 @@ jobs:
         env:
           ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
           UPGRADE_ROLLAPP_WASM_NAME: ${{ inputs.upgrade_name }}
+          RELAYER_CI: ${{ inputs.relayer_ci }}
