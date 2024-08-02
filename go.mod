@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240718115231-5ffec3805af4
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240726095831-f86d1f50e4b6
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240717194206-54c0fca5fada
 	github.com/dymensionxyz/dymint v1.2.0-rc01
 )
@@ -39,7 +39,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.11 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/docker/docker v24.0.7+incompatible // indirect
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect

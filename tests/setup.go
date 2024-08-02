@@ -1,9 +1,12 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -740,4 +743,45 @@ func RandomHex(numberOfBytes int) (string, error) {
 	hexString := hex.EncodeToString(bytes)
 
 	return hexString, nil
+}
+
+func GetFaucet(api, address string) {
+	// Data to send in the POST request
+	data := map[string]string{
+		"address": address,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	// Create a new POST request
+	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	// Set the request header to indicate that we're sending JSON data
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create an HTTP client and send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Response Body:", string(body))
 }
