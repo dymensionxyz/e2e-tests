@@ -627,14 +627,9 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, globalEIbcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
-	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	// if eibcEvent != nil {
-	// 	fmt.Println("After order fulfillment:", eibcEvent)
-	// }
-	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 20, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address

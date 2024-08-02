@@ -138,10 +138,11 @@ func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
@@ -1388,10 +1389,11 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub

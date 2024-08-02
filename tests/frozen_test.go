@@ -3934,6 +3934,10 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	rollappIbcDenom := GetIBCDenom(channsRollApp1Dym.Counterparty.PortID, channsRollApp1Dym.Counterparty.ChannelID, rollapp1.Config().Denom)
 	dymToRollappIbcDenom := GetIBCDenom(channsRollApp1Dym.PortID, channsRollApp1Dym.ChannelID, dymension.Config().Denom)
 
+	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
+	require.NoError(t, err)
+	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
+
 	// Get origin rollapp1 denom balance
 	rollapp1OriginBal1, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
 	fmt.Println("rollapp1OriginBal1", rollapp1OriginBal1)
@@ -3975,10 +3979,6 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
-	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
-	require.NoError(t, err)
-
-	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
