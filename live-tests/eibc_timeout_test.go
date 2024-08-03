@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBCTimeout_Live(t *testing.T) {
+func TestEIBCTimeoutRolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -40,21 +40,9 @@ func TestEIBCTimeout_Live(t *testing.T) {
 		Denom:         "arolx",
 	}
 
-	rollappY := cosmos.CosmosChain{
-		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "18.153.150.111:9090",
-		ChainID:       "rollappy_700002-1",
-		Bin:           "rollapp-wasm",
-		GasPrices:     "0.0aroly",
-		GasAdjustment: "1.1",
-		Denom:         "aroly",
-	}
-
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
-	require.NoError(t, err)
-	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
@@ -63,12 +51,8 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 
-	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
-	require.NoError(t, err)
-
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
@@ -77,12 +61,6 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	rollappXTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappX, rollappXUser.Denom)
 	rollappXIBCDenom := transfertypes.ParseDenomTrace(rollappXTokenDenom).IBCDenom()
 
-	rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
-
-	// hubTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDRollappXDym, dymensionUser.Denom)
-	// hubIBCDenom := transfertypes.ParseDenomTrace(hubTokenDenom).IBCDenom()
-
 	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(dymensionOrigBal)
@@ -90,10 +68,6 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappXOrigBal)
-
-	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappYOrigBal)
 
 	height, err := rollappX.Height(ctx)
 	require.NoError(t, err)
@@ -142,7 +116,7 @@ func TestEIBCTimeout_Live(t *testing.T) {
 
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -153,9 +127,78 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	fmt.Println(erc20_Bal)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+}
+
+func TestEIBCTimeoutRolY_Live(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+	ctx := context.Background()
+
+	hub := cosmos.CosmosChain{
+		RPCAddr:       "rpc-blumbus.mzonder.com:443",
+		GrpcAddr:      "grpc-blumbus.mzonder.com:9090",
+		ChainID:       "blumbus_111-1",
+		Bin:           "dymd",
+		GasPrices:     "1000adym",
+		GasAdjustment: "1.1",
+		Denom:         "adym",
+	}
+
+	rollappY := cosmos.CosmosChain{
+		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
+		GrpcAddr:      "18.153.150.111:9090",
+		ChainID:       "rollappy_700002-1",
+		Bin:           "rollapp-wasm",
+		GasPrices:     "0.0aroly",
+		GasAdjustment: "1.1",
+		Denom:         "aroly",
+	}
+
+	dymensionUser, err := hub.CreateUser("dym1")
+	require.NoError(t, err)
+	rollappYUser, err := rollappY.CreateUser("roly1")
+	require.NoError(t, err)
+
+	err = hub.NewClient("https://" + hub.RPCAddr)
+	require.NoError(t, err)
+
+	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
+	require.NoError(t, err)
+
+	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
+	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
+
+	// Wait for blocks
+	testutil.WaitForBlocks(ctx, 5, hub)
+
+	// Get the IBC denom
+	rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
+	rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
+
+	dymensionOrigBal, err := dymensionUser.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(dymensionOrigBal)
+
+	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
+	require.NoError(t, err)
+	fmt.Println(rollappYOrigBal)
+
+	height, err := rollappY.Height(ctx)
+	require.NoError(t, err)
+	erc20_OrigBal, err := rollappYUser.GetERC20Balance(rollappY.JsonRPCAddr, erc20Contract, int64(height))
+	require.NoError(t, err)
+	fmt.Println(erc20_OrigBal)
+
+	// Set a short timeout for IBC transfer
+	options := ibc.TransferOptions{
+		Timeout: &ibc.IBCTimeout{
+			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+		},
+	}
 
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
+	transferData := ibc.WalletData{
 		Address: rollappYUser.Address,
 		Denom:   dymensionUser.Denom,
 		Amount:  transferAmount,
@@ -176,18 +219,18 @@ func TestEIBCTimeout_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappY, channelIDRollappYDym, rollappYUser.Address, transferData, rolyFee, options)
 	require.NoError(t, err)
 
-	rollappYHeight, err := rollappX.Height(ctx)
+	rollappYHeight, err := rollappY.Height(ctx)
 	require.NoError(t, err)
 
 	fmt.Println(rollappYHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err = hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 400)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
 	height, err = rollappY.Height(ctx)
 	require.NoError(t, err)
-	erc20_Bal, err = rollappYUser.GetERC20Balance(rollappY.JsonRPCAddr, erc20Contract, int64(height))
+	erc20_Bal, err := rollappYUser.GetERC20Balance(rollappY.JsonRPCAddr, erc20Contract, int64(height))
 	require.NoError(t, err)
 	fmt.Println(erc20_Bal)
 	require.Equal(t, erc20_OrigBal, erc20_Bal)
