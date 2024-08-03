@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBCFulfill_Live(t *testing.T) {
+func TestEIBCFulfillRolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -37,15 +37,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 		GasAdjustment: "1.1",
 		Denom:         "arolx",
 	}
-	rollappY := cosmos.CosmosChain{
-		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "18.153.150.111:9090",
-		ChainID:       "rollappy_700002-1",
-		Bin:           "rollapp-wasm",
-		GasPrices:     "0.0aroly",
-		GasAdjustment: "1.1",
-		Denom:         "aroly",
-	}
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 
@@ -54,13 +45,9 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
-	rollappYUser, err := rollappY.CreateUser("roly1")
-	require.NoError(t, err)
 	err = hub.NewClient("https://" + hub.RPCAddr)
 	require.NoError(t, err)
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
-	require.NoError(t, err)
-	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
@@ -68,8 +55,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	testutil.WaitForBlocks(ctx, 2, hub)
-	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
@@ -87,9 +72,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappXOrigBal)
-	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappYOrigBal)
 
 	transferAmountMM := math.NewInt(100000000000)
 	// Compose an IBC transfer and send from rollappx -> marketmaker
@@ -111,7 +93,7 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
