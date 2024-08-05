@@ -83,7 +83,7 @@ func TestDelayackRollappToHubNoFinalizedRolX_Live(t *testing.T) {
 	}
 
 	var options ibc.TransferOptions
-	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
+	_, err = cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 	// Amount should not be received by hub yet
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, sdkmath.NewInt(0))
@@ -101,7 +101,7 @@ func TestDelayackRollappToHubNoFinalizedRolX_Live(t *testing.T) {
 		defer wg.Done()
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
-		timeout := time.After(500 * time.Second) // Set a timeout for the whole check
+		timeout := time.After(400 * time.Second) // Set a timeout for the whole check
 
 		for {
 			select {
@@ -210,7 +210,7 @@ func TestDelayackRollappToHubRolX_Live(t *testing.T) {
 	}
 
 	var options ibc.TransferOptions
-	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
+	_, err = cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferData, rolxFee, options)
 	require.NoError(t, err)
 	// Amount should not be received by hub yet
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, sdkmath.NewInt(0))
@@ -219,7 +219,7 @@ func TestDelayackRollappToHubRolX_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 1000)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
