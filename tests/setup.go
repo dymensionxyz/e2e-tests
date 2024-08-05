@@ -108,8 +108,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "new-flow",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -543,6 +543,9 @@ func modifyDymensionGenesis(genesisKV []cosmos.GenesisKV) func(ibc.ChainConfig, 
 		}
 		if err := dyno.Set(g, "adym", "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
 			return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
+			return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
 		}
 		if err := dyno.Set(g, "10000000000", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
 			return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
