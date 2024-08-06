@@ -18,6 +18,7 @@ The version matrix below shows which versions of the E2E-Tests, Dymension, Rolla
 | v0.0.1     | v3.1.0   | v2.1.z      | 0.1.0-6cf8b0dd   | v0.3.3-v2.5.2-relayer    | 
 | v1.0.1     | v3.1.0-73a8a1d8   | v2.2.0-rc03 | 0.1.0-7b60edee   | v0.3.3-v2.5.2-relayer    |
 | v1.1.0     | v3.1.0-a74ffb0c   | v2.2.0 | 0.1.0-7b60edee   | v0.3.3-v2.5.2-relayer    |
+| v1.2.0     | v3.1.0-afd8254a   | v2.2.0-b91ce47f | 0.1.0-7986b060  | v0.3.3-v2.5.2-relayer    |
 | main     | main  | main | main   | main-dym    |
 
 ## Tests
