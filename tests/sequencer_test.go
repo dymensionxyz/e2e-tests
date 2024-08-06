@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"strconv"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -59,8 +60,13 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
-	trustedHash := "\"13F87599EA6F3F0C767E395AF6F565EDA9A219FB0BC54221B0F09E7B09BEB54E\""
-	sampleFrom := 2424141
+	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
+	// sampleFrom := 2423882
+
+	url := "https://api-mocha.celenium.io/v1/block/count"
+	headerKey := "User-Agent"
+	headerValue := "Apidog/1.0.0 (https://apidog.com)"
+	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -169,6 +175,18 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
+	lastestBlockHeight, err := GetLatestBlockHeight(url, headerKey, headerValue)
+	require.NoError(t, err)
+	lastestBlockHeight = strings.TrimRight(lastestBlockHeight, "\n")
+	heightOfBlock, err := strconv.ParseInt(lastestBlockHeight, 10, 64) // base 10, bit size 64
+	require.NoError(t, err)
+
+	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock-2), rpcEndpoint)
+	require.NoError(t, err)
+
+	fmt.Println(hash)
+
+	hash = strings.TrimRight(hash, "\n")
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -177,9 +195,9 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 	for i, line := range lines {
 		if strings.HasPrefix(line, "  TrustedHash =") {
-			lines[i] = fmt.Sprintf("  TrustedHash = %s", trustedHash)
+			lines[i] = fmt.Sprintf("  TrustedHash = \"%s\"", hash)
 		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", sampleFrom)
+			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock)
 		} else if strings.HasPrefix(line, "  Address =") {
 			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
 		}
