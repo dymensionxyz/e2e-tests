@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-
+	"strconv"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -176,8 +176,11 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	lastestBlockHeight, err := GetLatestBlockHeight(url, headerKey, headerValue)
 	require.NoError(t, err)
+	lastestBlockHeight = strings.TrimRight(lastestBlockHeight, "\n")
+	heightOfBlock, err := strconv.ParseInt(lastestBlockHeight, 10, 64) // base 10, bit size 64
+	require.NoError(t, err)
 
-	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, lastestBlockHeight, rpcEndpoint)
+	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock - 2), rpcEndpoint)
 	require.NoError(t, err)
 
 	var lines []string
@@ -190,7 +193,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 		if strings.HasPrefix(line, "  TrustedHash =") {
 			lines[i] = fmt.Sprintf("  TrustedHash = %s", hash)
 		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", lastestBlockHeight)
+			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock)
 		} else if strings.HasPrefix(line, "  Address =") {
 			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
 		}
