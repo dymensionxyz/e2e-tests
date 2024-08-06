@@ -59,8 +59,8 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
-	trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
-	sampleFrom := 2395649
+	trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
+	sampleFrom := 2423882
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -293,12 +293,12 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
 	require.Error(t, err)
 	require.False(t, isFinalized)
 
 	celestia.StartAllNodes(ctx)
-		
+
 	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
 		panic(err)
@@ -314,9 +314,6 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
 		panic(err)
 	}
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
