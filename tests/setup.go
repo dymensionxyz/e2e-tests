@@ -704,3 +704,26 @@ func GetFaucet(api, address string) {
 	fmt.Println("Response Status:", resp.Status)
 	fmt.Println("Response Body:", string(body))
 }
+
+func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add(headerKey, headerValue)
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(body), nil
+}

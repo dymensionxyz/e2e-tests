@@ -59,8 +59,13 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
-	trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
-	sampleFrom := 2423882
+	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
+	// sampleFrom := 2423882
+
+	url := "https://api-mocha.celenium.io/v1/block/count"
+	headerKey := "User-Agent"
+	headerValue := "Apidog/1.0.0 (https://apidog.com)"
+	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -169,6 +174,12 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
+	lastestBlockHeight, err := GetLatestBlockHeight(url, headerKey, headerValue)
+	require.NoError(t, err)
+
+	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, lastestBlockHeight, rpcEndpoint)
+	require.NoError(t, err)
+
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -177,9 +188,9 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	for i, line := range lines {
 		if strings.HasPrefix(line, "  TrustedHash =") {
-			lines[i] = fmt.Sprintf("  TrustedHash = %s", trustedHash)
+			lines[i] = fmt.Sprintf("  TrustedHash = %s", hash)
 		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", sampleFrom)
+			lines[i] = fmt.Sprintf("  SampleFrom = %d", lastestBlockHeight)
 		} else if strings.HasPrefix(line, "  Address =") {
 			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
 		}
