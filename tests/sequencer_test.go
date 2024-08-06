@@ -76,7 +76,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/decentrio/light",
-						Version:    "debug",
+						Version:    "latest",
 						UidGid:     "1025:1025",
 					},
 				},
