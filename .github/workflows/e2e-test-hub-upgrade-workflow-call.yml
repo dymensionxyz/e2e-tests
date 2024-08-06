@@ -6,6 +6,11 @@ on:
         required: false
         type: string
         default: "latest"
+      relayer_ci:
+        description: "CI run on Relayer Repo"
+        required: false
+        type: string
+        default: "main-dym"
       upgrade_name:
         description: "Upgrade Name be used by e2e-tests"
         required: false
@@ -47,3 +52,4 @@ jobs:
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           UPGRADE_NAME: ${{ inputs.upgrade_name }}
+          RELAYER_CI: ${{ inputs.relayer_ci }}
