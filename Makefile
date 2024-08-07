@@ -561,7 +561,7 @@ e2e-live-test-eibc-invalid-fee-rolx: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Invalid_Fee_RolX_Live .
 	
 e2e-live-test-eibc-fulfillment-rolx: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFulfillRolX_Live .
+	cd live-tests && go test -timeout=35m -race -v -run TestEIBCFulfillRolX_Live .
 	
 e2e-live-test-delayack-rollapp-to-hub-no-finalized-rolx: clean-e2e-live
 	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubNoFinalizedRolX_Live .

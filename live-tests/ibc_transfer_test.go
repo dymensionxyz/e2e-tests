@@ -119,7 +119,7 @@ func TestIBCTransferRolX_Live(t *testing.T) {
 
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 

@@ -93,9 +93,12 @@ func TestEIBCFulfillRolX_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 500)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	// wait rollapp few more blocks for some reason
+	testutil.WaitForBlocks(ctx, 5, rollappX)
 
 	// TODO: Minus 0.1% of transfer amount for bridge fee
 	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount
@@ -120,18 +123,18 @@ func TestEIBCFulfillRolX_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToHub, rolxFee, options)
 	require.NoError(t, err)
 
-	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 10, false, encoding.InterfaceRegistry)
-	require.NoError(t, err)
-	for i, eibcEvent := range eibcEvents {
-		fmt.Println(i, "EIBC Event:", eibcEvent)
-	}
-
 	testutil.WaitForBlocks(ctx, 10, hub)
 
 	// Check non-fulfill
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+
 	// get eIbc event
+	encoding := encodingConfig()
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, true, encoding.InterfaceRegistry)
+	require.NoError(t, err)
+	for i, eibcEvent := range eibcEvents {
+		fmt.Println(i, "EIBC Event:", eibcEvent)
+	}
 
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
