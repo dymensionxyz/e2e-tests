@@ -98,7 +98,7 @@ func TestEIBCFulfillRolX_Live(t *testing.T) {
 	require.True(t, isFinalized)
 
 	// wait rollapp few more blocks for some reason
-	testutil.WaitForBlocks(ctx, 5, rollappX)
+	testutil.WaitForBlocks(ctx, 10, hub)
 
 	// TODO: Minus 0.1% of transfer amount for bridge fee
 	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount
@@ -123,7 +123,6 @@ func TestEIBCFulfillRolX_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToHub, rolxFee, options)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, hub)
 
 	// Check non-fulfill
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
@@ -139,7 +138,7 @@ func TestEIBCFulfillRolX_Live(t *testing.T) {
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
-		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING"{
 			fmt.Println("EIBC Event:", eibcEvent)
 			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
 			require.NoError(t, err)
