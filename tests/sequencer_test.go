@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
-	"strconv"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -197,7 +197,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 		if strings.HasPrefix(line, "  TrustedHash =") {
 			lines[i] = fmt.Sprintf("  TrustedHash = \"%s\"", hash)
 		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock)
+			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock-2)
 		} else if strings.HasPrefix(line, "  Address =") {
 			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
 		}
