@@ -4932,7 +4932,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataFromDym, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 
 	rollapp1UserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, dymToRollappIbcDenom)
 	require.NoError(t, err)
