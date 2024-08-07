@@ -3976,9 +3976,8 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
 	require.NoError(t, err)
 
-	dymUserRollapp1bal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
-	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIbcDenom, transferAmount.Sub(bridgingFee))
 
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
