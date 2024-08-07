@@ -171,6 +171,13 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
+	// Change the file permissions
+	err = os.Chmod("/tmp/celestia/light/config.toml", 0777)
+	if err != nil {
+		fmt.Println("Error changing file permissions:", err)
+		return
+	}
+
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
