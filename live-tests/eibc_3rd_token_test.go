@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBC_3rd_Token_Live(t *testing.T) {
+func TestEIBC_3rd_Token_RolY_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -37,15 +37,6 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 		GasAdjustment: "1.1",
 		Denom:         "utia",
 	}
-	rollappX := cosmos.CosmosChain{
-		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "3.123.185.77:9090",
-		ChainID:       "rolx_100004-1",
-		Bin:           "rollapp-evm",
-		GasPrices:     "0.0arolx",
-		GasAdjustment: "1.1",
-		Denom:         "arolx",
-	}
 	rollappY := cosmos.CosmosChain{
 		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "18.153.150.111:9090",
@@ -64,16 +55,13 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	// create market maker
 	marketMaker, err := hub.CreateUser("dym2")
 	require.NoError(t, err)
-	rollappXUser, err := rollappX.CreateUser("rolx1")
-	require.NoError(t, err)
+
 	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
 	require.NoError(t, err)
 	err = mocha.NewClient("https://" + mocha.RPCAddr)
-	require.NoError(t, err)
-	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
@@ -83,15 +71,12 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 2, hub)
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
-	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
 
 	// Get the IBC denom
-	// rollappYTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymRollappY, rollappYUser.Denom)
-	// rollappYIBCDenom := transfertypes.ParseDenomTrace(rollappYTokenDenom).IBCDenom()
 
 	mochaTokenDenom := transfertypes.GetPrefixedDenom("transfer", channelIDDymMocha, mocha.Denom)
 	mochaIBCDenom := transfertypes.ParseDenomTrace(mochaTokenDenom).IBCDenom()
@@ -105,9 +90,6 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	mmOrigBal, err := marketMaker.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(mmOrigBal)
-	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappXOrigBal)
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
@@ -125,6 +107,7 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 		Amount:  transferAmountMM.Add(transferAmountMM),
 	}
 	_, err = cosmos.SendIBCTransfer(mocha, channelIDMochaDym, mochaUser.Address, transferData, mochaFee, options)
+	require.NoError(t, err)
 
 	t.Log("mochaIBCDenom:", mochaIBCDenom)
 
@@ -138,6 +121,7 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 		Amount:  transferAmountMM.Add(transferAmountMM),
 	}
 	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
+	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 10, hub)
 
@@ -212,7 +196,7 @@ func TestEIBC_3rd_Token_Live(t *testing.T) {
 	require.True(t, balance.Equal(transferAmountMM.Sub(eibcFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountMM.Sub(eibcFee), balance))
 }
 
-func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
+func TestEIBC_3rd_Token_Timeout_RolY_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -235,15 +219,6 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		GasAdjustment: "1.1",
 		Denom:         "utia",
 	}
-	rollappX := cosmos.CosmosChain{
-		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "3.123.185.77:9090",
-		ChainID:       "rolx_100004-1",
-		Bin:           "rollapp-evm",
-		GasPrices:     "0.0arolx",
-		GasAdjustment: "1.1",
-		Denom:         "arolx",
-	}
 	rollappY := cosmos.CosmosChain{
 		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "18.153.150.111:9090",
@@ -262,16 +237,12 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	// create market maker
 	marketMaker, err := hub.CreateUser("dym2")
 	require.NoError(t, err)
-	rollappXUser, err := rollappX.CreateUser("rolx1")
-	require.NoError(t, err)
 	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
 	err = hub.NewClient("https://" + hub.RPCAddr)
 	require.NoError(t, err)
 	err = mocha.NewClient("https://" + mocha.RPCAddr)
-	require.NoError(t, err)
-	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
 	require.NoError(t, err)
 	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
@@ -282,8 +253,6 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	testutil.WaitForBlocks(ctx, 2, hub)
 	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
-	testutil.WaitForBlocks(ctx, 2, hub)
-	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
 	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
@@ -306,9 +275,6 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 	mmOrigBal, err := marketMaker.GetBalance(ctx, dymensionUser.Denom, hub.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(mmOrigBal)
-	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappXOrigBal)
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
@@ -331,6 +297,7 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		Amount:  transferAmountMM.Add(transferAmountMM),
 	}
 	_, err = cosmos.SendIBCTransfer(mocha, channelIDMochaDym, mochaUser.Address, transferData, mochaFee, ibc.TransferOptions{})
+	require.NoError(t, err)
 
 	t.Log("mochaIBCDenom:", mochaIBCDenom)
 
@@ -340,6 +307,7 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		Amount:  transferAmountMM.Add(transferAmountMM),
 	}
 	_, err = cosmos.SendIBCTransfer(mocha, channelIDMochaDym, mochaUser.Address, transferData, mochaFee, ibc.TransferOptions{})
+	require.NoError(t, err)
 
 	testutil.WaitForBlocks(ctx, 10, hub)
 
@@ -351,10 +319,11 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		Amount:  transferAmountMM.Add(transferAmountMM),
 	}
 	_, err = cosmos.SendIBCTransfer(hub, channelIDDymRollappY, dymensionUser.Address, transferData, dymFee, options)
-
-	rollappXHeight, err := rollappX.Height(ctx)
 	require.NoError(t, err)
-	fmt.Println(rollappXHeight)
+
+	rollappYHeight, err := rollappY.Height(ctx)
+	require.NoError(t, err)
+	fmt.Println(rollappYHeight)
 
 	testutil.AssertBalance(t, ctx, rollappYUser, mochaIBCDenom, rollappY.GrpcAddr, math.ZeroInt())
 	testutil.AssertBalance(t, ctx, rollappYUser, secondHopIBCDenom, rollappY.GrpcAddr, math.ZeroInt())
@@ -378,10 +347,11 @@ func TestEIBC_3rd_Token_Timeout_Live(t *testing.T) {
 		}
 	}
 
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappY.ChainID, rollappYHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
 	balance, err := marketMaker.GetBalance(ctx, mochaIBCDenom, hub.GrpcAddr)
+	require.NoError(t, err)
 	fmt.Println(balance)
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBCFulfill_Live(t *testing.T) {
+func TestEIBCFulfillRolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -37,15 +37,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 		GasAdjustment: "1.1",
 		Denom:         "arolx",
 	}
-	rollappY := cosmos.CosmosChain{
-		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "18.153.150.111:9090",
-		ChainID:       "rollappy_700002-1",
-		Bin:           "rollapp-wasm",
-		GasPrices:     "0.0aroly",
-		GasAdjustment: "1.1",
-		Denom:         "aroly",
-	}
 	dymensionUser, err := hub.CreateUser("dym1")
 	require.NoError(t, err)
 
@@ -54,13 +45,9 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	require.NoError(t, err)
 	rollappXUser, err := rollappX.CreateUser("rolx1")
 	require.NoError(t, err)
-	rollappYUser, err := rollappY.CreateUser("roly1")
-	require.NoError(t, err)
 	err = hub.NewClient("https://" + hub.RPCAddr)
 	require.NoError(t, err)
 	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
-	require.NoError(t, err)
-	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
@@ -68,8 +55,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	marketMaker.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	testutil.WaitForBlocks(ctx, 2, hub)
 	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
-	testutil.WaitForBlocks(ctx, 2, hub)
-	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
 	testutil.WaitForBlocks(ctx, 5, hub)
@@ -87,9 +72,6 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappXOrigBal)
-	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappYOrigBal)
 
 	transferAmountMM := math.NewInt(100000000000)
 	// Compose an IBC transfer and send from rollappx -> marketmaker
@@ -111,9 +93,12 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(rollappXHeight)
 	// wait until the packet is finalized on Rollapp 1
-	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 400)
+	isFinalized, err := hub.WaitUntilRollappHeightIsFinalized(ctx, rollappX.ChainID, rollappXHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	// wait rollapp few more blocks for some reason
+	testutil.WaitForBlocks(ctx, 10, hub)
 
 	// TODO: Minus 0.1% of transfer amount for bridge fee
 	expMmBalanceRollappDenom := transferDataRollAppXToMm.Amount
@@ -138,23 +123,22 @@ func TestEIBCFulfill_Live(t *testing.T) {
 	cosmos.SendIBCTransfer(rollappX, channelIDRollappXDym, rollappXUser.Address, transferDataRollAppXToHub, rolxFee, options)
 	require.NoError(t, err)
 
+
+	// Check non-fulfill
+	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
+
+	// get eIbc event
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 10, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, true, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
-	testutil.WaitForBlocks(ctx, 10, hub)
-
-	// Check non-fulfill
-	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, math.ZeroInt())
-	// get eIbc event
-
 	// fulfill demand orders from rollapp 1
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
-		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING" {
+		if re.ReplaceAllString(eibcEvent.Price, "") == rollappXIBCDenom && eibcEvent.PacketStatus == "PENDING"{
 			fmt.Println("EIBC Event:", eibcEvent)
 			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
 			require.NoError(t, err)

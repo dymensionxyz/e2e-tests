@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBC_No_Memo_Live(t *testing.T) {
+func TestEIBC_No_Memo_RolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
