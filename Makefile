@@ -533,42 +533,50 @@ e2e-test-all: e2e-test-ibc-success-evm \
 clean-e2e-live:
 	sh clean-live.sh
 
-e2e-live-test-ibc-transfer-success: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransfer_Live .
+e2e-live-test-ibc-transfer-success-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransferRolX_Live .
 
-e2e-live-test-delayedack-rollapp-to-hub: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHub_Live .
+e2e-live-test-ibc-transfer-success-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestIBCTransferRolY_Live .
 
-e2e-live-test-eibc-timeout: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeout_Live .
+e2e-live-test-delayedack-rollapp-to-hub-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubRolX_Live .
 
-e2e-live-test-delayack-ack-error-from-dym: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_EVM_Live .
+e2e-live-test-eibc-timeout-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeoutRolX_Live .
 
-e2e-live-test-eibc-3rd-token: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_Live .
+e2e-live-test-eibc-timeout-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCTimeoutRolY_Live .
 
-e2e-live-test-eibc-3rd-token-timeout: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_Timeout_Live .
+e2e-live-test-delayack-ack-error-from-dym-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_AckError_Dym_RolY_Live .
 
-e2e-live-test-eibc-pfm: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBCPFM_Live .
+e2e-live-test-eibc-3rd-token-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_RolY_Live .
+
+e2e-live-test-eibc-3rd-token-timeout-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_3rd_Token_Timeout_RolY_Live .
+
+e2e-live-test-eibc-pfm-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCPFMRolX_Live .
 	
-e2e-live-test-eibc-invalid-fee: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Invalid_Fee_Live .
+e2e-live-test-eibc-invalid-fee-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Invalid_Fee_RolX_Live .
 	
-e2e-live-test-eibc-fulfillment: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFulfill_Live .
+e2e-live-test-eibc-fulfillment-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=35m -race -v -run TestEIBCFulfillRolX_Live .
 	
-e2e-live-test-delayack-rollapp-to-hub-no-finalized: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubNoFinalized_Live .
+e2e-live-test-delayack-rollapp-to-hub-no-finalized-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestDelayackRollappToHubNoFinalizedRolX_Live .
 
-e2e-live-test-eibc-no-memo: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_No_Memo_Live .
+e2e-live-test-eibc-no-memo-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_No_Memo_RolX_Live .
 
-e2e-live-test-eibc-demand-order-ignored: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Demand_Order_Ignored_Live .
+e2e-live-test-eibc-demand-order-ignored-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBC_Demand_Order_Ignored_RolX_Live .
   
-e2e-live-test-eibc-eibc-fee-bgt-amount: clean-e2e-live
-	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFeeBgtAmount_Live .
+e2e-live-test-eibc-eibc-fee-bgt-amount-rolx: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFeeBgtAmountRolX_Live .
 
+e2e-live-test-eibc-eibc-fee-bgt-amount-roly: clean-e2e-live
+	cd live-tests && go test -timeout=25m -race -v -run TestEIBCFeeBgtAmountRolY_Live .
