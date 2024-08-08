@@ -703,6 +703,10 @@ func GetFaucet(api, address string) {
 
 	fmt.Println("Response Status:", resp.Status)
 	fmt.Println("Response Body:", string(body))
+
+	if resp.Status != "200 OK" {
+		GetFaucet(api, address)
+	}
 }
 
 func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
@@ -724,6 +728,6 @@ func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return string(body), nil
 }

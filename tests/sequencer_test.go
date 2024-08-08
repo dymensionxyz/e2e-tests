@@ -172,11 +172,10 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Change the file permissions
-	err = os.Chmod("/tmp/celestia/light/config.toml", 0777)
-	if err != nil {
-		fmt.Println("Error changing file permissions:", err)
-		return
-	}
+	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
+
+	_, _, err = celestia.Exec(ctx, command, nil)
+	require.NoError(t, err)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
