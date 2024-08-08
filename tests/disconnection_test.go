@@ -87,9 +87,9 @@ func customConfig() ibc.ChainConfig {
 			if err := dyno.Set(g, "10000000000", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
 				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 			}
-			if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
-				return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
-			}
+			// if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
+			// 	return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
+			// }
 			if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
 				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 			}
