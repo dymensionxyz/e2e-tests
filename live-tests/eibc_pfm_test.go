@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBCPFM_Live(t *testing.T) {
+func TestEIBCPFMRolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}

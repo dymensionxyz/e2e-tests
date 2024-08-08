@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBC_Demand_Order_Ignored_Live(t *testing.T) {
+func TestEIBC_Demand_Order_Ignored_RolX_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
