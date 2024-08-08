@@ -705,6 +705,7 @@ func GetFaucet(api, address string) {
 	fmt.Println("Response Body:", string(body))
 
 	if resp.Status != "200 OK" {
+		time.Sleep(10 * time.Second)
 		GetFaucet(api, address)
 	}
 }
