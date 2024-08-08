@@ -201,14 +201,14 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
@@ -467,14 +467,14 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
