@@ -35,7 +35,7 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -81,7 +81,7 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -201,14 +201,14 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
@@ -301,7 +301,7 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -347,7 +347,7 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -467,14 +467,14 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata.json", "1000000000adym",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json", "1000000000adym",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)

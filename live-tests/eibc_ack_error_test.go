@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
+func TestEIBC_AckError_Dym_RolY_Live(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -43,16 +43,6 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 		Denom:         "utia",
 	}
 
-	rollappX := cosmos.CosmosChain{
-		RPCAddr:       "rpc.rolxtwo.evm.ra.blumbus.noisnemyd.xyz:443",
-		GrpcAddr:      "3.123.185.77:9090",
-		ChainID:       "rolx_100004-1",
-		Bin:           "rollapp-evm",
-		GasPrices:     "0.0arolx",
-		GasAdjustment: "1.1",
-		Denom:         "arolx",
-	}
-
 	rollappY := cosmos.CosmosChain{
 		RPCAddr:       "rpc.roly.wasm.ra.blumbus.noisnemyd.xyz:443",
 		GrpcAddr:      "18.153.150.111:9090",
@@ -67,8 +57,6 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 	mochaUser, err := mocha.CreateUser("mocha1")
 	require.NoError(t, err)
-	rollappXUser, err := rollappX.CreateUser("rolx1")
-	require.NoError(t, err)
 	rollappYUser, err := rollappY.CreateUser("roly1")
 	require.NoError(t, err)
 
@@ -78,15 +66,11 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	err = mocha.NewClient("https://" + mocha.RPCAddr)
 	require.NoError(t, err)
 
-	err = rollappX.NewClient("https://" + rollappX.RPCAddr)
-	require.NoError(t, err)
-
 	err = rollappY.NewClient("https://" + rollappY.RPCAddr)
 	require.NoError(t, err)
 
 	dymensionUser.GetFaucet("http://18.184.170.181:3000/api/get-dym")
 	mochaUser.GetFaucet("http://18.184.170.181:3000/api/get-tia")
-	rollappXUser.GetFaucet("http://18.184.170.181:3000/api/get-rollx")
 	rollappYUser.GetFaucet("http://18.184.170.181:3000/api/get-rolly")
 
 	// Wait for blocks
@@ -104,10 +88,6 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println(dymensionOrigBal)
 
-	rollappXOrigBal, err := rollappXUser.GetBalance(ctx, rollappXUser.Denom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(rollappXOrigBal)
-
 	rollappYOrigBal, err := rollappYUser.GetBalance(ctx, rollappYUser.Denom, rollappY.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(rollappYOrigBal)
@@ -115,11 +95,6 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	mochaOrigBal, err := mochaUser.GetBalance(ctx, mochaUser.Denom, mocha.GrpcAddr)
 	require.NoError(t, err)
 	fmt.Println(mochaOrigBal)
-
-	// Get ERC20 balance
-	erc20_OrigBal, err := GetERC20Balance(ctx, erc20IBCDenom, rollappX.GrpcAddr)
-	require.NoError(t, err)
-	fmt.Println(erc20_OrigBal)
 
 	// Use mocha to trigger ack error because rollapp isn't registered with mocha token
 	var options ibc.TransferOptions
@@ -197,7 +172,7 @@ func TestEIBC_AckError_Dym_EVM_Live(t *testing.T) {
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 	// fund was return to roly user and dym user balance stay the same
-	testutil.AssertBalance(t, ctx, rollappYUser, mochaRollappYIBCDenom, rollappX.GrpcAddr, transferAmountMM)
+	testutil.AssertBalance(t, ctx, rollappYUser, mochaRollappYIBCDenom, rollappY.GrpcAddr, transferAmountMM)
 	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
 
 }

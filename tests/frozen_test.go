@@ -51,7 +51,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -90,7 +90,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -393,7 +393,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -431,7 +431,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -761,7 +761,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -799,7 +799,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp1",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -1193,7 +1193,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2 := make(testutil.Toml)
 	dymintTomlOverrides2["settlement_layer"] = "dymension"
 	dymintTomlOverrides2["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides2["rollapp_id"] = "rollappwasm_12345-1"
+	dymintTomlOverrides2["rollapp_id"] = "decentrio_12345-1"
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
 	dymintTomlOverrides2["max_idle_time"] = "3s"
@@ -1233,7 +1233,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp1",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -2270,7 +2270,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -2308,7 +2308,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp1",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -2605,7 +2605,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -2643,7 +2643,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -2940,7 +2940,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -2978,7 +2978,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp1",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -3350,7 +3350,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -3388,7 +3388,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",

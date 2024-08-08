@@ -44,7 +44,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -92,7 +92,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -459,7 +459,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -507,7 +507,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -819,7 +819,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappevm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -867,7 +867,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "ethm",
@@ -1256,7 +1256,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -1304,7 +1304,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1657,7 +1657,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -1705,7 +1705,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -2014,7 +2014,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "rollappwasm_12345-1"
+	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
@@ -2062,7 +2062,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp2",
-				ChainID:             "rollappwasm_12345-1",
+				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",

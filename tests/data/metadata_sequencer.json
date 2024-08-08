@@ -1,0 +1,14 @@
+{
+    "moniker": "sequencer",
+    "details": "This is a description of the Rollapp.",
+    "p2p_seeds": ["seed1"],
+    "rpcs": ["https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"],
+    "evm_rpcs": ["https://rpc.wpd.evm.evm.noisnemyd.xyz:443"],
+    "rest_api_urls": ["https://api.wpd.evm.rollapp.noisnemyd.xyz:443"],
+    "explorer_url": "explorer_url",
+    "genesis_urls": ["genesis"],
+    "contact_details":{},
+    "extra_data": [],
+    "snapshots": [],
+    "gas_price": "0"
+  }
