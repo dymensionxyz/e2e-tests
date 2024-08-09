@@ -16,7 +16,6 @@ import (
 
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -586,35 +585,48 @@ type rollappParam struct {
 // 	}
 // }
 
-func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
-	ctx := context.Background()
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
-	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer to whitelist",
-		Description: "Add current user addr to the deployer whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
+// func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
+// 	ctx := context.Background()
+// 	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
+// 	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
+// 		Title:       "Add new deployer to whitelist",
+// 		Description: "Add current user addr to the deployer whitelist",
+// 		Changes: utils.ParamChangesJSON{
+// 			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
+// 		},
+// 		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
+// 	})
+// 	require.NoError(t, err)
 
-	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+// 	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+// 	require.NoError(t, err, "failed to submit votes")
 
-	height, err := targetChain.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+// 	height, err := targetChain.Height(ctx)
+// 	require.NoError(t, err, "error fetching height")
+// 	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+// 	require.NoError(t, err, "proposal status did not change to passed")
 
-	newParams, err := targetChain.QueryParam(ctx, module, param)
-	require.NoError(t, err)
-	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
-}
+// 	newParams, err := targetChain.QueryParam(ctx, module, param)
+// 	require.NoError(t, err)
+// 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
+// }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
+
+	// Default values for optional fields
+	includeDaGrpcLayer := false
+
+	// Check if any options were passed and update the optional fields
+	if len(optionalConfigs) > 0 {
+		includeDaGrpcLayer = optionalConfigs[0]
+	}
+
+	if includeDaGrpcLayer {
+		dymintTomlOverrides["da_layer"] = "grpc"
+		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
 	dymintTomlOverrides["settlement_node_address"] = nodeAddress
@@ -647,6 +659,92 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+}
+
+func customEpochConfig(epochDuration string) ibc.ChainConfig {
+	// Custom dymension epoch for faster disconnection
+	modifyGenesisKV := dymensionGenesisKV
+	for i, kv := range modifyGenesisKV {
+		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" || kv.Key == "app_state.txfees.params.epoch_identifier" {
+			modifyGenesisKV[i].Value = "custom"
+		}
+	}
+
+	customDymensionConfig := ibc.ChainConfig{
+		Type:           "hub-dym",
+		Name:           "dymension",
+		ChainID:        "dymension_100-1",
+		Images:         []ibc.DockerImage{dymensionImage},
+		Bin:            "dymd",
+		Bech32Prefix:   "dym",
+		Denom:          "adym",
+		CoinType:       "60",
+		GasPrices:      "0.0adym",
+		EncodingConfig: encodingConfig(),
+		GasAdjustment:  1.1,
+		TrustingPeriod: "112h",
+		NoHostMount:    false,
+		ModifyGenesis: func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+			g := make(map[string]interface{})
+			if err := json.Unmarshal(inputGenBz, &g); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+			}
+
+			epochData, err := dyno.Get(g, "app_state", "epochs", "epochs")
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve epochs: %w", err)
+			}
+			epochs := epochData.([]interface{})
+			exist := false
+			// Check if the "custom" identifier already exists
+			for _, epoch := range epochs {
+				if epochMap, ok := epoch.(map[string]interface{}); ok {
+					if epochMap["identifier"] == "custom" {
+						exist = true
+					}
+				}
+			}
+			if !exist {
+				// Define the new epoch type to be added
+				newEpochType := map[string]interface{}{
+					"identifier":                 "custom",
+					"start_time":                 "0001-01-01T00:00:00Z",
+					"duration":                   epochDuration,
+					"current_epoch":              "0",
+					"current_epoch_start_time":   "0001-01-01T00:00:00Z",
+					"epoch_counting_started":     false,
+					"current_epoch_start_height": "0",
+				}
+
+				// Add the new epoch to the epochs array
+				updatedEpochs := append(epochs, newEpochType)
+				if err := dyno.Set(g, updatedEpochs, "app_state", "epochs", "epochs"); err != nil {
+					return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
+				}
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "10000000000", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			// if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
+			// 	return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
+			// }
+			outputGenBz, err := json.Marshal(g)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+			}
+
+			return cosmos.ModifyGenesis(modifyGenesisKV)(chainConfig, outputGenBz)
+		},
+		ConfigFileOverrides: nil,
+	}
+
+	return customDymensionConfig
 }
 
 func RandomHex(numberOfBytes int) (string, error) {
