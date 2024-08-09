@@ -731,9 +731,9 @@ func customEpochConfig(epochDuration string) ibc.ChainConfig {
 			if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
 				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
 			}
-			if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
-				return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
-			}
+			// if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
+			// 	return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
+			// }
 			outputGenBz, err := json.Marshal(g)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
