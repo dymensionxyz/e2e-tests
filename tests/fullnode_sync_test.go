@@ -579,8 +579,8 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestFullnodeSync_Celestia_Realtime_Gossip_EVM tests the synchronization of a fullnode using Celestia as DA.
-func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
+// TestFnSync_Celestia_Realtime_Gossip_EVM tests the synchronization of a fullnode using Celestia as DA.
+func TestFnSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -595,6 +595,7 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["block_time"] = "190ms"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -612,8 +613,11 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
-	trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
-	sampleFrom := 2395649
+
+	url := "https://api-mocha.celenium.io/v1/block/count"
+	headerKey := "User-Agent"
+	headerValue := "Apidog/1.0.0 (https://apidog.com)"
+	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -629,7 +633,7 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/decentrio/light",
-						Version:    "debug",
+						Version:    "latest",
 						UidGid:     "1025:1025",
 					},
 				},
@@ -666,11 +670,11 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 11; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 		err = testutil.WaitForBlocks(ctx, 8, celestia)
 		require.NoError(t, err)
@@ -682,9 +686,25 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
+	// Change the file permissions
+	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
+
+	_, _, err = celestia.Exec(ctx, command, nil)
+	require.NoError(t, err)
+
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
+
+	lastestBlockHeight, err := GetLatestBlockHeight(url, headerKey, headerValue)
+	require.NoError(t, err)
+	lastestBlockHeight = strings.TrimRight(lastestBlockHeight, "\n")
+	heightOfBlock, err := strconv.ParseInt(lastestBlockHeight, 10, 64) // base 10, bit size 64
+	require.NoError(t, err)
+
+	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock-2), rpcEndpoint)
+	require.NoError(t, err)
+	hash = strings.TrimRight(hash, "\n")
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
@@ -694,9 +714,9 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 
 	for i, line := range lines {
 		if strings.HasPrefix(line, "  TrustedHash =") {
-			lines[i] = fmt.Sprintf("  TrustedHash = %s", trustedHash)
+			lines[i] = fmt.Sprintf("  TrustedHash = \"%s\"", hash)
 		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", sampleFrom)
+			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock-2)
 		} else if strings.HasPrefix(line, "  Address =") {
 			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
 		}
@@ -714,7 +734,7 @@ func TestFullnodeSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}),
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
