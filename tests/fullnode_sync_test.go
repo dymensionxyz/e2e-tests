@@ -579,8 +579,8 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestFnSync_Celestia_Realtime_Gossip_EVM tests the synchronization of a fullnode using Celestia as DA.
-func TestFnSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
+// TestFullnodeSync_Celestia_Rt_Gossip_EVM tests the synchronization of a fullnode using Celestia as DA.
+func TestFullnodeSync_Celestia_Rt_Gossip_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -704,8 +704,10 @@ func TestFnSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 
 	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock-2), rpcEndpoint)
 	require.NoError(t, err)
-	hash = strings.TrimRight(hash, "\n")
 
+	fmt.Println(hash)
+
+	hash = strings.TrimRight(hash, "\n")
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -829,6 +831,14 @@ func TestFnSync_Celestia_Realtime_Gossip_EVM(t *testing.T) {
 		SkipPathCreation: true,
 	}, nil, "", nil)
 	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
+	require.Error(t, err)
+	require.False(t, isFinalized)
 
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
