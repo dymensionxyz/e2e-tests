@@ -18,60 +18,6 @@ on:
         default: "latest"
 
 jobs:
-  # e2e-tests-by runs the actual go test command to trigger the test.
-  rollapp-evm:
-    strategy:
-      matrix:
-        tests:
-          - "e2e-test-ibc-success-evm"
-          - "e2e-test-ibc-timeout-evm"
-          - "e2e-test-ibc-grace-period-evm"
-          - "e2e-test-eibc-corrupted-memo-evm"
-          - "e2e-test-eibc-excessive-fee-evm"
-          - "e2e-test-eibc-fulfillment-evm"
-          - "e2e-test-eibc-fulfill-no-balance-evm"
-          - "e2e-test-eibc-fulfillment-thirdparty-evm"
-          - "e2e-test-eibc-pfm-evm"
-          - "e2e-test-eibc-timeout-evm"
-          - "e2e-test-transfer-multi-hop-evm"
-          - "e2e-test-pfm-with-grace-period-evm"
-          - "e2e-test-pfm-gaia-to-rollapp-evm"
-          - "e2e-test-batch-finalization-evm"
-          - "e2e-test-disconnection-evm"
-          - "e2e-test-rollapp-freeze-evm"
-          - "e2e-test-other-rollapp-not-affected-evm"
-          - "e2e-test-rollapp-genesis-event-evm"
-          - "e2e-test-delayedack-pending-packets-evm"
-          - "e2e-test-delayedack-relayer-down-evm"
-      fail-fast: false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: dymensionxyz/e2e-tests
-          ref: v0.0.1
-      - name: Set up Go 1.21
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21.4"
-
-      - name: Download Tarball Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: e2e
-          path: /tmp
-
-      - name: Load Docker Image
-        run: |
-          docker image load -i /tmp/e2e.tar 
-          docker image ls -a
-
-      - name: Rollapp-EVM E2E Tests
-        run: make ${{ matrix.tests }}
-        env:
-          DYMENSION_CI: ${{ inputs.dymension_ci }}
-          ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
-          ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
   rollapp-wasm:
     strategy:
       matrix:
