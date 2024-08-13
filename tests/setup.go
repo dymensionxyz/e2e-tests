@@ -1,9 +1,14 @@
 package tests
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -110,7 +115,7 @@ var (
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
-		Version:    dymensionVersion,
+		Version:    "3.1.0",
 		UidGid:     "1025:1025",
 	}
 
@@ -639,4 +644,173 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+}
+
+func customEpochConfig(epochDuration string) ibc.ChainConfig {
+	// Custom dymension epoch for faster disconnection
+	modifyGenesisKV := dymensionGenesisKV
+	for i, kv := range modifyGenesisKV {
+		if kv.Key == "app_state.incentives.params.distr_epoch_identifier" || kv.Key == "app_state.txfees.params.epoch_identifier" {
+			modifyGenesisKV[i].Value = "custom"
+		}
+	}
+
+	customDymensionConfig := ibc.ChainConfig{
+		Type:           "hub-dym",
+		Name:           "dymension",
+		ChainID:        "dymension_100-1",
+		Images:         []ibc.DockerImage{dymensionImage},
+		Bin:            "dymd",
+		Bech32Prefix:   "dym",
+		Denom:          "adym",
+		CoinType:       "60",
+		GasPrices:      "0.0adym",
+		EncodingConfig: encodingConfig(),
+		GasAdjustment:  1.1,
+		TrustingPeriod: "112h",
+		NoHostMount:    false,
+		ModifyGenesis: func(chainConfig ibc.ChainConfig, inputGenBz []byte) ([]byte, error) {
+			g := make(map[string]interface{})
+			if err := json.Unmarshal(inputGenBz, &g); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+			}
+
+			epochData, err := dyno.Get(g, "app_state", "epochs", "epochs")
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve epochs: %w", err)
+			}
+			epochs := epochData.([]interface{})
+			exist := false
+			// Check if the "custom" identifier already exists
+			for _, epoch := range epochs {
+				if epochMap, ok := epoch.(map[string]interface{}); ok {
+					if epochMap["identifier"] == "custom" {
+						exist = true
+					}
+				}
+			}
+			if !exist {
+				// Define the new epoch type to be added
+				newEpochType := map[string]interface{}{
+					"identifier":                 "custom",
+					"start_time":                 "0001-01-01T00:00:00Z",
+					"duration":                   epochDuration,
+					"current_epoch":              "0",
+					"current_epoch_start_time":   "0001-01-01T00:00:00Z",
+					"epoch_counting_started":     false,
+					"current_epoch_start_height": "0",
+				}
+
+				// Add the new epoch to the epochs array
+				updatedEpochs := append(epochs, newEpochType)
+				if err := dyno.Set(g, updatedEpochs, "app_state", "epochs", "epochs"); err != nil {
+					return nil, fmt.Errorf("failed to set epochs in genesis json: %w", err)
+				}
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set denom on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "10000000000", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			if err := dyno.Set(g, "adym", "app_state", "gamm", "params", "pool_creation_fee", 0, "denom"); err != nil {
+				return nil, fmt.Errorf("failed to set amount on gov min_deposit in genesis json: %w", err)
+			}
+			// if err := dyno.Set(g, "1000000000000", "app_state", "rollapp", "params", "registration_fee", "amount"); err != nil {
+			// 	return nil, fmt.Errorf("failed to set registration_fee in genesis json: %w", err)
+			// }
+			outputGenBz, err := json.Marshal(g)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+			}
+
+			return cosmos.ModifyGenesis(modifyGenesisKV)(chainConfig, outputGenBz)
+		},
+		ConfigFileOverrides: nil,
+	}
+
+	return customDymensionConfig
+}
+
+func RandomHex(numberOfBytes int) (string, error) {
+	bytes := make([]byte, numberOfBytes)
+
+	// Read random bytes from crypto/rand
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the bytes as a hex string
+	hexString := hex.EncodeToString(bytes)
+
+	return hexString, nil
+}
+
+func GetFaucet(api, address string) {
+	// Data to send in the POST request
+	data := map[string]string{
+		"address": address,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	// Create a new POST request
+	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	// Set the request header to indicate that we're sending JSON data
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create an HTTP client and send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Response Body:", string(body))
+
+	if resp.Status != "200 OK" {
+		time.Sleep(10 * time.Second)
+		GetFaucet(api, address)
+	}
+}
+
+func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add(headerKey, headerValue)
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
