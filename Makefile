@@ -224,6 +224,9 @@ e2e-test-sequencer-celestia-evm: clean-e2e
 e2e-test-sequencer-hub-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestSequencerHubDisconnection_EVM .
 
+e2e-test-fullnode-sync-block-sync-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestFNSync_BlockSync_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -427,6 +430,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
+	e2e-test-fullnode-sync-block-sync-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -498,6 +502,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
+	e2e-test-fullnode-sync-block-sync-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
