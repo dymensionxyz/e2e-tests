@@ -154,14 +154,14 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
