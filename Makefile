@@ -385,7 +385,7 @@ e2e-test-eibc-fee-market-success-wasm: clean-e2e
 e2e-test-admc-metadata-not-found-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestADMC_MetaData_NotFound_Wasm .
 
-e2e-test-update-do-ackerr-timeout-evm: clean-e2e
+e2e-test-update-do-ackerr-timeout-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnAckErrAndTimeout_Wasm .
 
 # Executes all tests via rollup-e2e-testing

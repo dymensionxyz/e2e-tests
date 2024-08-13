@@ -609,9 +609,22 @@ func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain
 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
+
+	// Default values for optional fields
+	includeDaGrpcLayer := false
+
+	// Check if any options were passed and update the optional fields
+	if len(optionalConfigs) > 0 {
+		includeDaGrpcLayer = optionalConfigs[0]
+	}
+
+	if includeDaGrpcLayer {
+		dymintTomlOverrides["da_layer"] = "grpc"
+		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
 	dymintTomlOverrides["settlement_node_address"] = nodeAddress

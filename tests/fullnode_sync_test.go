@@ -69,7 +69,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "5s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -124,7 +124,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
 
-	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
@@ -133,7 +133,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil)
-	// require.NoError(t, err)
+	require.NoError(t, err)
 
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Validators[0].Height(ctx)
@@ -147,7 +147,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 50, dymension)
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 
 	// Start full node again
