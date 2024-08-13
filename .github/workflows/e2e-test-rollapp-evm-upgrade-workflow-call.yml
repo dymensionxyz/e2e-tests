@@ -1,11 +1,26 @@
 on:
   workflow_call:
     inputs:
+      dymension_ci:
+        description: "CI run on Dymension Repo"
+        required: false
+        type: string
+        default: "latest"
       rollapp_evm_ci:
         description: "CI run on Rollapp-EVM Repo"
         required: false
         type: string
         default: "latest"
+      rollapp_wasm_ci:
+        description: "CI run on Rollapp-Wasm Repo"
+        required: false
+        type: string
+        default: "latest"
+      relayer_ci:
+        description: "CI run on Relayer Repo"
+        required: false
+        type: string
+        default: "main-dym"
       upgrade_name:
         description: "Upgrade Name be used by e2e-tests"
         required: true
@@ -25,6 +40,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: dymensionxyz/e2e-tests
+          ref: v1.0.0
       - name: Set up Go 1.21
         uses: actions/setup-go@v4
         with:
@@ -44,5 +60,8 @@ jobs:
       - name: Rollapp-EVM Upgrade E2E Tests
         run: make ${{ matrix.tests }}
         env:
-          DYMENSION_CI: ${{ inputs.rollapp_evm_ci }}
+          DYMENSION_CI: ${{ inputs.dymension_ci }}
+          ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
+          ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+          RELAYER_CI: ${{ inputs.relayer_ci }}
           UPGRADE_ROLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
