@@ -16,7 +16,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-go/v6 v6.3.1
 	github.com/decentrio/e2e-testing-live v0.0.0-20240626080125-7e66d52b4559
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240813032154-fb3e0f57dd52
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240813034404-c6498741aa3a
 	github.com/dymensionxyz/dymension-rdk v1.1.0-beta
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240625173059-5ba056cb721d
 	github.com/dymensionxyz/dymint v1.2.0-rc01
@@ -222,7 +222,4 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace (
-	github.com/cosmos/gogoproto => github.com/cosmos/gogoproto v1.4.10
-	github.com/rollkit/celestia-openrpc => github.com/celestiaorg/celestia-openrpc v0.3.0
-)
+replace github.com/rollkit/celestia-openrpc => github.com/celestiaorg/celestia-openrpc v0.3.0

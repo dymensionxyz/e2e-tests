@@ -11,6 +11,18 @@ e2e-test: clean-e2e
 	./run-e2e.sh $(test)
 
 # Executes IBC tests via rollup-e2e-testing
+e2e-test-fullnode-sync-evm: clean-e2e
+	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_EVM .
+
+e2e-test-fullnode-celes-rt-gossip-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestSync_Celes_Rt_Gossip_EVM .
+
+e2e-test-fullnode-sync-celes-evm: clean-e2e
+	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_Celestia_EVM .
+
+e2e-test-fullnode-sync-celes-realtime-gossip-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestFnSync_Celestia_Realtime_Gossip_EVM .
+	
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_EVM .
 	

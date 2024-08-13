@@ -339,8 +339,8 @@ github.com/cosmos/cosmos-sdk v0.46.16/go.mod h1:05U50tAsOzQ8JOAePshJCbJQw5ib1YJR
 github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
-github.com/cosmos/gogoproto v1.4.10 h1:QH/yT8X+c0F4ZDacDv3z+xE3WU1P1Z3wQoLMBRJoKuI=
-github.com/cosmos/gogoproto v1.4.10/go.mod h1:3aAZzeRWpAwr+SS/LLkICX2/kDFyaYVzckBDzygIxek=
+github.com/cosmos/gogoproto v1.4.11 h1:LZcMHrx4FjUgrqQSWeaGC1v/TeuVFqSLa43CC6aWR2g=
+github.com/cosmos/gogoproto v1.4.11/go.mod h1:/g39Mh8m17X8Q/GDEs5zYTSNaNnInBSohtaxzQnYq1Y=
 github.com/cosmos/gorocksdb v1.2.0 h1:d0l3jJG8M4hBouIZq0mDUHZ+zjOx044J3nGRskwTb4Y=
 github.com/cosmos/gorocksdb v1.2.0/go.mod h1:aaKvKItm514hKfNJpUJXnnOWeBnk2GL4+Qw9NHizILw=
 github.com/cosmos/iavl v0.19.6 h1:XY78yEeNPrEYyNCKlqr9chrwoeSDJ0bV2VjocTk//OU=
@@ -367,8 +367,8 @@ github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c h1:pFUpOrbxDR
 github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c/go.mod h1:6UhI8N9EjYm1c2odKpFpAYeR8dsBeM7PtzQhRgxRr9U=
 github.com/decentrio/e2e-testing-live v0.0.0-20240626080125-7e66d52b4559 h1:3A7InbStjHv1Iy4zmdzFdHCoWcTjjsV8JbZNpODhIvQ=
 github.com/decentrio/e2e-testing-live v0.0.0-20240626080125-7e66d52b4559/go.mod h1:3tzjRRKCMwk2t/Ujt+aPSTXk3XzJOIvj4p2+EPnmA0w=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240813032154-fb3e0f57dd52 h1:YPJ6kVfFeA3D9crrzUAsDjqy/F/DFMR4rqnUc5Il+LA=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240813032154-fb3e0f57dd52/go.mod h1:UPgkdcEMw0mmbP8JK+jkNc4gBTyfTQ9QURErRRgdmzQ=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240813034404-c6498741aa3a h1:EC1ZwbUNHEPv73B/lJyDF0kEV5/AxFxSYF5/3OmezE4=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240813034404-c6498741aa3a/go.mod h1:UPgkdcEMw0mmbP8JK+jkNc4gBTyfTQ9QURErRRgdmzQ=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/deckarep/golang-set/v2 v2.1.0 h1:g47V4Or+DUdzbs8FxCCmgb6VYd+ptPAngjM6dtGktsI=
