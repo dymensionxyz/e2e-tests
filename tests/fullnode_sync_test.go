@@ -402,7 +402,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 11; i++ {
+	for i := 0; i < 20; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 		err = testutil.WaitForBlocks(ctx, 8, celestia)
 		require.NoError(t, err)
@@ -556,15 +556,13 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
