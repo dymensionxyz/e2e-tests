@@ -331,6 +331,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
+	numCelestiaFn := 0
 	numRollAppFn := 1
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
@@ -368,7 +369,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
+			NumFullNodes:  &numCelestiaFn,
 		},
 	})
 
@@ -608,6 +609,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
@@ -641,7 +643,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
+			NumFullNodes:  &numCelestiaFn,
 		},
 	})
 
@@ -890,6 +892,7 @@ func TestFullnodeSync_Sqc_Disconnect_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
@@ -920,7 +923,7 @@ func TestFullnodeSync_Sqc_Disconnect_EVM(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
+			NumFullNodes:  &numCelestiaFn,
 		},
 	})
 
@@ -1178,6 +1181,7 @@ func TestFullnodeSync_Fullnode_Disconnect_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
@@ -1208,7 +1212,7 @@ func TestFullnodeSync_Fullnode_Disconnect_EVM(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
+			NumFullNodes:  &numCelestiaFn,
 		},
 	})
 
@@ -1454,6 +1458,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
@@ -1487,7 +1492,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numHubVals,
-			NumFullNodes:  &numRollAppFn,
+			NumFullNodes:  &numCelestiaFn,
 		},
 	})
 
