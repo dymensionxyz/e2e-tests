@@ -607,9 +607,9 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	numHubVals := 1
 	numHubFullNodes := 1
-	numRollAppFn := 1
-	numRollAppVals := 1
 	numCelestiaFn := 0
+	numRollAppFn := 0
+	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "celestia-testnet-consensus.itrocket.net"
@@ -674,7 +674,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 11; i++ {
+	for i := 0; i < 21; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 		err = testutil.WaitForBlocks(ctx, 8, celestia)
 		require.NoError(t, err)
@@ -704,8 +704,6 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock-2), rpcEndpoint)
 	require.NoError(t, err)
-
-	fmt.Println(hash)
 
 	hash = strings.TrimRight(hash, "\n")
 	var lines []string
@@ -810,21 +808,10 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
 
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer", network)
-
 	ic = test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
+		AddRollUp(dymension, rollapp1)
 
-	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
@@ -832,22 +819,61 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	nodeId, err := rollapp1.GetNode().GetNodeId(ctx, rollapp1.HomeDir())
+	require.NoError(t, err)
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/rollappevm-1234-1-fn-0-%s/tcp/26656/p2p/%s", t.Name(), nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	// Change the file permissions
+	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
+
+	_, _, err = celestia.Exec(ctx, command, nil)
+	require.NoError(t, err)
+	
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "  p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("  p2p_bootstrap_nodes = %s", p2p_bootstrap_node)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
-	require.Error(t, err)
-	require.False(t, isFinalized)
+	// Start full node
+	// err = rollapp1.FullNodes[0].StartContainer(ctx)
+	// require.NoError(t, err)
 
-	// Poll until full node is sync
+	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	//Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
