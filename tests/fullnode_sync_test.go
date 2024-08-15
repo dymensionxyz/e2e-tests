@@ -821,6 +821,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	nodeId, err := rollapp1.GetNode().GetNodeId(ctx, rollapp1.HomeDir())
 	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/rollappevm-1234-1-fn-0-%s/tcp/26656/p2p/%s", t.Name(), nodeId)
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
@@ -843,8 +844,8 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}
 
 	for i, line := range lines {
-		if strings.HasPrefix(line, "  p2p_bootstrap_nodes =") {
-			lines[i] = fmt.Sprintf("  p2p_bootstrap_nodes = %s", p2p_bootstrap_node)
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
 		}
 	}
 
@@ -856,9 +857,11 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// Start full node
-	// err = rollapp1.FullNodes[0].StartContainer(ctx)
-	// require.NoError(t, err)
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
