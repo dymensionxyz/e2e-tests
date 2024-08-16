@@ -39,10 +39,9 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
-	dymintTomlOverrides["max_proof_time"] = "150ms"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
-	dymintTomlOverrides["block_time"] = "190ms"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -301,7 +300,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
-  
+
 	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,

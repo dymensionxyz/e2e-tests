@@ -89,9 +89,6 @@ e2e-test-eibc-timeout-evm: clean-e2e
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Evm .
 
-e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Wasm .
-
 e2e-test-transfer-multi-hop-evm:  clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferMultiHop_EVM .
 
@@ -107,11 +104,17 @@ e2e-test-disconnection-evm: clean-e2e
 e2e-test-fullnode-sync-evm: clean-e2e
 	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_EVM .
 
+e2e-test-fullnode-sync-celes-evm: clean-e2e
+	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_Celestia_EVM .
+
 e2e-test-fullnode-celes-rt-gossip-evm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestSync_Celes_Rt_Gossip_EVM .
 
-e2e-test-fullnode-sync-celes-evm: clean-e2e
-	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_Celestia_EVM .
+e2e-test-fullnode-sqc-disconnect-gossip-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestSync_Sqc_Disconnect_Gossip_EVM .
+
+e2e-test-fullnode-disconnect-gossip-evm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestSync_Fullnode_Disconnect_Gossip_EVM .
 
 e2e-test-rollapp-freeze-evm:  clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreeze_EVM .
@@ -233,9 +236,6 @@ e2e-test-sequencer-celestia-evm: clean-e2e
 e2e-test-sequencer-hub-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestSequencerHubDisconnection_EVM .
 
-e2e-test-fullnode-sync-celes-realtime-gossip-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestFnSync_Celestia_Realtime_Gossip_EVM .
-
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -302,8 +302,17 @@ e2e-test-disconnection-wasm: clean-e2e
 e2e-test-fullnode-sync-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestFullnodeSync_Wasm .
 
+e2e-test-fullnode-sync-celes-wasm: clean-e2e
+	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_Celestia_Wasm .
+
 e2e-test-fullnode-celes-rt-gossip-wasm: clean-e2e
 	cd tests && go test -timeout=25m -race -v -run TestSync_Celes_Rt_Gossip_Wasm .
+
+e2e-test-fullnode-sqc-disconnect-gossip-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestSync_Sqc_Disconnect_Gossip_Wasm .
+
+e2e-test-fullnode-disconnect-gossip-wasm: clean-e2e
+	cd tests && go test -timeout=25m -race -v -run TestSync_Fullnode_Disconnect_Gossip_Wasm .
 
 e2e-test-rollapp-freeze-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestRollAppFreeze_Wasm .
@@ -408,6 +417,9 @@ e2e-test-update-do-ackerr-timeout-wasm: clean-e2e
 
 e2e-test-update-do-timeout-unallowed-wasm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestEIBCUpdateOnTimeout_Unallowed_Wasm .
+
+e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
