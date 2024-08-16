@@ -237,7 +237,7 @@ e2e-test-sequencer-hub-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSequencerHubDisconnection_EVM .
 
 e2e-test-fullnode-sync-block-sync-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestFNSync_BlockSync_EVM .
+	cd tests && go test -timeout=30m -race -v -run TestSync_BlockSync_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
