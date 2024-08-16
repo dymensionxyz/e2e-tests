@@ -16,7 +16,6 @@ import (
 
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -586,31 +585,31 @@ type rollappParam struct {
 // 	}
 // }
 
-func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
-	ctx := context.Background()
-	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
-	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
-		Title:       "Add new deployer to whitelist",
-		Description: "Add current user addr to the deployer whitelist",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
-		},
-		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
-	})
-	require.NoError(t, err)
+// func registerGenesisEventTriggerer(t *testing.T, targetChain *cosmos.CosmosChain, userKey, address, module, param string) {
+// 	ctx := context.Background()
+// 	deployerWhitelistParams := json.RawMessage(fmt.Sprintf(`[{"address":"%s"}]`, address))
+// 	propTx, err := targetChain.ParamChangeProposal(ctx, userKey, &utils.ParamChangeProposalJSON{
+// 		Title:       "Add new deployer to whitelist",
+// 		Description: "Add current user addr to the deployer whitelist",
+// 		Changes: utils.ParamChangesJSON{
+// 			utils.NewParamChangeJSON(module, param, deployerWhitelistParams),
+// 		},
+// 		Deposit: "500000000000" + targetChain.Config().Denom, // greater than min deposit
+// 	})
+// 	require.NoError(t, err)
 
-	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+// 	err = targetChain.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+// 	require.NoError(t, err, "failed to submit votes")
 
-	height, err := targetChain.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+// 	height, err := targetChain.Height(ctx)
+// 	require.NoError(t, err, "error fetching height")
+// 	_, err = cosmos.PollForProposalStatus(ctx, targetChain, height, height+30, propTx.ProposalID, cosmos.ProposalStatusPassed)
+// 	require.NoError(t, err, "proposal status did not change to passed")
 
-	newParams, err := targetChain.QueryParam(ctx, module, param)
-	require.NoError(t, err)
-	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
-}
+// 	newParams, err := targetChain.QueryParam(ctx, module, param)
+// 	require.NoError(t, err)
+// 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
+// }
 
 func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
@@ -661,90 +660,6 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 }
-
-func RandomHex(numberOfBytes int) (string, error) {
-	bytes := make([]byte, numberOfBytes)
-
-	// Read random bytes from crypto/rand
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
-
-	// Encode the bytes as a hex string
-	hexString := hex.EncodeToString(bytes)
-
-	return hexString, nil
-}
-
-func GetFaucet(api, address string) {
-	// Data to send in the POST request
-	data := map[string]string{
-		"address": address,
-	}
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
-	}
-
-	// Create a new POST request
-	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the request header to indicate that we're sending JSON data
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client and send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
-
-	if resp.Status != "200 OK" {
-		time.Sleep(10 * time.Second)
-		GetFaucet(api, address)
-	}
-}
-
-func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Add(headerKey, headerValue)
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
-}
-
 
 func customEpochConfig(epochDuration string) ibc.ChainConfig {
 	// Custom dymension epoch for faster disconnection
@@ -832,3 +747,85 @@ func customEpochConfig(epochDuration string) ibc.ChainConfig {
 	return customDymensionConfig
 }
 
+func RandomHex(numberOfBytes int) (string, error) {
+	bytes := make([]byte, numberOfBytes)
+
+	// Read random bytes from crypto/rand
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode the bytes as a hex string
+	hexString := hex.EncodeToString(bytes)
+
+	return hexString, nil
+}
+
+func GetFaucet(api, address string) {
+	// Data to send in the POST request
+	data := map[string]string{
+		"address": address,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return
+	}
+
+	// Create a new POST request
+	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return
+	}
+
+	// Set the request header to indicate that we're sending JSON data
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create an HTTP client and send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	fmt.Println("Response Status:", resp.Status)
+	fmt.Println("Response Body:", string(body))
+
+	if resp.Status != "200 OK" {
+		time.Sleep(15 * time.Second)
+		GetFaucet(api, address)
+	}
+}
+
+func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add(headerKey, headerValue)
+	res, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
