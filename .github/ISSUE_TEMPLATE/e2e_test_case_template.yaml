@@ -69,6 +69,7 @@ body:
         - "eibc fee market"
         - "full node sync"
         - "base layer disconnection"
+        - "sequencer rotation"
     validations:
       required: true
 
