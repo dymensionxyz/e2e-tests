@@ -11,6 +11,9 @@ e2e-test: clean-e2e
 	./run-e2e.sh $(test)
 
 # Executes IBC tests via rollup-e2e-testing
+e2e-test-fullnode-sync-block-sync-evm: clean-e2e
+	cd tests && go test -timeout=35m -race -v -run TestFNSync_BlockSync_EVM .
+
 e2e-test-fullnode-sync-evm: clean-e2e
 	cd tests && go test -timeout=35m -race -v -run TestFullnodeSync_EVM .
 
@@ -427,6 +430,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
+	e2e-test-fullnode-sync-block-sync-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -498,6 +502,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-admc-migrate-with-user-memo-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
+	e2e-test-fullnode-sync-block-sync-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
