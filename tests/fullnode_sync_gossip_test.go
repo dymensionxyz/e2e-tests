@@ -122,9 +122,9 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -450,9 +450,9 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 11; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 8, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -734,9 +734,9 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -1095,9 +1095,9 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -1456,9 +1456,9 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -1814,9 +1814,9 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 

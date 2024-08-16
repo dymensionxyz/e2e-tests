@@ -272,11 +272,14 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 
 	// Start full node again
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
 	// Poll until full node is sync
@@ -284,9 +287,6 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 		time.Minute*10,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
@@ -402,9 +402,9 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 8, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
@@ -679,9 +679,9 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 15; i++ {
 		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 8, celestia)
+		err = testutil.WaitForBlocks(ctx, 10, celestia)
 		require.NoError(t, err)
 	}
 
