@@ -337,7 +337,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		lines = append(lines, scanner.Text())
 	}
 	da_layer := "celestia"
-	da_config := `da_config = "{\"base_url\":\"http://127.0.0.1:26658\",\"timeout\":30000000000,\"gas_prices\":0.1,\"auth_token\":\"TOKEN\",\"backoff\":{\"initial_delay\":6000000000,\"max_delay\":6000000000,\"growth_factor\":2},\"retry_attempts\":4,\"retry_delay\":3000000000}"`
+	da_config := fmt.Sprintf("da_config = {\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 	for i, line := range lines {
 		if strings.HasPrefix(line, "da_layer =") {
 			lines[i] = fmt.Sprintf("da_layer =\"%s\"", da_layer)
