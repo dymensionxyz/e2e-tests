@@ -216,15 +216,11 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["da_layer"] = "grpc"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
-	// dymintTomlOverrides["da_layer"] = "celestia"
-	// dymintTomlOverrides["namespace_id"] = celestia_namespace_id
-	// dymintTomlOverrides["da_config"] = da_config
-	// configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -327,9 +323,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// Start full node
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
+	// update dymint.toml for full node to connect with Celestia DA
 
 	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
@@ -342,14 +336,15 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-
+	da_layer := "celestia"
+	da_config := `da_config = "{\"base_url\":\"http://127.0.0.1:26658\",\"timeout\":30000000000,\"gas_prices\":0.1,\"auth_token\":\"TOKEN\",\"backoff\":{\"initial_delay\":6000000000,\"max_delay\":6000000000,\"growth_factor\":2},\"retry_attempts\":4,\"retry_delay\":3000000000}"`
 	for i, line := range lines {
 		if strings.HasPrefix(line, "da_layer =") {
-			lines[i] = fmt.Sprintf("da_layer = \"%s\"", hash)
+			lines[i] = fmt.Sprintf("da_layer =\"%s\"", da_layer)
 		} else if strings.HasPrefix(line, "namespace_id =") {
 			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
 		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = fmt.Sprintf("da_config = \"%s\"", da_config)
+			lines[i] = da_config
 		}
 	}
 
@@ -359,6 +354,10 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	defer file.Close()
 
 	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
