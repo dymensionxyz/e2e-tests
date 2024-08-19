@@ -118,15 +118,15 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -446,15 +446,15 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -730,15 +730,15 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1091,15 +1091,15 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1452,15 +1452,15 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1810,15 +1810,15 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 15; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 10, celestia)
-		require.NoError(t, err)
-	}
+	// for i := 0; i < 15; i++ {
+	// 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// 	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// 	require.NoError(t, err)
+	// }
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
