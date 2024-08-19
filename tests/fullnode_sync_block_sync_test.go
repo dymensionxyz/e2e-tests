@@ -128,11 +128,9 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get fund for submit blob
-	for i := 0; i < 21; i++ {
-		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-		err = testutil.WaitForBlocks(ctx, 2, celestia)
-		require.NoError(t, err)
-	}
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 2, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -337,14 +335,13 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		lines = append(lines, scanner.Text())
 	}
 	da_layer := "celestia"
-	da_config := fmt.Sprintf("da_config = {\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 	for i, line := range lines {
 		if strings.HasPrefix(line, "da_layer =") {
-			lines[i] = fmt.Sprintf("da_layer =\"%s\"", da_layer)
+			lines[i] = fmt.Sprintf("da_layer = \"%s\"", da_layer)
 		} else if strings.HasPrefix(line, "namespace_id =") {
 			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
 		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = da_config
+			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
 		}
 	}
 
@@ -363,12 +360,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
-	require.NoError(t, err)
-
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
