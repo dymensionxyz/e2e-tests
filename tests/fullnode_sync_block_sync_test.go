@@ -325,6 +325,11 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
+	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
+
+	_, _, err = celestia.Exec(ctx, command, nil)
+	require.NoError(t, err)
+
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -681,6 +686,12 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	// update dymint.toml for full node to connect with Celestia DA
 	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
+
+	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
+
+	_, _, err = celestia.Exec(ctx, command, nil)
+	require.NoError(t, err)
+
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -713,6 +724,33 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	//Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
 	// Wait for few blocks before starting the full node
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
@@ -720,7 +758,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
 	//Poll until full node is sync
