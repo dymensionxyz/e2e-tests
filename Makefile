@@ -242,6 +242,9 @@ e2e-test-fullnode-sync-block-sync-evm: clean-e2e
 e2e-test-fullnode-disconnect-block-sync-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestSync_BlockSync_fn_disconnect_EVM .
 
+e2e-test-sqc-rotation-success-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_success_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
