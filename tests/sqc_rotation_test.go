@@ -469,12 +469,11 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	valHeight, err := rollapp1.Validators[2].Height(ctx)
 	require.NoError(t, err)
 
-	// stop the sequencer1
-	err = dymension.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
+	// how to wait for notice_period ?? change GOV ??
+	// TODO add notice_period handling
 
 	// status of sequencer3 should be bonded
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, sequencer2.FormattedAddress())
