@@ -138,12 +138,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -291,12 +285,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -321,16 +309,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// update dymint.toml for full node to connect with Celestia DA
-
-	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -351,7 +330,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	}
 
 	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -498,12 +477,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
 	require.NoError(t, err)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
@@ -653,12 +626,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -686,11 +653,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	// update dymint.toml for full node to connect with Celestia DA
 	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
-
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
 	require.NoError(t, err)

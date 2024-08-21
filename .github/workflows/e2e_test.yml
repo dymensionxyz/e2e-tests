@@ -73,7 +73,7 @@ jobs:
           go-version: "1.21.4"
 
       - name: Rollapp-EVM E2E Tests
-        run: make e2e-test test=${{ matrix.test }}
+        run: sudo make e2e-test test=${{ matrix.test }}
 
   # e2e-tests-by runs the actual go test command to trigger the test.
   rollapp-wasm:
@@ -93,4 +93,4 @@ jobs:
             go-version: "1.21.4"
   
         - name: Rollapp-Wasm E2E Tests
-          run: make e2e-test test=${{ matrix.test }}
+          run: sudo make e2e-test test=${{ matrix.test }}

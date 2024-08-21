@@ -53,7 +53,7 @@ jobs:
           docker image ls -a
 
       - name: Rollapp-Wasm Upgrade E2E Tests
-        run: make ${{ matrix.tests }}
+        run: sudo make ${{ matrix.tests }}
         env:
           ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
           UPGRADE_ROLLAPP_WASM_NAME: ${{ inputs.upgrade_name }}
