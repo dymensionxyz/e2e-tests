@@ -132,12 +132,6 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -286,12 +280,6 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
@@ -456,12 +444,6 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
 	require.NoError(t, err)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
@@ -740,12 +722,6 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -894,12 +870,6 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
@@ -1099,12 +1069,6 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -1253,12 +1217,6 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
@@ -1458,12 +1416,6 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -1612,12 +1564,6 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
@@ -1814,12 +1760,6 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -1968,12 +1908,6 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
