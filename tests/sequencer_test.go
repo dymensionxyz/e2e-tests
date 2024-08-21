@@ -122,11 +122,11 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
-	// // Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 8, celestia)
+	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -318,7 +318,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_max_time"] = "30s"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -399,12 +399,12 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
-	// // Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 8, celestia)
-	// require.NoError(t, err)
+	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -558,13 +558,21 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	dymension.StopAllNodes(ctx)
-
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	dymension.StopAllNodes(ctx)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
 	require.Error(t, err)
 	require.False(t, isFinalized)
 
