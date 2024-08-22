@@ -48,7 +48,7 @@ jobs:
           docker image ls -a
 
       - name: Upgrade Hub E2E Tests
-        run: sudo make ${{ matrix.tests }}
+        run: sudo make ${{ matrix.tests }} -E UPGRADE_NAME=${{ inputs.upgrade_name }} DYMENSION_CI=${{ inputs.dymension_ci }} RELAYER_CI=${{ inputs.relayer_ci }}
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           UPGRADE_NAME: ${{ inputs.upgrade_name }}

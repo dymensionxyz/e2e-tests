@@ -103,7 +103,7 @@ jobs:
           docker image ls -a
 
       - name: Rollapp-EVM E2E Tests
-        run: sudo make e2e-test test=${{ matrix.test }}
+        run: sudo make e2e-test test=${{ matrix.test }} -E ROLLAPP_WASM_CI=${{ inputs.rollapp_wasm_ci }} DYMENSION_CI=${{ inputs.dymension_ci }} RELAYER_CI=${{ inputs.relayer_ci }} ROLLAPP_EVM_CI=${{ inputs.rollapp_evm_ci }}
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
@@ -140,7 +140,7 @@ jobs:
             docker image ls -a
   
         - name: Rollapp-Wasm E2E Tests
-          run: sudo make e2e-test test=${{ matrix.test }}
+          run: sudo make e2e-test test=${{ matrix.test }} -E ROLLAPP_WASM_CI=${{ inputs.rollapp_wasm_ci }} DYMENSION_CI=${{ inputs.dymension_ci }} RELAYER_CI=${{ inputs.relayer_ci }} ROLLAPP_EVM_CI=${{ inputs.rollapp_evm_ci }}
           env:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
