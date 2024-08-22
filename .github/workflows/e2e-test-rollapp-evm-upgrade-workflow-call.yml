@@ -53,7 +53,7 @@ jobs:
           docker image ls -a
 
       - name: Rollapp-EVM Upgrade E2E Tests
-        run: sudo make ${{ matrix.tests }} -E ROLLAPP_EVM_CI=${{ inputs.rollapp_evm_ci }} UPGRADE_ROLLAPP_EVM_NAME=${{ inputs.upgrade_name }} RELAYER_CI=${{ inputs.relayer_ci }}
+        run: sudo -E make ${{ matrix.tests }}
         env:
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
           UPGRADE_ROLLAPP_EVM_NAME: ${{ inputs.upgrade_name }}
