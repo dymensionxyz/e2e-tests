@@ -37,7 +37,6 @@ func TestRollappUpgradeNonStateBreaking_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -245,7 +244,6 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -456,7 +454,6 @@ func TestRollapp_EVM_Upgrade(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -710,7 +707,6 @@ func TestRollapp_Wasm_Upgrade(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension

@@ -40,7 +40,6 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["block_time"] = "2s"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

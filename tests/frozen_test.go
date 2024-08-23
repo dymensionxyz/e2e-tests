@@ -1187,7 +1187,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1201,7 +1200,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2["max_idle_time"] = "3s"
 	dymintTomlOverrides2["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
