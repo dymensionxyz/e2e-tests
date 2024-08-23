@@ -200,7 +200,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// attempt to fulfill demand order without having required denom balance
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	txData, err := dymension.GetTransaction(txhash)
