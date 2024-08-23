@@ -39,6 +39,8 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["block_time"] = "2s"
+	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -211,6 +213,7 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 
 	// get eIbc event
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	fmt.Println(eibcEvents)
 	require.True(t, len(eibcEvents) == 1) // verify there were no eibc events registered on the hub
 
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)

@@ -127,6 +127,7 @@ func TestDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -253,6 +254,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
