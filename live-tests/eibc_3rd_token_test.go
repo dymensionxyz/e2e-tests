@@ -184,7 +184,7 @@ func TestEIBC_3rd_Token_RolY_Live(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == mochaIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
+			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.OrderId, marketMaker.Address, dymFee)
 			require.NoError(t, err)
 		}
 	}
@@ -342,7 +342,7 @@ func TestEIBC_3rd_Token_Timeout_RolY_Live(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == mochaIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.ID, marketMaker.Address, dymFee)
+			_, err := cosmos.FullfillDemandOrder(&hub, eibcEvent.OrderId, marketMaker.Address, dymFee)
 			require.NoError(t, err)
 		}
 	}

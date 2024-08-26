@@ -272,9 +272,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Fee, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
-			demand_order_id = eibcEvent.ID
+			demand_order_id = eibcEvent.OrderId
 			fmt.Println(txhash)
 			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			// if eibcEvent != nil {
@@ -587,9 +587,9 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Fee, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
-			demand_order_id = eibcEvent.ID
+			demand_order_id = eibcEvent.OrderId
 			fmt.Println(txhash)
 			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			// if eibcEvent != nil {
@@ -887,7 +887,7 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 		if re.ReplaceAllString(eibcEvent.Fee, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
 			// attempt to update the fee amount required by demand order with an unallowed signer
-			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee.MulRaw(2))
+			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee.MulRaw(2))
 			require.NoError(t, err)
 			res, err := dymension.GetTransaction(txhash)
 			require.NoError(t, err)
@@ -1147,7 +1147,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 		if re.ReplaceAllString(eibcEvent.Fee, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
 			// attempt to update the fee amount required by demand order with an unallowed signer
-			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee.MulRaw(2))
+			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee.MulRaw(2))
 			require.NoError(t, err)
 			res, err := dymension.GetTransaction(txhash)
 			require.NoError(t, err)

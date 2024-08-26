@@ -88,7 +88,7 @@ func encodingConfig() *util.TestEncodingConfig {
 }
 
 func getEibcEventFromTx(t *testing.T, dymension *cosmos.CosmosChain, txResp types.TxResponse) *dymensiontesting.EibcEvent {
-	const evType = "eibc"
+	const evType = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	events := txResp.Events
 
 	var (
@@ -100,10 +100,10 @@ func getEibcEventFromTx(t *testing.T, dymension *cosmos.CosmosChain, txResp type
 	)
 
 	eibcEvent := new(dymensiontesting.EibcEvent)
-	eibcEvent.ID = id
+	eibcEvent.OrderId = id
 	eibcEvent.Price = price
 	eibcEvent.Fee = fee
-	checkFulfilled, err := strconv.ParseBool(isFulfilled)
+	checkFulfilled, err := strconv.ParseBool(isFulfilled)         
 	if err != nil {
 		require.NoError(t, err)
 		return nil

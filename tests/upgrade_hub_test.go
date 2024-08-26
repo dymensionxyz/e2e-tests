@@ -422,7 +422,7 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Events:", eibcEvents)
 
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker1Addr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMaker1Addr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {
@@ -534,7 +534,7 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Events:", eibcEvents)
 
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMaker2Addr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMaker2Addr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {
