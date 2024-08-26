@@ -84,12 +84,12 @@ type ForwardMetadata struct {
 }
 
 const (
-	ibcPath               = "dymension-demo"
-	anotherIbcPath        = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD = 30
-	EventDemandOrderCreated = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
-	EventDemandOrderFulfilled = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
-	EventDemandOrderFeeUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
+	ibcPath                             = "dymension-demo"
+	anotherIbcPath                      = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD               = 30
+	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
+	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
+	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
 	EventDemandOrderPacketStatusUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderPacketStatusUpdated"
 )
 
@@ -291,6 +291,10 @@ var (
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencer.params.notice_period",
+			Value: "180s",
+		},
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",
