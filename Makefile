@@ -242,6 +242,9 @@ e2e-test-fullnode-sync-block-sync-evm: clean-e2e
 e2e-test-fullnode-disconnect-block-sync-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run TestSync_BlockSync_fn_disconnect_EVM .
 
+e2e-test-seq-rotation-one-seq-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_OneSeq_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -464,6 +467,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
 	e2e-test-fullnode-sync-block-sync-evm \
+	e2e-test-seq-rotation-one-seq-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
@@ -536,6 +540,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-fee-market-success-evm \
 	e2e-test-admc-metadata-not-found-evm \
 	e2e-test-fullnode-sync-block-sync-evm \
+	e2e-test-seq-rotation-one-seq-evm \
 	e2e-test-ibc-success-wasm \
 	e2e-test-ibc-timeout-wasm \
 	e2e-test-ibc-grace-period-wasm \
