@@ -14,6 +14,9 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-one-sqc-rotation-success-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_one_sqc_success_EVM .
+
 e2e-test-spinup: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSpinUp .
 	
