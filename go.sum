@@ -770,8 +770,8 @@ github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c h1:pFUpOrbxDR
 github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c/go.mod h1:6UhI8N9EjYm1c2odKpFpAYeR8dsBeM7PtzQhRgxRr9U=
 github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869 h1:qWpUYGOsrSC+1Vmd2TjhbsSpntvvx9PsX3AoeMunFxc=
 github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869/go.mod h1:HZNYnPwmSxkwTPjSD5yolauc1Vx1ZzKL4FFMxTq4H5Y=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240826075000-703ac1665ee8 h1:0DDLdwsT5WumK6P3m1rAQxz1GzFqN7+TBHAY8hct9IA=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20240826075000-703ac1665ee8/go.mod h1:QmBrZgZplhtgHRWC0Z7LC7TDsKuC8sDyQvZyXXaqw/c=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240828080718-58f7f73bcb53 h1:PyDzL3giZuxrUOmSb+qtx4lUQHD0a9vw5ITbWaPrO8w=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20240828080718-58f7f73bcb53/go.mod h1:QmBrZgZplhtgHRWC0Z7LC7TDsKuC8sDyQvZyXXaqw/c=
 github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/deckarep/golang-set/v2 v2.1.0 h1:g47V4Or+DUdzbs8FxCCmgb6VYd+ptPAngjM6dtGktsI=
