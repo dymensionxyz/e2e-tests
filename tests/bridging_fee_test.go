@@ -157,6 +157,8 @@ func Test_Non_Rollappchain_Unaffected_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, gaia1, gaiaUserAddr, dymensionIBCDenom, transferAmount)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestChangeBridgeFeeParam_EVM create a prop to change bridge fee and after prop passed, transfer from rollapp to hub should have the new bridge fee.
@@ -411,4 +413,6 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	require.True(t, isFinalized)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

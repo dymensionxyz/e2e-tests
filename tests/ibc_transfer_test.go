@@ -274,6 +274,9 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestIBCTransferSuccess ensure that the transfer between Hub and Rollapp is accurate.
@@ -445,6 +448,9 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestGenesisIBCTransferWithReservedMemo_EVM ensure that after the genesis transfer phase for rollapp is completed, transfer memo contain a reserved name field cannot be used.
@@ -601,6 +607,8 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 
 	// Assert fund was not transferred
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestGenesisIBCTransferWithReservedMemo_Wasm ensure that after the genesis transfer phase for rollapp is completed, transfer memo contain a reserved name field cannot be used.
@@ -758,4 +766,7 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 
 	// Assert fund was not transferred
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

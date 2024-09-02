@@ -301,6 +301,8 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCNotFulfillment_Wasm(t *testing.T) {
@@ -579,4 +581,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

@@ -183,6 +183,8 @@ func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 	require.Equal(t, "urax", resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
@@ -405,6 +407,8 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
@@ -801,6 +805,8 @@ func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
 	require.Equal(t, "urax", resp.Metadatas[0].Base)
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
@@ -1020,6 +1026,8 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
@@ -1246,6 +1254,8 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount).Sub(bridgingFee))
 
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
@@ -1442,6 +1452,8 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
@@ -1638,4 +1650,6 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(bridgingFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

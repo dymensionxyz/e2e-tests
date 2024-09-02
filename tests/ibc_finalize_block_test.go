@@ -200,6 +200,9 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -401,6 +404,9 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -582,6 +588,9 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and ack failed.
@@ -770,6 +779,9 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -972,6 +984,9 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -1149,4 +1164,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

@@ -251,6 +251,9 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
@@ -537,4 +540,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

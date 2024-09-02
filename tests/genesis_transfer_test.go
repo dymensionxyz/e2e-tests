@@ -167,6 +167,9 @@ func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
@@ -317,6 +320,9 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
@@ -476,6 +482,9 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(connections))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
@@ -635,4 +644,7 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(connections))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

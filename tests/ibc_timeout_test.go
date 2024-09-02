@@ -268,6 +268,9 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the hub times out.
@@ -507,4 +510,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

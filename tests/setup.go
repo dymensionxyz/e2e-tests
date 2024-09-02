@@ -84,12 +84,12 @@ type ForwardMetadata struct {
 }
 
 const (
-	ibcPath               = "dymension-demo"
-	anotherIbcPath        = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD = 30
-	EventDemandOrderCreated = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
-	EventDemandOrderFulfilled = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
-	EventDemandOrderFeeUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
+	ibcPath                             = "dymension-demo"
+	anotherIbcPath                      = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD               = 30
+	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
+	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
+	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
 	EventDemandOrderPacketStatusUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderPacketStatusUpdated"
 )
 
@@ -942,4 +942,32 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 
 func BuildEIbcMemo(eibcFee math.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
+}
+func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub, keyName string) {
+	_, err := dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "demand-order-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "underlying-packet-exist")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-state-index")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "block-height-to-finalization-queue")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-by-eip155-key")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-per-rollapp")
+	require.NoError(t, err)
 }

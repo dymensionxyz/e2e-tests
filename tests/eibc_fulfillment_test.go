@@ -405,6 +405,9 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestEIBCFulfillOnOneRollApp tests the case where we have 2 rollapps running, we have pending eIBC packets from both rollapps. one of the packets is fulfilled by the market maker, the other packet is not fulfilled. The test verifies that the funds are transferred correctly and the market maker's balance is updated correctly (after grace period).
@@ -789,6 +792,9 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -1087,6 +1093,9 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCFulfillment_Wasm(t *testing.T) {
@@ -1392,6 +1401,9 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
@@ -1761,6 +1773,9 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -2170,6 +2185,8 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an eIBC packet sent from the rollapp to the hub
@@ -2573,6 +2590,8 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
@@ -2828,6 +2847,8 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
@@ -3085,4 +3106,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

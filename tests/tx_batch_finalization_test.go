@@ -303,6 +303,9 @@ func TestBatchFinalization_Wasm(t *testing.T) {
 	require.True(t, (currentFinalizedRollappDymHeight > BLOCK_FINALITY_PERIOD) && (lastFinalizedRollappHeight > rollappHeight),
 		fmt.Sprintf("Mismatch in batch finalization check. Current finalization hub height: %d. Dispute period: %d. Last finalized rollapp height: %d. Rollapp height asserted: %d",
 			currentFinalizedRollappDymHeight, BLOCK_FINALITY_PERIOD, lastFinalizedRollappHeight, rollappHeight))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func IsAnyRollappStateFinalized(ctx context.Context, dymension *dym_hub.DymHub, rollappChainID string, timeoutSecs int) (bool, error) {
