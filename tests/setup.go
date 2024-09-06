@@ -84,12 +84,12 @@ type ForwardMetadata struct {
 }
 
 const (
-	ibcPath               = "dymension-demo"
-	anotherIbcPath        = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD = 30
-	EventDemandOrderCreated = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
-	EventDemandOrderFulfilled = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
-	EventDemandOrderFeeUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
+	ibcPath                             = "dymension-demo"
+	anotherIbcPath                      = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD               = 30
+	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
+	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
+	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
 	EventDemandOrderPacketStatusUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderPacketStatusUpdated"
 )
 
@@ -108,7 +108,7 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
@@ -128,8 +128,9 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
-		UidGid:     "1025:1025",
+		// Version:    rollappEVMVersion,
+		Version: "ra-consensus-param",
+		UidGid:  "1025:1025",
 	}
 
 	rollappWasmImage = ibc.DockerImage{
@@ -259,6 +260,10 @@ var (
 					"symbol":      "rax",
 				},
 			},
+		},
+		{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
 		},
 	}
 
