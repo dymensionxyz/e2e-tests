@@ -197,6 +197,14 @@ var (
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "180s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "180s",
+		},
+		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
 		},
@@ -268,6 +276,14 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "180s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "180s",
+		},
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -296,6 +312,14 @@ var (
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencer.params.unbonding_time",
+			Value: "180s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "180s",
+		},
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",

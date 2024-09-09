@@ -61,12 +61,12 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -376,12 +376,12 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -653,12 +653,12 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1001,12 +1001,12 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1349,12 +1349,12 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1694,12 +1694,12 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
