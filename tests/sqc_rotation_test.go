@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/stretchr/testify/require"
@@ -125,13 +126,13 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
+	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	// require.NoError(t, err)
 
 	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
+	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	// err = testutil.WaitForBlocks(ctx, 2, celestia)
+	// require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -341,12 +342,22 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	require.Len(t, channsRollApp1, 1)
 	require.Len(t, dymChannels, 2)
 
+	// Get the transfer channel
+	rollappDymChan := channsRollApp1[0]
+	require.NotEmpty(t, rollappDymChan.ChannelID)
+
+	dymRollappChan := channsRollApp1[0].Counterparty
+	require.NotEmpty(t, dymRollappChan.ChannelID)
+
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
+
+	// parse ibc denom of rollapp1 on dymension
+	rollappDymDenom := transfertypes.GetPrefixedDenom(dymRollappChan.PortID, dymRollappChan.ChannelID, rollapp1.Config().Denom)
 
 	// send ibc transfer from rollapp1 to dymension (also act as 'normal' transfer for enabling ibc transfer)
 	// Send a normal ibc tx from RA -> Hub
@@ -366,7 +377,7 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// assert the balances
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Add(transferAmount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappDymDenom, transferAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 
 	// Unbond sequencer1
@@ -378,8 +389,24 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	require.Equal(t, queryGetSequencerResponse.Sequencer.Status, "OPERATING_STATUS_UNBONDING")
 
 	// Check ibc transfer works during the sequencer rotation
-	// send ibc transfer from rollapp1 to dym using eibc
-	// TODO: add eibc transfer
+	// send ibc transfer from dym to rollapp
+	// Send a normal ibc tx from Hub -> RA
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   rollappDymDenom,
+		Amount:  transferAmount,
+	}
+
+	_, err = dymension.SendIBCTransfer(ctx, dymRollappChan.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// no need for finalized but wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// assert the balancese
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappDymDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -472,8 +499,8 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[2].Height(ctx)
 	require.NoError(t, err)
 
-	// how to wait for notice_period ?? change GOV ??
-	// TODO add notice_period handling
+	// wait 3 mins for the gov to pass
+	err = testutil.WaitForBlocks(ctx, 9000, dymension, rollapp1)
 
 	// status of sequencer3 should be bonded
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, sequencer2.FormattedAddress())
@@ -486,7 +513,23 @@ func Test_SqcRotation_success_EVM(t *testing.T) {
 	require.Equal(t, queryGetSequencerResponse.Sequencer.Status, "OPERATING_STATUS_UNBONDED")
 
 	// check ibc transfer works after rotation is done
-	// TODO: add eibc transfer
+	// send ibc transfer from dym to rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   rollappDymDenom,
+		Amount:  transferAmount,
+	}
+
+	_, err = dymension.SendIBCTransfer(ctx, dymRollappChan.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// no need for finalized but wait a few blocks
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// assert the balancese
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappDymDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
 	//Poll until full node is sync
 	err = testutil.WaitForCondition(
