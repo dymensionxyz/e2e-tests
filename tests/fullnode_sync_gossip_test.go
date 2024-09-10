@@ -42,6 +42,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -175,7 +176,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -357,6 +358,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -492,7 +494,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -634,6 +636,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -767,7 +770,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -982,6 +985,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -1115,7 +1119,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1330,6 +1334,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -1463,7 +1468,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1675,6 +1680,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -1808,7 +1814,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)

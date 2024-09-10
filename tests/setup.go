@@ -108,7 +108,7 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
@@ -128,9 +128,8 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		// Version:    rollappEVMVersion,
-		Version: "ra-consensus-param",
-		UidGid:  "1025:1025",
+		Version:    rollappEVMVersion,
+		UidGid:     "1025:1025",
 	}
 
 	rollappWasmImage = ibc.DockerImage{
@@ -198,11 +197,11 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
@@ -269,20 +268,16 @@ var (
 				},
 			},
 		},
-		{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "celestia",
-		},
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		// Bank denom metadata
 		{
@@ -314,11 +309,11 @@ var (
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "300s",
 		},
 		// gov params
 		{
@@ -673,6 +668,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
 	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
