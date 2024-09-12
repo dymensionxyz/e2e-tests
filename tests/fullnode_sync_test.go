@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
@@ -194,6 +195,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
 	dymintTomlOverrides["da_layer"] = "grpc"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -317,6 +319,8 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -327,6 +331,14 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -335,14 +347,14 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -398,25 +410,18 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	}, nil, "", nil)
 	// require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	time.Sleep(30 * time.Second)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
+	time.Sleep(30 * time.Second)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
@@ -460,7 +465,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -479,8 +484,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 		panic(err)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+	time.Sleep(30 * time.Second)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -513,7 +517,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -592,6 +596,8 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -610,14 +616,14 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -687,12 +693,6 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -735,7 +735,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)

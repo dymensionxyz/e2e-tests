@@ -42,6 +42,8 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -59,14 +61,14 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
 	// sampleFrom := 2423882
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -122,22 +124,16 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
-	// // Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 8, celestia)
+	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
 	require.NoError(t, err)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
@@ -184,7 +180,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -324,7 +320,9 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "80s"
+	dymintTomlOverrides["batch_submit_max_time"] = "30s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -342,14 +340,14 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
 	// sampleFrom := 2423882
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -405,23 +403,17 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
-	// // Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 8, celestia)
-	// require.NoError(t, err)
+	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
 	require.NoError(t, err)
 
 	file, err := os.Open("/tmp/celestia/light/config.toml")
@@ -468,7 +460,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -570,13 +562,21 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	dymension.StopAllNodes(ctx)
-
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	dymension.StopAllNodes(ctx)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
 	require.Error(t, err)
 	require.False(t, isFinalized)
 

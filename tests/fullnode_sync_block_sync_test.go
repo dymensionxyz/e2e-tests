@@ -43,6 +43,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "3600s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "20ms"
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
@@ -66,12 +67,12 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -138,12 +139,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -186,7 +181,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -291,12 +286,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -321,16 +310,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// update dymint.toml for full node to connect with Celestia DA
-
-	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -351,7 +331,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	}
 
 	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -405,6 +385,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "3600s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "20ms"
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
@@ -428,12 +409,12 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "rpc-mocha.pops.one"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -500,12 +481,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
 
-	// Change the file permissions
-	command := []string{"chmod", "-R", "777", "/home/celestia/light/config.toml"}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err := os.Open("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
@@ -548,7 +523,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}),
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}),
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -653,12 +628,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	// Change the file permissions
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", rollapp1FolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
-
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
 	require.NoError(t, err)
 	defer file.Close()
@@ -686,11 +655,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	// update dymint.toml for full node to connect with Celestia DA
 	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
-
-	command = []string{"chmod", "-R", "777", fmt.Sprintf("/var/cosmos-chain/%s/config/dymint.toml", fnFolderName)}
-
-	_, _, err = celestia.Exec(ctx, command, nil)
-	require.NoError(t, err)
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
 	require.NoError(t, err)

@@ -38,6 +38,7 @@ package tests
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
 // 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+// dymintTomlOverrides["batch_submit_time"] = "20s"
 
 // 	modifyGenesisKV := append(
 // 		dymensionGenesisKV,
@@ -333,6 +334,7 @@ package tests
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
 // 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+// dymintTomlOverrides["batch_submit_time"] = "20s"
 
 // 	modifyGenesisKV := append(dymensionGenesisKV,
 // 		cosmos.GenesisKV{

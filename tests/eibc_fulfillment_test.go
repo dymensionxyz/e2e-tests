@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -13,11 +12,9 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
-	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
@@ -338,7 +335,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
-			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
+			txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
 			fmt.Println(txhash)
 			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -723,7 +720,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	for _, eibcEvent := range eibcEvents {
 		re := regexp.MustCompile(`^\d+`)
 		if re.ReplaceAllString(eibcEvent.Price, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
-			_, err := dymension.FullfillDemandOrder(ctx, eibcEvent.ID, marketMakerAddr, eibcFee)
+			_, err := dymension.FullfillDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee)
 			require.NoError(t, err)
 			// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 			// if eibcEvent != nil {
@@ -1048,7 +1045,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[1])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1353,7 +1350,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[1])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1692,7 +1689,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 	// fulfill demand order 1
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1714,7 +1711,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 	// fulfill demand order 2
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].ID, marketMakerAddr, eibcFee)
+	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
@@ -2120,7 +2117,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[1])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -2523,7 +2520,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[1])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -3088,110 +3085,4 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 			}
 		},
 	)
-}
-
-func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) *dymensiontesting.EibcEvent {
-	txResp, err := dymension.GetTransaction(txhash)
-	if err != nil {
-		require.NoError(t, err)
-		return nil
-	}
-
-	const evType = "eibc"
-	events := txResp.Events
-
-	var (
-		id, _           = cosmos.AttributeValue(events, evType, "id")
-		price, _        = cosmos.AttributeValue(events, evType, "price")
-		fee, _          = cosmos.AttributeValue(events, evType, "fee")
-		isFulfilled, _  = cosmos.AttributeValue(events, evType, "is_fulfilled")
-		packetStatus, _ = cosmos.AttributeValue(events, evType, "packet_status")
-	)
-
-	eibcEvent := new(dymensiontesting.EibcEvent)
-	eibcEvent.ID = id
-	eibcEvent.Price = price
-	eibcEvent.Fee = fee
-	println("check datra is fulfilled: ", isFulfilled)
-	eibcEvent.IsFulfilled, err = strconv.ParseBool(isFulfilled)
-	if err != nil {
-		require.NoError(t, err)
-		return nil
-	}
-	eibcEvent.PacketStatus = packetStatus
-
-	return eibcEvent
-}
-
-func getEIbcEventsWithinBlockRange(
-	ctx context.Context,
-	dymension *dym_hub.DymHub,
-	blockRange int64,
-	breakOnFirstOccurence bool,
-) ([]dymensiontesting.EibcEvent, error) {
-	var eibcEventsArray []dymensiontesting.EibcEvent
-
-	height, err := dymension.Height(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Dymension height: %w", err)
-	}
-	fmt.Printf("Dymension height: %d\n", height)
-
-	err = testutil.WaitForBlocks(ctx, int(blockRange), dymension)
-	if err != nil {
-		return nil, fmt.Errorf("error waiting for blocks: %w", err)
-	}
-
-	eibcEvents, err := getEventsOfType(dymension.CosmosChain, height-5, height+blockRange, "eibc", breakOnFirstOccurence)
-	if err != nil {
-		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
-	}
-
-	if len(eibcEvents) == 0 {
-		return nil, fmt.Errorf("There wasn't a single 'eibc' event registered within the specified block range on the hub")
-	}
-
-	for _, event := range eibcEvents {
-		eibcEvent, err := dymensiontesting.MapToEibcEvent(event)
-		if err != nil {
-			return nil, fmt.Errorf("error mapping to EibcEvent: %w", err)
-		}
-		eibcEventsArray = append(eibcEventsArray, eibcEvent)
-	}
-
-	return eibcEventsArray, nil
-}
-
-func getEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight int64, eventType string, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
-	var eventTypeArray []blockdb.Event
-	shouldReturn := false
-
-	for height := startHeight; height <= endHeight && !shouldReturn; height++ {
-		txs, err := chain.FindTxs(context.Background(), height)
-		if err != nil {
-			return nil, fmt.Errorf("error fetching transactions at height %d: %w", height, err)
-		}
-
-		for _, tx := range txs {
-			for _, event := range tx.Events {
-				if event.Type == eventType {
-					eventTypeArray = append(eventTypeArray, event)
-					if breakOnFirstOccurence {
-						shouldReturn = true
-						fmt.Printf("%s event found on block height: %d", eventType, height)
-						break
-					}
-				}
-			}
-			if shouldReturn {
-				break
-			}
-		}
-	}
-
-	return eventTypeArray, nil
-}
-
-func BuildEIbcMemo(eibcFee math.Int) string {
-	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
 }

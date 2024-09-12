@@ -39,6 +39,8 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -199,7 +201,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// attempt to fulfill demand order without having required denom balance
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].ID, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	txData, err := dymension.GetTransaction(txhash)
