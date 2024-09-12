@@ -689,13 +689,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
