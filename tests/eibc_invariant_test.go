@@ -210,7 +210,8 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
 	expMmBalanceRollappDenom := transferData.Amount.Sub(transferData.Amount.Quo(math.NewInt(1000)))
@@ -248,19 +249,21 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill 2 demand order
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
+	tx, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {
 	// 	fmt.Println("After order fulfillment:", eibcEvent)
 	// }
+	fmt.Println(tx)
 
-	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[2].OrderId, marketMakerAddr, eibcFee)
+	tx, err = dymension.FullfillDemandOrder(ctx, eibcEvents[2].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	// eibcEvent = getEibcEventFromTx(t, dymension, txhash)
 	// if eibcEvent != nil {
 	// 	fmt.Println("After order fulfillment:", eibcEvent)
 	// }
+	fmt.Println(tx)
 
 	for i, e := range eibcEvents {
 		fmt.Println("Event", i, ":", e)

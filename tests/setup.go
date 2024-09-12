@@ -86,7 +86,7 @@ type ForwardMetadata struct {
 const (
 	ibcPath                             = "dymension-demo"
 	anotherIbcPath                      = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD               = 30
+	BLOCK_FINALITY_PERIOD               = 60
 	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
