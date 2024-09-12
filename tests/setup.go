@@ -190,8 +190,15 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       nil,
+		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
 		ConfigFileOverrides: nil,
+	}
+
+	gaiaGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "600s",
+		},
 	}
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
