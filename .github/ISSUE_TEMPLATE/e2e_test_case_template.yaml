@@ -70,6 +70,7 @@ body:
         - "full node sync"
         - "base layer disconnection"
         - "sequencer rotation"
+        - "light client"
     validations:
       required: true
 
