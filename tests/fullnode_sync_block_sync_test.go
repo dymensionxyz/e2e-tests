@@ -43,6 +43,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "3600s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "20ms"
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
@@ -180,7 +181,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -384,6 +385,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "3600s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_time"] = "20ms"
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
@@ -521,7 +523,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}),
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}),
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)

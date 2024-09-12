@@ -190,18 +190,25 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       nil,
+		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
 		ConfigFileOverrides: nil,
+	}
+
+	gaiaGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "600s",
+		},
 	}
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
@@ -273,11 +280,11 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		// Bank denom metadata
 		{
@@ -309,11 +316,11 @@ var (
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "180s",
+			Value: "600s",
 		},
 		// gov params
 		{
@@ -668,6 +675,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
 	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

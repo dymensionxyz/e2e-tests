@@ -121,9 +121,10 @@ func TestDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_max_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
+	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
@@ -195,6 +196,7 @@ func TestDisconnection_EVM(t *testing.T) {
 
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Height(ctx)
+	fmt.Println(rollapp1Height)
 	require.NoError(t, err)
 	dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 
@@ -204,6 +206,7 @@ func TestDisconnection_EVM(t *testing.T) {
 
 		// Wait until rollapp stops produce block
 		rollappHeight, err := rollapp1.Height(ctx)
+		fmt.Println(rollappHeight)
 		require.NoError(t, err)
 
 		err = testutil.WaitForCondition(
@@ -211,6 +214,7 @@ func TestDisconnection_EVM(t *testing.T) {
 			time.Second*5, // each epoch is 5 seconds
 			func() (bool, error) {
 				newRollappHeight, err := rollapp1.Height(ctx)
+				fmt.Println(newRollappHeight)
 				require.NoError(t, err)
 
 				if newRollappHeight > rollappHeight {
@@ -248,8 +252,9 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
+	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
