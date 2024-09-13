@@ -43,6 +43,10 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 			Key:   "app_state.delayedack.params.epoch_identifier",
 			Value: EPOCH_IDENTIFIER,
 		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(80),
+		},
 	)
 
 	// Create chain factory with dymension
@@ -352,6 +356,10 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 		cosmos.GenesisKV{
 			Key:   "app_state.delayedack.params.epoch_identifier",
 			Value: EPOCH_IDENTIFIER,
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(80),
 		},
 	)
 

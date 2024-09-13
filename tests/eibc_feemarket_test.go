@@ -269,7 +269,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, math.NewInt(100_000))
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, math.NewInt(100_000))
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -579,7 +579,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee.MulRaw(2))
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -875,7 +875,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1169,18 +1169,18 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[1])
+	fmt.Println("Event:", eibcEvents[0])
 
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, eibcFee.MulRaw(2))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee.MulRaw(2))
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1428,7 +1428,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1721,6 +1721,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFeeUpdated))
+	// expBalanceMarketMaker := walletAmount.Add(globalEIbcFee.Mul(math.NewInt(2)))
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
@@ -2164,7 +2165,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
