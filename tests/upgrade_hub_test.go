@@ -357,6 +357,9 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Get the IBC denom
 	dymensionTokenDenom1 := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom1 := transfertypes.ParseDenomTrace(dymensionTokenDenom1).IBCDenom()
@@ -393,6 +396,9 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	expMmBalanceRollapp1Denom := transferData.Amount
 	balance, err := dymension.GetBalance(ctx, marketMaker1Addr, rollapp1IBCDenom)
@@ -450,6 +456,10 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	balance, err = dymension.GetBalance(ctx, marketMaker1Addr, rollapp1IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMaker1Addr after packet finalization:", balance)
@@ -476,6 +486,9 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom
 	dymensionTokenDenom2 := transfertypes.GetPrefixedDenom(channRollApp2Dym.PortID, channRollApp2Dym.ChannelID, dymension.Config().Denom)
@@ -506,6 +519,9 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	expMmBalanceRollapp2Denom := transferData.Amount
 	balance, err = dymension.GetBalance(ctx, marketMaker2Addr, rollapp2IBCDenom)
@@ -562,6 +578,10 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollapp2Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	balance, err = dymension.GetBalance(ctx, marketMaker2Addr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMaker2Addr after packet finalization:", balance)

@@ -259,6 +259,9 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   gaia.Config().Denom,
@@ -404,9 +407,8 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
-	gaia := chains[3].(*cosmos.CosmosChain)
+	dymension := chains[1].(*dym_hub.DymHub)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -422,7 +424,7 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	).Build(t, client, "relayer3", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRollUp(dymension, rollapp1).
 		AddChain(gaia).
 		AddRelayer(r1, "relayer1").
 		AddRelayer(r3, "relayer3").
@@ -522,6 +524,9 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -823,6 +828,9 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1134,6 +1142,9 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   gaia.Config().Denom,
@@ -1343,6 +1354,12 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
@@ -1534,6 +1551,9 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)

@@ -259,6 +259,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA2 -> Hub
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -279,6 +282,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -307,6 +313,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
@@ -418,6 +427,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 		require.NoError(t, err)
@@ -677,6 +689,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
@@ -788,6 +803,10 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -1048,6 +1067,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	// register ibc denom on rollapp1
@@ -1124,6 +1146,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 		require.NoError(t, err)
@@ -1225,6 +1250,10 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -1470,6 +1499,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA2 -> Hub
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1490,6 +1522,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -1518,6 +1553,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
@@ -1617,6 +1655,10 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -1875,6 +1917,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
@@ -1983,6 +2028,10 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -2243,6 +2292,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
@@ -2276,6 +2328,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
 		// end of preconditions
@@ -2372,6 +2427,10 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)

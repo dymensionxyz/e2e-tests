@@ -284,6 +284,9 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
@@ -562,6 +565,9 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Make sure the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
