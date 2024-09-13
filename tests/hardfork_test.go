@@ -38,14 +38,6 @@ func TestHardFork_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -90,7 +82,7 @@ func TestHardFork_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -576,14 +568,6 @@ func TestHardFork_Wasm(t *testing.T) {
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
-
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
 	// Create chain factory with dymension
@@ -630,7 +614,7 @@ func TestHardFork_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1113,17 +1097,6 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1168,7 +1141,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,

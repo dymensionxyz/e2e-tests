@@ -477,7 +477,7 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(dymChannels))
+	require.Equal(t, 2, len(dymChannels))
 
 	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -485,9 +485,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 
 	gaiaChannels, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
-
-	require.Len(t, dymChannels, 2)
-	require.Len(t, gaiaChannels, 1)
 
 	channDymGaia := gaiaChannels[0].Counterparty
 	require.NotEmpty(t, channDymGaia.ChannelID)

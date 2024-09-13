@@ -86,7 +86,7 @@ type ForwardMetadata struct {
 const (
 	ibcPath                             = "dymension-demo"
 	anotherIbcPath                      = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD               = 60
+	BLOCK_FINALITY_PERIOD               = 50
 	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
@@ -314,6 +314,10 @@ var (
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
 		{
 			Key:   "app_state.sequencer.params.unbonding_time",
 			Value: "1200s",

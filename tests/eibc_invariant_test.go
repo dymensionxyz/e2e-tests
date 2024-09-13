@@ -40,10 +40,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-		cosmos.GenesisKV{
 			Key:   "app_state.delayedack.params.epoch_identifier",
 			Value: EPOCH_IDENTIFIER,
 		},
@@ -353,10 +349,6 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 	const EPOCH_IDENTIFIER string = "minute"
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
 		cosmos.GenesisKV{
 			Key:   "app_state.delayedack.params.epoch_identifier",
 			Value: EPOCH_IDENTIFIER,

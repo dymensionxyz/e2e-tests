@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -44,14 +43,6 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
-
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -119,7 +110,7 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -333,14 +324,6 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	maxIdleTime2 := "3s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -407,7 +390,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,

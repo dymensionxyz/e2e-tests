@@ -43,13 +43,6 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -94,7 +87,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -311,13 +304,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -386,7 +372,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -460,7 +446,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 3)
+	require.Len(t, channsDym, 2)
 
 	rollAppChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -692,14 +678,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -768,7 +746,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,

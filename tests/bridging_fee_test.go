@@ -185,16 +185,6 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -261,7 +251,7 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,

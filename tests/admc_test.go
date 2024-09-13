@@ -1306,7 +1306,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
-		dymModifyGenesisKV,
+		dymensionGenesisKV,
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.bank.denom_metadata",
@@ -1506,7 +1506,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyGenesisKV := append(
-		dymModifyGenesisKV,
+		dymensionGenesisKV,
 		[]cosmos.GenesisKV{
 			{
 				Key:   "app_state.bank.denom_metadata",

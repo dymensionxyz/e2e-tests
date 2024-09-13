@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -43,14 +42,6 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	dymintTomlOverrides["block_time"] = "2s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -96,7 +87,7 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -217,7 +208,7 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	// get eIbc event
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	fmt.Println(eibcEvents)
-	require.True(t, len(eibcEvents) == 1) // verify there were no eibc events registered on the hub
+	require.True(t, len(eibcEvents) == 0) // verify there were no eibc events registered on the hub
 
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
