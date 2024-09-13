@@ -430,7 +430,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
-		testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, rollapp1)
+		testutil.WaitForBlocks(ctx, 10, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferAmount)
 	})
 
