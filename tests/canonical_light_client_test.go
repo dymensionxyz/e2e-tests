@@ -34,6 +34,7 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -237,6 +238,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -481,9 +483,11 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		transferTx, err = rollapp1.SendIBCTransfer(ctx, rollappDymChan.ChannelID, rollappUser.KeyName(), transfer, ibc.TransferOptions{})
 		require.NoError(t, err)
 
-		// wait until dymension receive transferAmount
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		// wait until dymension receive transferAmount when rollapp finalized
+		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetNode().Chain.GetChainID(), rollappHeight, 600)
 		require.NoError(t, err)
+		require.True(t, isFinalized)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount)
