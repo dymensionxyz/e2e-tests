@@ -413,6 +413,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
@@ -1610,6 +1613,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
+
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
 
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)

@@ -1157,11 +1157,9 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
-	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {

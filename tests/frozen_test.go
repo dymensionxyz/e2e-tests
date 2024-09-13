@@ -1898,9 +1898,13 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
 	require.Equal(t, latestIndex, lalatestIndex, "rollapp state index still increment after grace period. Rerun")
 
 	// Check if rollapp1 has frozen or not

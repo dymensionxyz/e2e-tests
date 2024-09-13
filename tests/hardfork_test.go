@@ -1392,7 +1392,9 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+
+	testutil.WaitForBlocks(ctx, 50, dymension)
+
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1406,9 +1408,11 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	// Check rollapp1 state index not increment
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
+
 	// stop all nodes and override genesis with new state
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
+
 	// get the latest hight was finalized
 	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, true)
 	require.NoError(t, err)

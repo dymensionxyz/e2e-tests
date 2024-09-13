@@ -607,6 +607,9 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "cannot use transfer genesis memo: unauthorized")
 
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
@@ -770,6 +773,9 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 		Memo: `{"genesis_transfer": {}}`,
 	})
 	require.ErrorContains(t, err, "cannot use transfer genesis memo: unauthorized")
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)

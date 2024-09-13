@@ -258,11 +258,11 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[1])
+	fmt.Println("Event:", eibcEvents[0])
 
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, math.NewInt(100_000))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, math.NewInt(100_000))
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -568,11 +568,11 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[1])
+	fmt.Println("Event:", eibcEvents[0])
 
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, eibcFee.MulRaw(2))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, eibcFee.MulRaw(2))
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -866,9 +866,9 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[1])
+	fmt.Println("Event:", eibcEvents[0])
 
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, eibcFee)
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, eibcFee)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -1685,7 +1685,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1946,7 +1946,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
