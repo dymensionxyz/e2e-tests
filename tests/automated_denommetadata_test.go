@@ -354,13 +354,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "decentrio_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -387,28 +380,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides1,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "decentrio_12345-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -443,10 +414,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -458,18 +425,11 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
-			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
 			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
@@ -494,7 +454,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	// Create some user accounts on both chains
@@ -522,14 +481,10 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
 	gaiaChannels, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
 
-	require.Len(t, dymChannels, 3)
+	require.Len(t, dymChannels, 2)
 	require.Len(t, gaiaChannels, 1)
 
 	channDymGaia := gaiaChannels[0].Counterparty
@@ -540,8 +495,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -620,11 +573,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}

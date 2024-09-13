@@ -409,10 +409,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 	// relayer for rollapp gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -425,19 +421,12 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r, "relayer").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
 			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
-			Path:    anotherIbcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
@@ -461,7 +450,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -492,19 +480,12 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}

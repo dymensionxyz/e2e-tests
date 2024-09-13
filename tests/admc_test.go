@@ -325,6 +325,9 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
