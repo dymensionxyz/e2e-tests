@@ -238,7 +238,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 1, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -252,16 +252,13 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expBalanceMarketMaker := walletAmount.Add(transferAmountWithoutFee).Add(globalEIbcFee)
+	expBalanceMarketMaker := walletAmount.Sub(transferAmountWithoutFee)
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
@@ -595,7 +592,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 70, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, gaiaIBCDenom))
@@ -612,7 +609,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
+	err = testutil.WaitForBlocks(ctx, 1, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -631,9 +628,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)

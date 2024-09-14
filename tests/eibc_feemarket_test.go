@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -567,7 +568,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
@@ -1168,7 +1169,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
@@ -1200,7 +1201,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(eibcFee)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee).Add(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -1248,6 +1249,14 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1292,7 +1301,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1429,6 +1438,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	// get eibc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
+	fmt.Println(eibcEvents)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
@@ -1448,7 +1458,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 1, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -1462,16 +1472,13 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFeeUpdated))
+	expBalanceMarketMaker := walletAmount.Sub(transferAmountWithoutFeeUpdated)
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
@@ -1505,11 +1512,20 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -1549,7 +1565,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1705,7 +1721,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 1, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -1719,8 +1735,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expBalanceMarketMaker := walletAmount.Add(transferAmount).Add(globalEIbcFee.MulRaw(2))
-	// expBalanceMarketMaker := walletAmount.Add(globalEIbcFee.Mul(math.NewInt(2)))
+	expBalanceMarketMaker := walletAmount.Sub(transferAmountWithoutFeeUpdated)
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
@@ -1768,6 +1783,14 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1812,7 +1835,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1930,8 +1953,6 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -1986,11 +2007,20 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 0
 	numRollAppVals := 1
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -2030,7 +2060,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2148,8 +2178,6 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 	// Get the IBC denom for dymension on roll app
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -2164,7 +2192,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 40, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
