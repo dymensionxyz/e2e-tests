@@ -259,13 +259,18 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "100s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -493,7 +498,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	require.NotNil(t, tokenPair)
 
 	// convert erc20
-	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1_id)
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
 	require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
