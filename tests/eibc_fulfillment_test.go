@@ -1039,12 +1039,12 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
 	require.NoError(t, err)
-	fmt.Println("Event:", eibcEvents[1])
+	fmt.Println("Event:", eibcEvents[0])
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
