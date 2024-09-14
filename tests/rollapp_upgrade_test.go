@@ -35,7 +35,6 @@ func TestRollappUpgradeNonStateBreaking_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -246,7 +245,6 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -460,7 +458,6 @@ func TestRollapp_EVM_Upgrade(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -717,7 +714,6 @@ func TestRollapp_Wasm_Upgrade(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 

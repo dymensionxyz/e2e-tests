@@ -654,7 +654,7 @@ type rollappParam struct {
 // 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 // }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -677,7 +677,6 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
-	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 

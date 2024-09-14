@@ -69,7 +69,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "5s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, true)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -318,7 +318,6 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "80s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -595,7 +594,6 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "80s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 

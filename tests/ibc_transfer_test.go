@@ -33,7 +33,6 @@ func TestSpinUp(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -119,7 +118,6 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
@@ -297,7 +295,6 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -472,7 +469,6 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -638,7 +634,6 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["batch_submit_time"] = "20s"
 
