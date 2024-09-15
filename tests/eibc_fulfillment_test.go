@@ -1039,7 +1039,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 
@@ -1681,7 +1681,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
@@ -1703,7 +1703,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
+	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
@@ -2806,7 +2806,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 
@@ -3056,7 +3056,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	_, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	// expect no eibc events created as ibc transfer from hub to rollapp is ignored
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 

@@ -181,7 +181,7 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 

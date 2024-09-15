@@ -173,7 +173,7 @@ func TestEIBC_3rd_Token_RolY_Live(t *testing.T) {
 	// get eIbc event
 
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 20, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -331,7 +331,7 @@ func TestEIBC_3rd_Token_Timeout_RolY_Live(t *testing.T) {
 	// get eIbc event
 
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 20, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
