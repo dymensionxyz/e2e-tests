@@ -222,9 +222,9 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc events
-	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 45, false)
 	fmt.Println(eibcEvents)
-	require.True(t, len(eibcEvents) == 2) // verify 1 EIBC event was registered on the hub
+	require.True(t, len(eibcEvents) == 1) // verify 1 EIBC event was registered on the hub
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)

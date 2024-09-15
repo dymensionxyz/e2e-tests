@@ -1703,9 +1703,10 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	fmt.Println(eibcEvents)
 	require.NoError(t, err)
-	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
+	require.Equal(t, "PENDING", eibcEvents[len(eibcEvents)-1].PacketStatus)
 
 	// fulfill demand order 2
 	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
