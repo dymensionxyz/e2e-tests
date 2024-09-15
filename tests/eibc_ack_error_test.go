@@ -1565,7 +1565,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		rollappHeight, err = rollapp1.Height(ctx)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+70, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error

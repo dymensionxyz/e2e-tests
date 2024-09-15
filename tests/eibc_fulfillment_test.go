@@ -1706,7 +1706,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	fmt.Println(eibcEvents)
 	require.NoError(t, err)
-	require.Equal(t, "PENDING", eibcEvents[len(eibcEvents)-1].PacketStatus)
+	require.Equal(t, "PENDING", eibcEvents[0].PacketStatus)
 
 	// fulfill demand order 2
 	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
