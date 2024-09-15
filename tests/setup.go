@@ -924,7 +924,7 @@ func getEIbcEventsWithinBlockRange(
 		return nil, fmt.Errorf("error waiting for blocks: %w", err)
 	}
 
-	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+blockRange, breakOnFirstOccurence)
+	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+30, breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
 	}

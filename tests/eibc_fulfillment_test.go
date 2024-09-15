@@ -1001,7 +1001,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub

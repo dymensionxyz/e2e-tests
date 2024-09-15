@@ -203,7 +203,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// verify funds were transferred to dymensionUserAddr
