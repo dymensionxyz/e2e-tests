@@ -357,7 +357,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["block_time"] = "190ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 

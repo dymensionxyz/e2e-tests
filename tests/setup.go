@@ -86,7 +86,7 @@ type ForwardMetadata struct {
 const (
 	ibcPath                             = "dymension-demo"
 	anotherIbcPath                      = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD               = 30
+	BLOCK_FINALITY_PERIOD               = 50
 	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
@@ -654,7 +654,7 @@ type rollappParam struct {
 // 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 // }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime string, optionalConfigs ...bool) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batch_submit_time string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -678,7 +678,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = batch_submit_time
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

@@ -36,7 +36,7 @@ func TestHardFork_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -368,7 +368,7 @@ func TestHardFork_EVM(t *testing.T) {
 	// setup config for rollapp 1
 
 	new_rollapp_id := "rollappevm_1234-2"
-	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -568,7 +568,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
 
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -900,7 +900,7 @@ func TestHardFork_Wasm(t *testing.T) {
 	// setup config for rollapp 1
 
 	new_rollapp_id := "rollappwasm_1234-2"
-	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1095,7 +1095,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -1432,7 +1432,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	// setup config for rollapp 1
 
 	new_rollapp_id := "rollappevm_1234-2"
-	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides = overridesDymintToml(settlement_layer_rollapp, settlement_node_address, new_rollapp_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{

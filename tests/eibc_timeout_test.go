@@ -37,7 +37,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -301,7 +301,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides1["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides1["max_idle_time"] = "3s"
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
-	dymintTomlOverrides1["batch_submit_time"] = "100s"
+	dymintTomlOverrides1["batch_submit_time"] = "50s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides1
@@ -315,7 +315,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_idle_time"] = "3s"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
-	dymintTomlOverrides2["batch_submit_time"] = "100s"
+	dymintTomlOverrides2["batch_submit_time"] = "50s"
 	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
 
 	// Create chain factory with dymension
@@ -680,14 +680,14 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime)
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime)
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
