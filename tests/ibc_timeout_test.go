@@ -205,9 +205,6 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
@@ -243,9 +240,6 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 100, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
@@ -445,9 +439,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
@@ -483,9 +474,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 100, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Assert funds were returned to the sender after the timeout has occured
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)

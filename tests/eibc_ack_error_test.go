@@ -296,17 +296,6 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 		require.NoError(t, err)
 
-		rollappHeight, err := rollapp1.GetNode().Height(ctx)
-		require.NoError(t, err)
-
-		// wait until the packet is finalized
-		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-		require.NoError(t, err)
-
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 		require.NoError(t, err)
@@ -672,6 +661,26 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+
+	transferData = ibc.WalletData{
+		Address: valAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  bigTransferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -692,9 +701,8 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
-		// end of preconditions
 
-		//
+		// end of preconditions
 		// prop to disable ibc transfer on rollapp
 		receiveEnableParams := json.RawMessage(`false`)
 		_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
@@ -746,7 +754,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 		// We transfered once to enable ibc-transfer from dym to rollapp
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
@@ -801,7 +809,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount).Sub(bigTransferAmount))
 	})
 }
 
@@ -1047,6 +1055,29 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+
+	transferData = ibc.WalletData{
+		Address: valAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  bigTransferAmount,
+	}
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	// register ibc denom on rollapp1
@@ -1118,17 +1149,6 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
-		require.NoError(t, err)
-
-		rollappHeight, err := rollapp1.GetNode().Height(ctx)
-		require.NoError(t, err)
-
-		// wait until the packet is finalized
-		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
 
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
@@ -1517,17 +1537,6 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
 		require.NoError(t, err)
 
-		rollappHeight, err := rollapp1.GetNode().Height(ctx)
-		require.NoError(t, err)
-
-		// wait until the packet is finalized
-		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-		require.NoError(t, err)
-
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 
@@ -1881,6 +1890,26 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+
+	transferData = ibc.WalletData{
+		Address: valAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  bigTransferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -1952,7 +1981,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 		// We transfered once to enable ibc-transfer from dym to rollapp
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
@@ -2007,7 +2036,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount).Sub(bigTransferAmount))
 	})
 }
 
@@ -2247,6 +2276,29 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
+
+	transferData = ibc.WalletData{
+		Address: valAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  bigTransferAmount,
+	}
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
