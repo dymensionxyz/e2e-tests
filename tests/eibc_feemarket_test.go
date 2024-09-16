@@ -1402,7 +1402,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println(eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1660,7 +1660,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))

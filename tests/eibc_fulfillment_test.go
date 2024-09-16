@@ -1688,20 +1688,6 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 2 to dym hub:", balance)
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
-	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
-	require.NoError(t, err)
-	require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
-
-	// fulfill demand order 1
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
-	require.NoError(t, err)
-	fmt.Println(txhash)
-	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
-	if eibcEvent != nil {
-		fmt.Println("After order fulfillment:", eibcEvent)
-	}
-
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
 
@@ -1711,16 +1697,19 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.True(t, balance.Equal(zeroBalance), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBalance, balance))
 
 	// get eIbc event
-	eibcEvents, err = getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	fmt.Println(eibcEvents)
 	require.NoError(t, err)
+	require.Equal(t, "PENDING", eibcEvents[0].PacketStatus)
 	require.Equal(t, "PENDING", eibcEvents[1].PacketStatus)
 
 	// fulfill demand order 2
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
-	fmt.Println(txhash)
-	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
+	require.NoError(t, err)
+
+	eibcEvent := getEibcEventFromTx(t, dymension, txhash)
 	if eibcEvent != nil {
 		fmt.Println("After order fulfillment:", eibcEvent)
 	}

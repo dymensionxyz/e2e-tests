@@ -754,7 +754,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 		// We transfered once to enable ibc-transfer from dym to rollapp
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
@@ -1981,7 +1981,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
 		// We transfered once to enable ibc-transfer from dym to rollapp
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
