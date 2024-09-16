@@ -1419,6 +1419,14 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1485,7 +1493,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1709,7 +1717,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.Equal(t, "PENDING", eibcEvents[1].PacketStatus)
 
 	// fulfill demand order 2
-	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-2].OrderId, marketMakerAddr, eibcFee)
+	txhash, err = dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	eibcEvent = getEibcEventFromTx(t, dymension, txhash)
