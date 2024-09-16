@@ -86,7 +86,7 @@ type ForwardMetadata struct {
 const (
 	ibcPath                             = "dymension-demo"
 	anotherIbcPath                      = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD               = 30
+	BLOCK_FINALITY_PERIOD               = 50
 	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
@@ -197,18 +197,18 @@ var (
 	gaiaGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 	}
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
@@ -280,11 +280,11 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		// Bank denom metadata
 		{
@@ -315,12 +315,16 @@ var (
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+		{
 			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		{
 			Key:   "app_state.staking.params.unbonding_time",
-			Value: "600s",
+			Value: "1200s",
 		},
 		// gov params
 		{
@@ -650,7 +654,7 @@ type rollappParam struct {
 // 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 // }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batch_submit_time string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -673,9 +677,8 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
-	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = batch_submit_time
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -689,13 +692,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())

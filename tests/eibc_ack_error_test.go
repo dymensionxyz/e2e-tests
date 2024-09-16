@@ -47,18 +47,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -125,7 +115,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -259,6 +249,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA2 -> Hub
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -279,6 +272,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -307,6 +303,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
@@ -414,10 +413,16 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 		require.NoError(t, err)
@@ -453,7 +458,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -462,18 +467,8 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -540,7 +535,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -676,6 +671,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	var options ibc.TransferOptions
 
@@ -788,6 +786,10 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -813,7 +815,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -822,18 +824,8 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -900,7 +892,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1048,6 +1040,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	// register ibc denom on rollapp1
@@ -1124,6 +1119,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 		require.NoError(t, err)
@@ -1225,6 +1223,10 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -1259,18 +1261,8 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1337,7 +1329,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1470,6 +1462,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA2 -> Hub
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -1490,6 +1485,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channDymRollApp1.PortID, channDymRollApp1.ChannelID, dymension.Config().Denom)
@@ -1518,6 +1516,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
@@ -1564,7 +1565,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		rollappHeight, err = rollapp1.Height(ctx)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+70, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -1613,10 +1614,17 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		expMmBalanceDymDenom := marketMakerBalance.Sub((transferAmountWithoutFee.Sub(bridgingFee)))
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
+		rollappHeight, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+
 		// wait until packet finalization, mm balance should be the same due to the ack error
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -1651,7 +1659,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -1660,18 +1668,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1738,7 +1736,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1875,6 +1873,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
@@ -1983,6 +1984,10 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)
@@ -2008,7 +2013,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	extraFlags := map[string]interface{}{"genesis-accounts-path": true}
 
@@ -2017,18 +2022,8 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
-	// Custom dymension epoch for faster disconnection
-	modifyGenesisKV := append(
-		dymModifyGenesisKV,
-		[]cosmos.GenesisKV{
-			{
-				Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-				Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-			},
-		}...,
-	)
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -2095,7 +2090,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2243,6 +2238,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	var options ibc.TransferOptions
 
 	t.Run("Demand order is created upon AckError for rollapp token", func(t *testing.T) {
@@ -2276,6 +2274,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, thirdPartyIBCDenomOnRA, transferAmount)
 		// end of preconditions
@@ -2372,6 +2373,10 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		balance, err = dymension.GetBalance(ctx, marketMakerAddr, thirdPartyDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of marketMakerAddr after packet finalization:", balance)

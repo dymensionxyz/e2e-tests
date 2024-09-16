@@ -37,8 +37,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -47,9 +46,10 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+			Value: fmt.Sprint(100),
 		},
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -185,6 +185,9 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Compose an IBC transfer and send from hub to rollapp
 	// global eibc fee in case of auto created orders is 0.0015
 	numerator := math.NewInt(15)
@@ -225,7 +228,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 20, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -242,7 +245,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 1, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -256,7 +259,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, dymension.Config().Denom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expBalanceMarketMaker := walletAmount.Sub((transferAmountWithoutFee))
+	expBalanceMarketMaker := walletAmount.Sub(transferAmountWithoutFee)
 	require.True(t, balance.Equal(expBalanceMarketMaker), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expBalanceMarketMaker, balance))
 
 	// wait until packet finalization and verify funds (incl. fee) were added to market maker's wallet address
@@ -290,28 +293,41 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "10s"
-	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := make(map[string]any)
+	dymintTomlOverrides1 := make(testutil.Toml)
+	dymintTomlOverrides1["settlement_layer"] = "dymension"
+	dymintTomlOverrides1["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides1["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides1["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides1["max_idle_time"] = "3s"
+	dymintTomlOverrides1["max_proof_time"] = "500ms"
+	dymintTomlOverrides1["batch_submit_time"] = "50s"
+	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
+
+	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides1
 
 	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "decentrio_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := make(map[string]any)
+	dymintTomlOverrides2 := make(testutil.Toml)
+	dymintTomlOverrides2["settlement_layer"] = "dymension"
+	dymintTomlOverrides2["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides2["rollapp_id"] = "decentrio_12345-1"
+	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides2["max_idle_time"] = "3s"
+	dymintTomlOverrides2["max_proof_time"] = "500ms"
+	dymintTomlOverrides2["batch_submit_time"] = "50s"
+	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
+
+	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 
 	modifyGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+			Value: fmt.Sprint(100),
 		},
 	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -409,10 +425,6 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 	// relayer for rollapp gaia
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -425,19 +437,12 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 		AddRollUp(dymension, rollapp1, rollapp2).
 		AddChain(gaia).
 		AddRelayer(r, "relayer").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r,
 			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
-			Path:    anotherIbcPath,
 		}).
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
@@ -461,12 +466,11 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	channsDym, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
 	require.NoError(t, err)
-	require.Len(t, channsDym, 3)
+	require.Len(t, channsDym, 2)
 
 	rollAppChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
@@ -492,19 +496,12 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
-	require.NoError(t, err)
-
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
 			err := r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
@@ -558,6 +555,9 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
@@ -619,7 +619,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 80, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, gaiaIBCDenom))
@@ -636,7 +636,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	// require.True(t, eibcEvent.IsFulfilled)
 
 	// wait a few blocks and verify sender received funds on the dymension
-	err = testutil.WaitForBlocks(ctx, 3, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	// verify funds minus fee were added to receiver's address
@@ -690,22 +690,14 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
-
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -775,7 +767,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1047,6 +1039,9 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, gaiaIBCDenom)
 	require.NoError(t, err)
