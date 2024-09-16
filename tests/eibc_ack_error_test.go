@@ -687,6 +687,10 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
 		// end of preconditions
 
@@ -1098,6 +1102,10 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, thirdPartyDenom, transferAmount)
 		// user from rollapp1 should have funds to be able to make the ibc transfer transaction
 		transferData = ibc.WalletData{
@@ -1888,6 +1896,10 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, rollappIBCDenom, transferAmount)
 		// end of preconditions
 
@@ -2253,6 +2265,10 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		// market maker needs to have funds on the hub first to be able to fulfill upcoming demand order
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		require.NoError(t, err)
+
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, thirdPartyDenom, transferAmount)
 		// user from rollapp1 should have funds to be able to make the ibc transfer transaction
 		transferData = ibc.WalletData{
