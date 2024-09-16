@@ -195,7 +195,6 @@ func TestDisconnection_EVM(t *testing.T) {
 
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Height(ctx)
-	fmt.Println(rollapp1Height)
 	require.NoError(t, err)
 	dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 
@@ -205,7 +204,6 @@ func TestDisconnection_EVM(t *testing.T) {
 
 		// Wait until rollapp stops produce block
 		rollappHeight, err := rollapp1.Height(ctx)
-		fmt.Println(rollappHeight)
 		require.NoError(t, err)
 
 		err = testutil.WaitForCondition(
@@ -213,7 +211,6 @@ func TestDisconnection_EVM(t *testing.T) {
 			time.Second*5, // each epoch is 5 seconds
 			func() (bool, error) {
 				newRollappHeight, err := rollapp1.Height(ctx)
-				fmt.Println(newRollappHeight)
 				require.NoError(t, err)
 
 				if newRollappHeight > rollappHeight {
