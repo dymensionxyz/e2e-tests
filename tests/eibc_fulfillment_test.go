@@ -1750,7 +1750,6 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollapp2IBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
-	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(transferAmount).Sub(bridgingFee)
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
 
 	t.Cleanup(

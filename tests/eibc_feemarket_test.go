@@ -1402,7 +1402,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 70, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 50, false)
 	require.NoError(t, err)
 	fmt.Println(eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1472,6 +1472,14 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
+	modifyGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1517,7 +1525,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
