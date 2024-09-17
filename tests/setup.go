@@ -919,11 +919,6 @@ func getEIbcEventsWithinBlockRange(
 	}
 	fmt.Printf("Dymension height: %d\n", height)
 
-	err = testutil.WaitForBlocks(ctx, int(blockRange), dymension)
-	if err != nil {
-		return nil, fmt.Errorf("error waiting for blocks: %w", err)
-	}
-
 	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+blockRange, breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
@@ -945,11 +940,39 @@ func getEIbcEventsWithinBlockRange(
 	return eibcEventsArray, nil
 }
 
+func areSlicesEqual(slice1, slice2 []blockdb.EventAttribute) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+
+	for i := range slice1 {
+		if slice1[i] != slice2[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func contains(slice []blockdb.Event, item blockdb.Event) bool {
+	for _, v := range slice {
+		if areSlicesEqual(v.Attributes, item.Attributes) {
+			return true
+		}
+	}
+	return false
+}
+
 func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight int64, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
 	var eventTypeArray []blockdb.Event
 	shouldReturn := false
 
 	for height := startHeight; height <= endHeight && !shouldReturn; height++ {
+		err := testutil.WaitForBlocks(context.Background(), 1, chain)
+		if err != nil {
+			return nil, fmt.Errorf("error waiting for blocks: %w", err)
+		}
+
 		txs, err := chain.FindTxs(context.Background(), height)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching transactions at height %d: %w", height, err)
@@ -958,7 +981,9 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 		for _, tx := range txs {
 			for _, event := range tx.Events {
 				if event.Type == EventDemandOrderCreated || event.Type == EventDemandOrderFulfilled || event.Type == EventDemandOrderFeeUpdated || event.Type == EventDemandOrderPacketStatusUpdated {
-					eventTypeArray = append(eventTypeArray, event)
+					if !contains(eventTypeArray, event) {
+						eventTypeArray = append(eventTypeArray, event)
+					}
 					if breakOnFirstOccurence {
 						shouldReturn = true
 						fmt.Printf("%s event found on block height: %d", event.Type, height)
