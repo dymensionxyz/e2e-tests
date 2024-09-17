@@ -265,7 +265,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -298,7 +298,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
 	require.Equal(t, uint32(10), res.Code)
-
+	// require.True(t, (res.Code == uint32(10)) || (res.Code == uint32(5)))
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -590,7 +590,7 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
@@ -897,7 +897,7 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -1159,7 +1159,7 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
