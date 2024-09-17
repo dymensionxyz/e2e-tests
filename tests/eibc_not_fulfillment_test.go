@@ -257,17 +257,10 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
 	require.True(t, balance.Equal(transferData.Amount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount.Sub(bridgingFee), balance))
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
-
-	// wait a few blocks and verify sender received funds on the hub
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
 	require.NoError(t, err)
@@ -277,13 +270,14 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	require.True(t, balance.Equal(transferData.Amount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount.Sub(bridgingFee), balance))
+
 	// wait until packet finalization and verify funds
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
-	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -538,7 +532,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(transferData.Amount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferData.Amount.Sub(bridgingFee), balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 

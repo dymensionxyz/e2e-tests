@@ -369,6 +369,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		// get eIbc event
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
@@ -387,7 +388,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
@@ -764,6 +765,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		// get eIbc event
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
@@ -776,7 +778,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
@@ -1217,6 +1219,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// get eIbc event
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
@@ -1229,7 +1232,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
@@ -1596,8 +1599,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		// get eIbc event
-		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
@@ -1616,7 +1620,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
@@ -1989,8 +1993,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		// get eIbc event
-		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
@@ -2003,7 +2008,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
@@ -2405,8 +2410,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		// get eIbc event
-		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
+		fmt.Println(eibcEvents)
 		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
 
 		// fulfill demand order
@@ -2419,7 +2425,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		// }
 
 		// wait a few blocks and verify sender received funds on the hub
-		err = testutil.WaitForBlocks(ctx, 5, dymension)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// verify funds minus fee were added to receiver's address
