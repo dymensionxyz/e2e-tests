@@ -238,8 +238,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -416,8 +415,8 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	t.Run("canonial client test gaia<->dym and rollapp<->dym", func(t *testing.T) {
 
 		// sending between gaia and dymension
-		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
-		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
+		firstHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, gaia.Config().Denom)
+		secondHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, dymension.Config().Denom)
 
 		firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
@@ -460,12 +459,12 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 10, gaia, dymension)
 		require.NoError(t, err)
 
-		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount))
+		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
 
 		// sending between rollapp and dymension
-		firstHopDenom = transfertypes.GetPrefixedDenom(dymRollappChan.PortID, dymRollappChan.ChannelID, rollapp1.Config().Denom)
-		secondHopDenom = transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, dymension.Config().Denom)
+		firstHopDenom = transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, rollapp1.Config().Denom)
+		secondHopDenom = transfertypes.GetPrefixedDenom(dymRollappChan.PortID, dymRollappChan.ChannelID, dymension.Config().Denom)
 
 		firstHopDenomTrace = transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace = transfertypes.ParseDenomTrace(secondHopDenom)
