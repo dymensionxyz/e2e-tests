@@ -1402,15 +1402,15 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println(eibcEvents)
-	require.Equal(t, eibcEvents[1].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
-	require.Equal(t, eibcEvents[1].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1464,7 +1464,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1650,15 +1650,15 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
-	require.Equal(t, eibcEvents[1].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
-	require.Equal(t, eibcEvents[1].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, dymensionUserAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, dymensionUserAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 
 	// fulfill demand order
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 	fmt.Println(txhash)
 	// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1904,11 +1904,11 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
-	require.Equal(t, eibcEvents[1].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
-	require.Equal(t, eibcEvents[1].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 
 	res, err := dymension.GetTransaction(txhash)
@@ -2127,11 +2127,11 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
-	require.Equal(t, eibcEvents[1].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
-	require.Equal(t, eibcEvents[1].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
+	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
 	require.NoError(t, err)
 
 	res, err := dymension.GetTransaction(txhash)
