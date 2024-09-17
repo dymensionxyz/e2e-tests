@@ -370,7 +370,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
 		fmt.Println(eibcEvents)
-		require.Equal(t, eibcEvents[0].PacketStatus, "PENDING")
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
 		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
 		dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -379,7 +379,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -766,10 +766,10 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
 		fmt.Println(eibcEvents)
-		require.Equal(t, eibcEvents[0].PacketStatus, "PENDING")
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -1217,13 +1217,13 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 
 		// get eIbc event
-		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
 		fmt.Println(eibcEvents)
-		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
+		require.Equal(t, eibcEvents[1].PacketStatus, "PENDING")
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[1].OrderId, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
