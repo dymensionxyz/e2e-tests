@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/strslice"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
@@ -60,9 +61,17 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
 	// sampleFrom := 2423882
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -127,7 +136,9 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	require.NoError(t, err)
 	// Get fund for submit blob
 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
 	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -235,7 +246,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -331,6 +342,14 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -338,7 +357,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
 	// sampleFrom := 2423882
 
@@ -514,7 +533,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,

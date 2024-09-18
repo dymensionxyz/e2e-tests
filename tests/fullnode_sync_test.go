@@ -77,6 +77,14 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -94,7 +102,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -204,6 +212,14 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -221,7 +237,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -606,6 +622,14 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -614,7 +638,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
@@ -786,7 +810,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       nil,
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
