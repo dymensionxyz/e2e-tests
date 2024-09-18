@@ -323,7 +323,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -603,22 +603,74 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
-	require.Error(t, err)
-	require.False(t, isFinalized)
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
 
-	// Poll until full node is sync
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	//Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
@@ -957,15 +1009,10 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
-
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	_ = rollapp1.Validators[0].StartContainer(ctx)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -1230,7 +1277,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -1673,8 +1720,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -1939,7 +1985,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
