@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/strslice"
@@ -53,6 +54,14 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	configTomlOverrides1["mode"] = "validator"
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
 
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -119,13 +128,13 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -206,7 +215,6 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -228,7 +236,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -370,6 +378,14 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 1
@@ -435,13 +451,13 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -524,7 +540,6 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -546,7 +561,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -647,6 +662,14 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -712,13 +735,13 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -799,7 +822,6 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -821,7 +843,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -997,6 +1019,14 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1062,13 +1092,13 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1149,7 +1179,6 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1171,7 +1200,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1347,6 +1376,14 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1412,13 +1449,13 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1499,7 +1536,6 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1521,7 +1557,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1693,6 +1729,14 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1758,13 +1802,13 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1845,7 +1889,6 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1867,7 +1910,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,

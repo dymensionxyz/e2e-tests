@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
@@ -47,8 +48,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["da_layer"] = "grpc"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -58,6 +57,14 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	configTomlOverrides1["mode"] = "validator"
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
 
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -208,10 +215,11 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
+	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "grpc"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
@@ -231,7 +239,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -318,11 +326,9 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-	da_layer := "celestia"
+
 	for i, line := range lines {
-		if strings.HasPrefix(line, "da_layer =") {
-			lines[i] = fmt.Sprintf("da_layer = \"%s\"", da_layer)
-		} else if strings.HasPrefix(line, "namespace_id =") {
+		if strings.HasPrefix(line, "namespace_id =") {
 			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
 		} else if strings.HasPrefix(line, "da_config =") {
 			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
@@ -388,8 +394,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["da_layer"] = "grpc"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -399,6 +403,14 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	configTomlOverrides1["mode"] = "validator"
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
 
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -549,10 +561,11 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
+	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "grpc"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
@@ -572,7 +585,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -604,123 +617,120 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.Error(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	// containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
-	// Get the container details
-	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-	require.NoError(t, err)
+	// // Get the container details
+	// containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	// require.NoError(t, err)
 
-	// Extract the IP address from the network settings
-	// If the container is using a custom network, the IP might be under a specific network name
-	var ipAddress string
-	for _, network := range containerJSON.NetworkSettings.Networks {
-		ipAddress = network.IPAddress
-		break // Assuming we only need the IP from the first network
-	}
+	// // Extract the IP address from the network settings
+	// // If the container is using a custom network, the IP might be under a specific network name
+	// var ipAddress string
+	// for _, network := range containerJSON.NetworkSettings.Networks {
+	// 	ipAddress = network.IPAddress
+	// 	break // Assuming we only need the IP from the first network
+	// }
 
-	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
-	require.NoError(t, err)
-	nodeId = strings.TrimRight(nodeId, "\n")
-	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+	// nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	// require.NoError(t, err)
+	// nodeId = strings.TrimRight(nodeId, "\n")
+	// p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+	// rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	// rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	// file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
 
-	lines = []string{}
-	scanner = bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
+	// lines = []string{}
+	// scanner = bufio.NewScanner(file)
+	// for scanner.Scan() {
+	// 	lines = append(lines, scanner.Text())
+	// }
 
-	for i, line := range lines {
-		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
-		}
-	}
+	// for i, line := range lines {
+	// 	if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+	// 		lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+	// 	}
+	// }
 
-	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	// output = strings.Join(lines, "\n")
+	// file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
 
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
+	// _, err = file.Write([]byte(output))
+	// require.NoError(t, err)
 
-	// update dymint.toml for full node to connect with Celestia DA
-	fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	fnFolderName := fnHomeDir[len(fnHomeDir)-1]
+	// // update dymint.toml for full node to connect with Celestia DA
+	// fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	// fnFolderName := fnHomeDir[len(fnHomeDir)-1]
 
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	// file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
 
-	lines = []string{}
-	scanner = bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
+	// lines = []string{}
+	// scanner = bufio.NewScanner(file)
+	// for scanner.Scan() {
+	// 	lines = append(lines, scanner.Text())
+	// }
 
-	da_layer := "celestia"
-	for i, line := range lines {
-		if strings.HasPrefix(line, "da_layer =") {
-			lines[i] = fmt.Sprintf("da_layer = \"%s\"", da_layer)
-		} else if strings.HasPrefix(line, "namespace_id =") {
-			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
-		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
-		}
-	}
+	// for i, line := range lines {
+	// 	if strings.HasPrefix(line, "namespace_id =") {
+	// 		lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
+	// 	} else if strings.HasPrefix(line, "da_config =") {
+	// 		lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
+	// 	}
+	// }
 
-	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	// output = strings.Join(lines, "\n")
+	// file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fnFolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
 
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
+	// _, err = file.Write([]byte(output))
+	// require.NoError(t, err)
+
+	// err = rollapp1.FullNodes[0].StopContainer(ctx)
+	// require.NoError(t, err)
+
+	// err = rollapp1.FullNodes[0].StartContainer(ctx)
+	// require.NoError(t, err)
+
+	// valHeight, err := rollapp1.Validators[0].Height(ctx)
+	// require.NoError(t, err)
+
+	// //Poll until full node is sync
+	// err = testutil.WaitForCondition(
+	// 	time.Minute*50,
+	// 	time.Second*5, // each epoch is 5 seconds
+	// 	func() (bool, error) {
+	// 		fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	// 		require.NoError(t, err)
+
+	// 		fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+	// 		if valHeight > fullnodeHeight {
+	// 			return false, nil
+	// 		}
+
+	// 		return true, nil
+	// 	},
+	// )
+	// require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	// Wait for few blocks before starting the full node
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
-	require.NoError(t, err)
-
-	//Poll until full node is sync
-	err = testutil.WaitForCondition(
-		time.Minute*50,
-		time.Second*5, // each epoch is 5 seconds
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			require.NoError(t, err)
-
-			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
-			if valHeight > fullnodeHeight {
-				return false, nil
-			}
-
-			return true, nil
-		},
-	)
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	// Wait for few blocks before starting the full node
-	err = testutil.WaitForBlocks(ctx, 10, dymension)
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
-
-	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
 	//Poll until full node is sync

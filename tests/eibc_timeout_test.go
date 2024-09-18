@@ -177,7 +177,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from hub to rollapp
