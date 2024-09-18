@@ -979,7 +979,7 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 
 		for _, tx := range txs {
 			for _, event := range tx.Events {
-				if event.Type == EventDemandOrderCreated || event.Type == EventDemandOrderFulfilled || event.Type == EventDemandOrderFeeUpdated || event.Type == EventDemandOrderPacketStatusUpdated {
+				if event.Type == EventDemandOrderCreated {
 					if !contains(eventTypeArray, event) {
 						eventTypeArray = append(eventTypeArray, event)
 					}

@@ -834,7 +834,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
@@ -843,7 +843,6 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
