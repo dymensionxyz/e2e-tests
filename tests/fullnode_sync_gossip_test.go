@@ -42,7 +42,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -61,7 +61,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -358,7 +358,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -377,7 +377,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -635,7 +635,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -654,7 +654,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -985,7 +985,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -1004,7 +1004,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -1335,7 +1335,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -1354,7 +1354,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
@@ -1681,7 +1681,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "200ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
+	dymintTomlOverrides["block_time"] = "200ms"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -1700,7 +1700,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "rpc-mocha.pops.one"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
