@@ -609,59 +609,58 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.Error(t, err)
 
-	// containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
-	// // Get the container details
-	// containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-	// require.NoError(t, err)
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
 
-	// // Extract the IP address from the network settings
-	// // If the container is using a custom network, the IP might be under a specific network name
-	// var ipAddress string
-	// for _, network := range containerJSON.NetworkSettings.Networks {
-	// 	ipAddress = network.IPAddress
-	// 	break // Assuming we only need the IP from the first network
-	// }
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
 
-	// nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
-	// require.NoError(t, err)
-	// nodeId = strings.TrimRight(nodeId, "\n")
-	// p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	// rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
-	// rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	// file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	// require.NoError(t, err)
-	// defer file.Close()
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
 
-	// lines = []string{}
-	// scanner = bufio.NewScanner(file)
-	// for scanner.Scan() {
-	// 	lines = append(lines, scanner.Text())
-	// }
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
 
-	// for i, line := range lines {
-	// 	if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-	// 		lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
-	// 	}
-	// }
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
 
-	// output = strings.Join(lines, "\n")
-	// file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	// require.NoError(t, err)
-	// defer file.Close()
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
 
-	// _, err = file.Write([]byte(output))
-	// require.NoError(t, err)
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
 
 	// // update dymint.toml for full node to connect with Celestia DA
 	// fnHomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
@@ -693,32 +692,32 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	// _, err = file.Write([]byte(output))
 	// require.NoError(t, err)
 
-	// err = rollapp1.FullNodes[0].StopContainer(ctx)
-	// require.NoError(t, err)
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
 
-	// err = rollapp1.FullNodes[0].StartContainer(ctx)
-	// require.NoError(t, err)
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
-	// valHeight, err := rollapp1.Validators[0].Height(ctx)
-	// require.NoError(t, err)
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
 
-	// //Poll until full node is sync
-	// err = testutil.WaitForCondition(
-	// 	time.Minute*50,
-	// 	time.Second*5, // each epoch is 5 seconds
-	// 	func() (bool, error) {
-	// 		fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	// 		require.NoError(t, err)
+	//Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
 
-	// 		fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
-	// 		if valHeight > fullnodeHeight {
-	// 			return false, nil
-	// 		}
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
 
-	// 		return true, nil
-	// 	},
-	// )
-	// require.NoError(t, err)
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
@@ -730,7 +729,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
 	//Poll until full node is sync

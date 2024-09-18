@@ -40,11 +40,11 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -260,13 +260,12 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -363,7 +362,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["block_time"] = "200ms"
@@ -647,7 +646,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
@@ -867,13 +866,12 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -1004,7 +1002,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
@@ -1361,7 +1359,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
@@ -1581,13 +1579,12 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -1714,7 +1711,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"

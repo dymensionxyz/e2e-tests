@@ -218,7 +218,7 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -569,7 +569,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	gaiaTokenDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 	gaiaIBCDenom := transfertypes.ParseDenomTrace(gaiaTokenDenom).IBCDenom()
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1, gaia)
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	require.NoError(t, err)
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, gaiaIBCDenom, gaiaToDymTransferData.Amount)
 
@@ -596,7 +596,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, gaiaIBCDenom))

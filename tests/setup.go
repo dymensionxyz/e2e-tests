@@ -918,7 +918,7 @@ func getEIbcEventsWithinBlockRange(
 	}
 	fmt.Printf("Dymension height: %d\n", height)
 
-	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+blockRange, breakOnFirstOccurence)
+	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-10, height+blockRange, breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
 	}

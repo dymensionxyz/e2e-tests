@@ -200,7 +200,10 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["gas_prices"] = "0adym"
-	dymintTomlOverrides["empty_blocks_max_time"] = "3s"
+	dymintTomlOverrides["m"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 

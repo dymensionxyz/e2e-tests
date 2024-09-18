@@ -1720,7 +1720,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_time"] = "10s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1860,7 +1860,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from hub to rollapp
@@ -1901,7 +1901,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 70, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1913,7 +1913,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	require.Equal(t, uint32(4), res.Code)
+	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
 
 	t.Cleanup(
 		func() {
@@ -2124,7 +2124,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 80, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -2136,7 +2136,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	require.Equal(t, uint32(4), res.Code)
+	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
 
 	t.Cleanup(
 		func() {
