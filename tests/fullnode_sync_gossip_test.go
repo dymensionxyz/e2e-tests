@@ -364,9 +364,9 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -701,7 +701,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -1052,7 +1052,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -1408,7 +1408,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -1759,7 +1759,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "150ms"
 	dymintTomlOverrides["batch_submit_time"] = "5s"
 	dymintTomlOverrides["block_time"] = "200ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
