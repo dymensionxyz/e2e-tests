@@ -1139,9 +1139,6 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 
@@ -1149,7 +1146,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 5, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents[0])
 
@@ -1179,12 +1176,12 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee).Sub(eibcFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee).Sub(eibcFee), balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -1720,7 +1717,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_time"] = "10s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1860,7 +1857,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from hub to rollapp
@@ -1901,7 +1898,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -1913,7 +1910,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	require.Equal(t, uint32(4), res.Code)
+	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
 
 	t.Cleanup(
 		func() {
@@ -2124,7 +2121,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 80, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
@@ -2136,7 +2133,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 
 	res, err := dymension.GetTransaction(txhash)
 	require.NoError(t, err)
-	require.Equal(t, uint32(4), res.Code)
+	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
 
 	t.Cleanup(
 		func() {

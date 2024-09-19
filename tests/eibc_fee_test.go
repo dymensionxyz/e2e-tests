@@ -197,8 +197,6 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 	// balance right after sending IBC transfer
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bridgingFee))
@@ -207,6 +205,9 @@ func TestEIBCFeeTooHigh_EVM(t *testing.T) {
 	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	fmt.Println(eibcEvents)
 	require.True(t, len(eibcEvents) == 0) // verify there were no eibc events registered on the hub
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
