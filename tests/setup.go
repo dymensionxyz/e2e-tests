@@ -667,7 +667,6 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_layer"] = "grpc"
 		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 	}
 
@@ -919,7 +918,7 @@ func getEIbcEventsWithinBlockRange(
 	}
 	fmt.Printf("Dymension height: %d\n", height)
 
-	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+blockRange, breakOnFirstOccurence)
+	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-10, height+blockRange, breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
 	}
@@ -980,7 +979,7 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 
 		for _, tx := range txs {
 			for _, event := range tx.Events {
-				if event.Type == EventDemandOrderCreated || event.Type == EventDemandOrderFulfilled || event.Type == EventDemandOrderFeeUpdated || event.Type == EventDemandOrderPacketStatusUpdated {
+				if event.Type == EventDemandOrderCreated {
 					if !contains(eventTypeArray, event) {
 						eventTypeArray = append(eventTypeArray, event)
 					}

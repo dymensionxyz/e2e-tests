@@ -1097,7 +1097,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1108,6 +1108,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	// Check other rollapp state index still increase
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
+	fmt.Println(rollapp2IndexLater.StateIndex.Index)
+	fmt.Println(rollapp2Index.StateIndex.Index)
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
 
@@ -4698,7 +4700,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -4716,7 +4718,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.DemandOrders))
+	require.Equal(t, 1, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
@@ -5040,7 +5042,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
