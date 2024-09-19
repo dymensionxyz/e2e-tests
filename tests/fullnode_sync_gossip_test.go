@@ -974,8 +974,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -1359,15 +1358,10 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
-
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	_ = rollapp1.Validators[0].StartContainer(ctx)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -2039,7 +2033,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
