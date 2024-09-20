@@ -71,6 +71,8 @@ body:
         - "base layer disconnection"
         - "sequencer rotation"
         - "light client"
+        - "zero fee relay"
+        - "IRO"
     validations:
       required: true
 
