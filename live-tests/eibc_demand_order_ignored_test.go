@@ -80,6 +80,6 @@ func TestEIBC_Demand_Order_Ignored_RolX_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	encoding := encodingConfig()
-	_, err = getEIbcEventsWithinBlockRange(ctx, &hub, 10, false, encoding.InterfaceRegistry)
+	_, err = getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
 	require.Error(t, err, "There wasn't a single 'eibc' event registered within the specified block range on the hub")
 }

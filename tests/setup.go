@@ -86,7 +86,7 @@ type ForwardMetadata struct {
 const (
 	ibcPath                             = "dymension-demo"
 	anotherIbcPath                      = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD               = 30
+	BLOCK_FINALITY_PERIOD               = 50
 	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
@@ -190,11 +190,26 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       nil,
+		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
 		ConfigFileOverrides: nil,
 	}
 
+	gaiaGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
+	}
+
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
@@ -263,6 +278,14 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -294,6 +317,18 @@ var (
 		{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "180s",
+		},
+		{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+		{
+			Key:   "app_state.sequencer.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
 		},
 		// gov params
 		{
@@ -623,7 +658,7 @@ type rollappParam struct {
 // 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 // }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batch_submit_time string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -636,7 +671,6 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_layer"] = "grpc"
 		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 	}
 
@@ -646,8 +680,8 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
-	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = batch_submit_time
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -661,13 +695,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
@@ -888,12 +922,7 @@ func getEIbcEventsWithinBlockRange(
 	}
 	fmt.Printf("Dymension height: %d\n", height)
 
-	err = testutil.WaitForBlocks(ctx, int(blockRange), dymension)
-	if err != nil {
-		return nil, fmt.Errorf("error waiting for blocks: %w", err)
-	}
-
-	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-5, height+blockRange, breakOnFirstOccurence)
+	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-10, height+blockRange, breakOnFirstOccurence)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
 	}
@@ -914,11 +943,39 @@ func getEIbcEventsWithinBlockRange(
 	return eibcEventsArray, nil
 }
 
+func areSlicesEqual(slice1, slice2 []blockdb.EventAttribute) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+
+	for i := range slice1 {
+		if slice1[i] != slice2[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func contains(slice []blockdb.Event, item blockdb.Event) bool {
+	for _, v := range slice {
+		if areSlicesEqual(v.Attributes, item.Attributes) {
+			return true
+		}
+	}
+	return false
+}
+
 func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight int64, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
 	var eventTypeArray []blockdb.Event
 	shouldReturn := false
 
 	for height := startHeight; height <= endHeight && !shouldReturn; height++ {
+		err := testutil.WaitForBlocks(context.Background(), 1, chain)
+		if err != nil {
+			return nil, fmt.Errorf("error waiting for blocks: %w", err)
+		}
+
 		txs, err := chain.FindTxs(context.Background(), height)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching transactions at height %d: %w", height, err)
@@ -926,8 +983,10 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 
 		for _, tx := range txs {
 			for _, event := range tx.Events {
-				if event.Type == EventDemandOrderCreated || event.Type == EventDemandOrderFulfilled || event.Type == EventDemandOrderFeeUpdated || event.Type == EventDemandOrderPacketStatusUpdated {
-					eventTypeArray = append(eventTypeArray, event)
+				if event.Type == EventDemandOrderCreated {
+					if !contains(eventTypeArray, event) {
+						eventTypeArray = append(eventTypeArray, event)
+					}
 					if breakOnFirstOccurence {
 						shouldReturn = true
 						fmt.Printf("%s event found on block height: %d", event.Type, height)

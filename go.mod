@@ -10,8 +10,8 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240828080718-58f7f73bcb53
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240717194206-54c0fca5fada
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240919024619-0f39bd77d29b
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240911123104-4782bc4e587f
 	github.com/dymensionxyz/dymint v1.2.0-rc01
 )
 
@@ -30,7 +30,7 @@ require (
 	cosmossdk.io/simapp v0.0.0-20230608160436-666c345ad23d // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
-	github.com/DataDog/zstd v1.5.2 // indirect
+	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/avast/retry-go/v4 v4.5.0 // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
@@ -72,8 +72,8 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.6 // indirect
 	cloud.google.com/go/storage v1.38.0 // indirect
-	cosmossdk.io/api v0.3.1 // indirect
-	cosmossdk.io/core v0.6.1 // indirect
+	cosmossdk.io/api v0.7.0 // indirect
+	cosmossdk.io/core v0.10.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.1 // indirect
@@ -125,6 +125,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/dymensionxyz/cosmosclient v0.4.2-beta.0.20240421130646-b8980ec7aade // indirect
 	github.com/dymensionxyz/gerr-cosmos v1.0.0 // indirect
+	github.com/dymensionxyz/sdk-utils v0.2.8 // indirect
 	github.com/ethereum/go-ethereum v1.12.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -256,8 +257,14 @@ require (
 )
 
 replace (
+	// for collections
+	cosmossdk.io/api => cosmossdk.io/api v0.3.1
+
 	github.com/cosmos/gogoproto => github.com/cosmos/gogoproto v1.4.10
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
+	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43
+	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240820121212-c0e21fa21e43
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.28
 
 	// stick with compatible version or x/exp in v0.47.x line
