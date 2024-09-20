@@ -216,4 +216,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

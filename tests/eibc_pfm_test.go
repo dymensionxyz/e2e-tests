@@ -294,6 +294,8 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, secondHopIBCDenom, zeroBal)
 
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCPFM_Wasm(t *testing.T) {
@@ -568,4 +570,6 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, zeroBal)
 	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, secondHopIBCDenom, zeroBal)
 
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

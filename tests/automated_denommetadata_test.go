@@ -338,6 +338,8 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestADMC_Hub_to_RA_3rd_Party_EVM send IBC transfer for a non-existing denom from hub to rollapp successfully
@@ -585,6 +587,9 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestADMC_Hub_to_RA_reserved_Wasm send IBC transfer for a non-existing denom from hub to rollapp with setting {"transferinject":{}} in the memo
@@ -904,6 +909,8 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestADMC_Hub_to_RA_3rd_Party_Wasm send IBC transfer for a non-existing denom from hub to rollapp successfully
@@ -1207,6 +1214,8 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 type floatAmountWalletData struct {
@@ -1410,6 +1419,8 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestADMC_Hub_to_RA_Migrate_Dym_Wasm send IBC transfer DYM hub to rollapp successfully
@@ -1601,4 +1612,6 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
