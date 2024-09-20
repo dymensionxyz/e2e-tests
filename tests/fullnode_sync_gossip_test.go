@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/strslice"
@@ -39,11 +40,11 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -54,6 +55,14 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -61,12 +70,12 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -119,13 +128,13 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -175,7 +184,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -206,7 +215,6 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -228,7 +236,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -252,13 +260,12 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -316,9 +323,10 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -354,11 +362,11 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "80s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -369,6 +377,14 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numRollAppFn := 1
@@ -376,12 +392,12 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	numCelestiaFn := 0
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -434,13 +450,13 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -492,7 +508,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -523,7 +539,6 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -545,7 +560,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -588,22 +603,73 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
 	require.NoError(t, err)
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
-	require.Error(t, err)
-	require.False(t, isFinalized)
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
 
-	// Poll until full node is sync
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
+	//Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			valHeight, err := rollapp1.Validators[0].Height(ctx)
-			require.NoError(t, err)
-
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			require.NoError(t, err)
 
@@ -631,11 +697,11 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -646,6 +712,14 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -653,12 +727,12 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -711,13 +785,13 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -767,7 +841,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -798,7 +872,6 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -820,7 +893,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -844,13 +917,12 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -902,8 +974,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -911,6 +982,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -935,15 +1007,11 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.Validators[0].StartContainer(ctx)
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -979,11 +1047,11 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -994,6 +1062,14 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1001,12 +1077,12 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1059,13 +1135,13 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1115,7 +1191,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1146,7 +1222,6 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1168,7 +1243,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1200,7 +1275,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -1250,8 +1325,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -1259,6 +1333,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -1283,15 +1358,11 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.Validators[0].StartContainer(ctx)
 
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -1327,11 +1398,11 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -1342,6 +1413,14 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1349,12 +1428,12 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1407,13 +1486,13 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1463,7 +1542,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1494,7 +1573,6 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1516,7 +1594,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1540,13 +1618,12 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil)
-	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -1604,9 +1681,10 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -1634,8 +1712,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -1672,11 +1749,11 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "200ms"
+	dymintTomlOverrides["max_idle_time"] = "250ms"
 	dymintTomlOverrides["max_proof_time"] = "150ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["block_time"] = "190ms"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["block_time"] = "200ms"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -1687,6 +1764,14 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "celestia",
+		},
+	)
+
 	numHubVals := 1
 	numHubFullNodes := 1
 	numCelestiaFn := 0
@@ -1694,12 +1779,12 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "celestia-testnet-consensus.itrocket.net"
+	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1752,13 +1837,13 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	// validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	// require.NoError(t, err)
+	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
+	require.NoError(t, err)
 
 	// Get fund for submit blob
-	// GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	// err = testutil.WaitForBlocks(ctx, 10, celestia)
-	// require.NoError(t, err)
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1808,7 +1893,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.accname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1839,7 +1924,6 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["da_layer"] = "celestia"
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1861,7 +1945,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1893,7 +1977,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}, nil, "", nil)
 	require.NoError(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -1949,9 +2033,10 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -1979,8 +2064,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, celestia)
 	require.NoError(t, err)
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)

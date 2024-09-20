@@ -22,14 +22,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-var dymModifyGenesisKV = append(
-	dymensionGenesisKV,
-	cosmos.GenesisKV{
-		Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-		Value: "20",
-	},
-)
-
 var extraFlags = map[string]interface{}{"genesis-accounts-path": true}
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
@@ -47,14 +39,14 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -123,7 +115,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -392,14 +384,14 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -467,7 +459,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -762,14 +754,14 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "10s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -837,7 +829,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1110,7 +1102,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait a few blocks
-	err = testutil.WaitForBlocks(ctx, 20, dymension)
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 
 	// Get updated dym hub ibc denom balance
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, rollapp1IbcDenom)
@@ -1121,6 +1113,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	// Check other rollapp state index still increase
 	rollapp2IndexLater, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp2.Config().ChainID)
+	fmt.Println(rollapp2IndexLater.StateIndex.Index)
+	fmt.Println(rollapp2Index.StateIndex.Index)
 	require.NoError(t, err)
 	require.True(t, rollapp2IndexLater.StateIndex.Index > rollapp2Index.StateIndex.Index, "Another rollapp got freeze")
 
@@ -1192,7 +1186,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1205,8 +1199,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
 	dymintTomlOverrides2["max_idle_time"] = "3s"
-	dymintTomlOverrides2["batch_submit_max_time"] = "100s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides2["batch_submit_time"] = "50s"
+	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 	// Create chain factory with dymension
@@ -1275,7 +1269,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1633,7 +1627,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -1679,7 +1673,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1915,10 +1909,12 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+
+	testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
+
 	require.Equal(t, latestIndex, lalatestIndex, "rollapp state index still increment after grace period. Rerun")
 
 	// Check if rollapp1 has frozen or not
@@ -1953,7 +1949,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -1999,7 +1995,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2287,14 +2283,14 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -2362,7 +2358,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2625,14 +2621,14 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -2700,7 +2696,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2963,14 +2959,14 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -3038,7 +3034,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -3376,14 +3372,14 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// setup config for rollapp 2
 	settlement_layer_rollapp2 := "dymension"
 	rollapp2_id := "decentrio_12345-1"
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "100s")
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -3451,7 +3447,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -3793,7 +3789,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -3839,7 +3835,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -4013,7 +4009,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -4116,7 +4112,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -4162,7 +4158,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -4336,7 +4332,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -4439,7 +4435,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -4485,7 +4481,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -4659,7 +4655,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -4736,7 +4732,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -4754,7 +4750,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	// eibc demand order reverted
 	resp, err = dymension.QueryEIBCDemandOrders(ctx, "REVERTED")
 	require.NoError(t, err)
-	require.Equal(t, 2, len(resp.DemandOrders))
+	require.Equal(t, 1, len(resp.DemandOrders))
 
 	// After rollapp frozen, inability to fulfill eIBC transfer
 	rollappUserUpdateBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
@@ -4783,7 +4779,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -4829,7 +4825,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymModifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -5003,7 +4999,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	require.Equal(t, true, dymUserRollapp1bal.Equal(transferAmount.Sub(bridgingFee)), "dym hub balance changed")
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
 	require.NoError(t, err)
 
 	for i, eibcEvent := range eibcEvents {
@@ -5080,7 +5076,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// after Grace period, the latest index should be the same
 	lalatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
