@@ -335,6 +335,8 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestEIBCFulfillAlreadyFulfilledDemand_Wasm attempts to change the amount of an order that already got fulfilled
@@ -651,6 +653,8 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestEIBCUnallowedSigner_EVM attempts to change the amount of an order with an unallowed signer
@@ -913,6 +917,8 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestEIBCUnallowedSigner_Wasm attempts to change the amount of an order with an unallowed signer
@@ -1174,4 +1180,6 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

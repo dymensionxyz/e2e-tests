@@ -267,6 +267,9 @@ func TestEIBCTimeoutDymToRollapp_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestEIBCTimeoutFulFillDymToRollapp test send 3rd party IBC denom from dymension to rollapp with timeout
@@ -649,6 +652,9 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	resp, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", dymRollAppChan.ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Commitments) == 0, true, "packet commitments still exist")
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
@@ -1029,4 +1035,7 @@ func TestEIBCTimeoutFulFillDymToRollapp_Wasm(t *testing.T) {
 	resp, err := dymension.GetNode().QueryPacketCommitments(ctx, "transfer", dymRollAppChan.ChannelID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Commitments) == 0, true, "packet commitments still exist")
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

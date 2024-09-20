@@ -551,6 +551,8 @@ func TestHardFork_EVM(t *testing.T) {
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestHardFork_Wasm(t *testing.T) {
@@ -1079,6 +1081,8 @@ func TestHardFork_Wasm(t *testing.T) {
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
@@ -1636,4 +1640,6 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	// check assets balance
 	testutil.AssertBalance(t, ctx, newRollApp, newRollAppUserAddr, newRollApp.Config().Denom, newRollAppBalanceBefore.Sub(transferDataFromNewRollApp.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, newRollAppIbcDenom, transferAmount.Add(transferAmount).Sub(bridgeFee).Sub(bridgeFee))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

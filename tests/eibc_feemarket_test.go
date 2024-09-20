@@ -308,6 +308,8 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
@@ -613,6 +615,8 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
@@ -901,6 +905,9 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
@@ -1197,6 +1204,8 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
@@ -1442,6 +1451,9 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
@@ -1700,6 +1712,8 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
@@ -1920,6 +1934,8 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
@@ -2143,4 +2159,6 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

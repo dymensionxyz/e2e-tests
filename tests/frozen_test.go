@@ -364,6 +364,9 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// IBC balance should not change
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
@@ -732,6 +735,8 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// IBC balance should not change
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestOtherRollappNotAffected_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1161,6 +1166,8 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount).Sub(bridgingFee)), "dym hub balance did not change")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1601,6 +1608,8 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	// Minus 0.1% for bridge fee
 	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))), "dym hub balance did not change")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestPacketRollbacked_EVM ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
@@ -1881,6 +1890,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	// SEND IBC transfer right before vote
 	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataFromDym, ibc.TransferOptions{})
 	require.NoError(t, err)
 
@@ -1918,7 +1928,10 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	// After rollapp frozen, fund should return
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "funds aren't sent back to sender")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestPacketRollbacked_Wasm ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
@@ -2248,7 +2261,11 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	// After rollapp frozen, fund should return
 	dymUserUpdateBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "funds aren't sent back to sender")
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestRollAppFreezeNoBrokenInvariants_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp evm. No invariants broken.
@@ -2584,6 +2601,9 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	// Run invariant check
 	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "block-height-to-finalization-queue")
 	require.NoError(t, err)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestRollAppFreezeNoBrokenInvariants_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp wasm. No invariants broken.
@@ -2919,6 +2939,9 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	// Run invariant check
 	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "block-height-to-finalization-queue")
 	require.NoError(t, err)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestRollAppSqcSlashedJailed_EVM ensure upon freeze gov proposal passed, Sequencer should be slashed with all the bond and jailed. Inability to register a new sequencer
@@ -3327,6 +3350,9 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	fmt.Println("Sequencer bond amount after submitting fraud proposal: ", sequencerStatus.Sequencers[0].Tokens)
 	require.Equal(t, true, sequencerStatus.Sequencers[0].Jailed, "sequencer should have been jailed")
 	require.Equal(t, false, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have been slashed and have zero bond")
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 
 	// TODO: Make sure we can not register a new sequencer
 }
@@ -3738,6 +3764,8 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	require.Equal(t, true, sequencerStatus.Sequencers[0].Jailed, "sequencer should have been jailed")
 	require.Equal(t, false, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have been slashed and have zero bond")
 
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 	// TODO: Make sure we can not register a new sequencer
 }
 
@@ -4066,6 +4094,8 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	// Check rollapp1 state index not increment
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
@@ -4387,6 +4417,8 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	// Check rollapp1 state index not increment
 	require.NoError(t, err)
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
@@ -4729,6 +4761,8 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
 	require.Equal(t, (transferAmount.Sub(bridgingFee)), balanceOfDymUserAddr)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
@@ -5071,4 +5105,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	balanceOfDymUserAddr, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIbcDenom)
 	require.NoError(t, err)
 	require.Equal(t, (transferAmount.Sub(bridgingFee)), balanceOfDymUserAddr)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

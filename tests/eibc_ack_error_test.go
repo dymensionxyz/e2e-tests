@@ -432,6 +432,8 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
@@ -813,6 +815,8 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount).Sub(bigTransferAmount))
 	})
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
@@ -1267,6 +1271,8 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 	})
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
@@ -1664,6 +1670,8 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
@@ -2043,6 +2051,8 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount).Sub(bigTransferAmount))
 	})
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
@@ -2460,4 +2470,6 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		testutil.WaitForBlocks(ctx, 20, rollapp1)
 		testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 	})
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }

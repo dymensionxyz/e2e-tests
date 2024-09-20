@@ -305,6 +305,9 @@ func TestIBCGracePeriodCompliance_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestIBCGracePeriodCompliance ensures that the grace period for transaction finalization is correctly enforced on hub and rollapp.
@@ -589,6 +592,8 @@ func TestIBCGracePeriodCompliance_Wasm(t *testing.T) {
 			}
 		},
 	)
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
@@ -846,6 +851,9 @@ func TestDelayedAck_NoFinalizedStates_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
@@ -1102,6 +1110,9 @@ func TestDelayedAck_NoFinalizedStates_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
@@ -1406,6 +1417,9 @@ func TestDelayedAck_RelayerDown_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
@@ -1697,4 +1711,7 @@ func TestDelayedAck_RelayerDown_Wasm(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
