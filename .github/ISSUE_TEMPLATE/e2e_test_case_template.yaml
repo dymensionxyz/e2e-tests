@@ -72,6 +72,7 @@ body:
         - "sequencer rotation"
         - "light client"
         - "zero fee relay"
+        - "IRO"
     validations:
       required: true
 
