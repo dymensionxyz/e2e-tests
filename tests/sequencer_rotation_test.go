@@ -442,8 +442,6 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	containerID := fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
-	time.Sleep(60 * time.Second)
-
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
 	require.NoError(t, err)
@@ -614,17 +612,17 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
-	time.Sleep(120 * time.Second)
-
 	// Chain halted
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.Error(t, err)
 
-	// create 1 more sequencer
-	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer1", "/var/cosmos-chain/sequencer1")
-	require.NoError(t, err)
+	time.Sleep(300 * time.Second)
 
-	cmd := append([]string{rollapp1.Validators[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", "/var/cosmos-chain/sequencer1")
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+
+	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
@@ -646,6 +644,12 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
