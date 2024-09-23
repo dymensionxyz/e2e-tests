@@ -73,6 +73,7 @@ body:
         - "light client"
         - "zero fee relay"
         - "IRO"
+        - "eibc client"
     validations:
       required: true
 
