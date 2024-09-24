@@ -168,12 +168,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	// get eIbc event
 	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
@@ -185,6 +179,9 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)

@@ -239,12 +239,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer:", balance)
@@ -290,7 +284,11 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
 	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Sub(transferAmountWithoutFee.MulRaw(2)).Add(bridgingFee.MulRaw(2))
 	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)

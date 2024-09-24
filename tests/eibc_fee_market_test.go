@@ -271,11 +271,6 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
@@ -325,6 +320,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
 	require.True(t, balance.Equal(transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee), balance))
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)

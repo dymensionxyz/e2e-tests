@@ -567,12 +567,6 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 
@@ -612,6 +606,9 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.True(t, balance.Equal(transferAmountWithoutFee.Sub(bridgingFee).Sub(eibcFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Sub(bridgingFee).Sub(eibcFee), balance))
 
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
@@ -1745,6 +1742,9 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

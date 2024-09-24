@@ -525,6 +525,10 @@ func TestHubUpgrade(t *testing.T) {
 	}
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollappUser2Addr, transferData, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
+	require.NoError(t, err)
+
 	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -533,7 +537,10 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, marketMaker2Addr, rollapp2.GetChainID(), fmt.Sprint(rollapp2Height))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	expMmBalanceRollapp2Denom := transferData.Amount
@@ -549,6 +556,9 @@ func TestHubUpgrade(t *testing.T) {
 	}
 	// eibc transfer from hub to rollapp2
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollappUser2Addr, transferData, options)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	rollapp2Height, err = rollapp2.GetNode().Height(ctx)
@@ -592,7 +602,10 @@ func TestHubUpgrade(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUser2Addr, rollapp2.GetChainID(), fmt.Sprint(rollapp2Height))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMaker2Addr, rollapp2IBCDenom)
