@@ -125,7 +125,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -260,12 +260,13 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
+	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -447,7 +448,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -600,7 +601,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
@@ -782,7 +783,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -917,12 +918,13 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
+	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -1132,7 +1134,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1272,7 +1274,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
@@ -1483,7 +1485,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1618,12 +1620,13 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
-	_ = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
+	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
 
@@ -1834,7 +1837,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1974,7 +1977,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("rollappwasm_1234-1-val-0-%s", t.Name())
