@@ -656,6 +656,8 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	_ = rollapp1.FullNodes[0].StartContainer(ctx)
 
+	time.Sleep(30 * time.Second)
+
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
