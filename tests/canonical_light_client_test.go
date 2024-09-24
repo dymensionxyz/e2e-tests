@@ -490,6 +490,10 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
+		txhash, err := dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+		fmt.Println(txhash)
+
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount)
 
