@@ -389,6 +389,10 @@ func TestHubUpgrade(t *testing.T) {
 	}
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUser1Addr, transferData, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollapp1Height, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -396,6 +400,9 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 400)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUser1Addr, rollapp1.GetChainID(), fmt.Sprint(rollapp1Height))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -413,6 +420,9 @@ func TestHubUpgrade(t *testing.T) {
 	}
 	// eibc transfer from hub to rollapp1
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUser1Addr, transferData, options)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	rollapp1Height, err = rollapp1.GetNode().Height(ctx)
@@ -456,6 +466,9 @@ func TestHubUpgrade(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUser1Addr, rollapp1.GetChainID(), fmt.Sprint(rollapp1Height))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
