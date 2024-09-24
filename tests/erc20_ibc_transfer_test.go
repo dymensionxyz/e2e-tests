@@ -45,15 +45,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 
-	// Enable erc20
-	modifyRollappGeneisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.erc20.params.enable_erc20",
-			Value: true,
-		},
-	)
-
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -71,7 +62,7 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGeneisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -278,15 +269,6 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 
-	// Enable erc20
-	modifyRollappGeneisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.erc20.params.enable_erc20",
-			Value: true,
-		},
-	)
-
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -304,7 +286,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRollappGeneisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
