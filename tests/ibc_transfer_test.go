@@ -226,6 +226,9 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -237,7 +240,12 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	txhash, err := dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	fmt.Println(txhash)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
@@ -407,6 +415,9 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -417,6 +428,9 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -582,6 +596,9 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -592,6 +609,9 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -609,6 +629,9 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "cannot use transfer genesis memo: unauthorized")
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -616,6 +639,9 @@ func TestGenesisIBCTransferReservedMemo_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -750,6 +776,9 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -760,6 +789,9 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -777,6 +809,9 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "cannot use transfer genesis memo: unauthorized")
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -784,6 +819,9 @@ func TestGenesisIBCTransferReservedMemo_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

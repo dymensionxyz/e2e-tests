@@ -202,6 +202,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -209,6 +212,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -227,6 +233,10 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -234,6 +244,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -257,8 +270,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
+
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
 	fmt.Println("Balance of dymensionUserAddr right after sending eIBC transfer from rollapp 1 to dym hub:", balance)
@@ -309,10 +321,16 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	fmt.Println("Balance of dymensionUserAddr after fulfilling the order:", balance)
 	require.True(t, balance.Equal(transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmountWithoutFee.Add(transferAmount.Sub(bridgingFee)).Sub(bridgingFee), balance))
 
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// wait until packet finalization and verify funds + fee were added to market maker's wallet address
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -521,6 +539,9 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -528,6 +549,9 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -546,6 +570,10 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -553,6 +581,9 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -634,6 +665,9 @@ func TestEIBCAlreadyFulfilledDemand_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 200)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -852,6 +886,10 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -859,6 +897,9 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1116,6 +1157,10 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	// market maker needs to have funds on the hub first to be able to fulfill incoming demand order
 	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel_ra1[0].ChannelID, rollappUserAddr, transferDataRollapp1, options)
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1123,6 +1168,9 @@ func TestEIBCUnallowedSigner_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

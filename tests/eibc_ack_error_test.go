@@ -238,6 +238,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -248,6 +251,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -262,6 +268,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -273,7 +282,10 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp2.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
@@ -343,7 +355,17 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 		// catch ACK errors
-		rollappHeight, err = rollapp1.Height(ctx)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
+		require.NoError(t, err)
+
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 		require.NoError(t, err)
 
 		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
@@ -410,6 +432,9 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
@@ -653,6 +678,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -663,6 +691,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
@@ -676,6 +707,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -683,6 +717,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -747,10 +784,20 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 		// catch ACK errors
-		rollapp1Height, err := rollapp1.Height(ctx)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -802,6 +849,9 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
@@ -1047,6 +1097,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1057,6 +1110,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1073,6 +1129,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1081,7 +1140,10 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp2.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	var options ibc.TransferOptions
@@ -1140,7 +1202,7 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, thirdPartyDenom, transferAmount)
@@ -1204,10 +1266,20 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 		// catch ACK errors
-		rollapp1Height, err := rollapp1.Height(ctx)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -1258,6 +1330,9 @@ func TestEIBC_AckError_3rd_Party_Token_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
@@ -1488,6 +1563,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1498,6 +1576,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1512,6 +1593,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1523,7 +1607,10 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp2.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	// Get the IBC denom for adym on rollapp
@@ -1591,7 +1678,15 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		rollappHeight, err = rollapp1.Height(ctx)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+70, ibcTx.Packet)
+		// wait until the packet is finalized
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -1648,6 +1743,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
@@ -1891,6 +1989,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1901,6 +2002,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	valAddr, err := dymension.Validators[0].AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
@@ -1914,6 +2018,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1921,6 +2028,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1983,10 +2093,20 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.True(t, balance.Equal(transferAmount.Sub(bridgingFee)), fmt.Sprintf("Value mismatch. Expected %s, actual %s", transferAmount.Sub(bridgingFee), balance))
 
 		// catch ACK errors
-		rollapp1Height, err := rollapp1.Height(ctx)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -2038,6 +2158,9 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
@@ -2283,6 +2406,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -2293,6 +2419,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -2309,6 +2438,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	_, err = rollapp2.SendIBCTransfer(ctx, channRollApp2Dym.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
+	require.NoError(t, err)
+
 	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -2317,7 +2449,10 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp2.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
 	var options ibc.TransferOptions
@@ -2333,7 +2468,7 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		err = dymension.Validators[0].SendFunds(ctx, "validator", transferData)
 		require.NoError(t, err)
 
-		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+		err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, marketMakerAddr, thirdPartyDenom, transferAmount)
@@ -2403,10 +2538,20 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 		// catch ACK errors
-		rollapp1Height, err := rollapp1.Height(ctx)
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollapp1Height, rollapp1Height+30, ibcTx.Packet)
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
+
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
 		require.NoError(t, err)
 
 		// Make sure that the ack contains error
@@ -2457,6 +2602,9 @@ func TestEIBC_AckError_3rd_Party_Token_Wasm(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
+
+		_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		require.NoError(t, err)
 
 		err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 		require.NoError(t, err)
