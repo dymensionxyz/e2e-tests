@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20240923073446-c62503e5e95f
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20240924090607-6658e898c353
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20240911123104-4782bc4e587f
 	github.com/dymensionxyz/dymint v1.2.0-rc01
 )
@@ -261,7 +261,6 @@ replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.3.1
 
 	github.com/cosmos/gogoproto => github.com/cosmos/gogoproto v1.4.10
-	github.com/decentrio/rollup-e2e-testing => ../rollup-e2e-testing
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1.0.20240820121212-c0e21fa21e43

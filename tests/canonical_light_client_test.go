@@ -119,7 +119,7 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -339,7 +339,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -350,10 +350,18 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
 
+	// get rollapp -> dym channel
 	rollappChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, rollappChan, 1)
 
+	rollappDymChan := rollappChan[0]
+	require.NotEmpty(t, rollappDymChan.ChannelID)
+
+	dymRollappChan := rollappChan[0].Counterparty
+	require.NotEmpty(t, dymRollappChan.ChannelID)
+
+	// Get gaia -> dym channel
 	gaiaChan, err := r2.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, gaiaChan, 1)
@@ -363,12 +371,6 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 
 	gaiaDymChan := gaiaChan[0]
 	require.NotEmpty(t, gaiaDymChan.ChannelID)
-
-	rollappDymChan := rollappChan[0]
-	require.NotEmpty(t, rollappDymChan.ChannelID)
-
-	dymRollappChan := rollappChan[0].Counterparty
-	require.NotEmpty(t, dymRollappChan.ChannelID)
 
 	// Start the relayer and set the cleanup function.
 	err = r.StartRelayer(ctx, eRep, ibcPath)
@@ -415,8 +417,8 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	t.Run("canonial client test gaia<->dym and rollapp<->dym", func(t *testing.T) {
 
 		// sending between gaia and dymension
-		firstHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, gaia.Config().Denom)
-		secondHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, dymension.Config().Denom)
+		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
+		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
 
 		firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
@@ -463,8 +465,8 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
 
 		// sending between rollapp and dymension
-		firstHopDenom = transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, rollapp1.Config().Denom)
-		secondHopDenom = transfertypes.GetPrefixedDenom(dymRollappChan.PortID, dymRollappChan.ChannelID, dymension.Config().Denom)
+		firstHopDenom = transfertypes.GetPrefixedDenom(dymRollappChan.PortID, dymRollappChan.ChannelID, rollapp1.Config().Denom)
+		secondHopDenom = transfertypes.GetPrefixedDenom(rollappDymChan.PortID, rollappDymChan.ChannelID, dymension.Config().Denom)
 
 		firstHopDenomTrace = transfertypes.ParseDenomTrace(firstHopDenom)
 		secondHopDenomTrace = transfertypes.ParseDenomTrace(secondHopDenom)
