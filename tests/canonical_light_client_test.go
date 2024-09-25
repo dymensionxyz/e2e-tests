@@ -481,11 +481,16 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 			Amount:  transferAmount,
 		}
 
-		transferTx, err = rollapp1.SendIBCTransfer(ctx, rollappDymChan.ChannelID, rollappUser.KeyName(), transfer, ibc.TransferOptions{})
+		_, err = rollapp1.SendIBCTransfer(ctx, rollappDymChan.ChannelID, rollappUser.KeyName(), transfer, ibc.TransferOptions{})
+		require.NoError(t, err)
+
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
 		// wait until dymension receive transferAmount when rollapp finalized
 		rollappHeight, err := rollapp1.GetNode().Height(ctx)
+		require.NoError(t, err)
+
 		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetNode().Chain.GetChainID(), rollappHeight, 600)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
@@ -495,7 +500,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		fmt.Println(txhash)
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
-		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount)
+		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount.Sub(bridgingFee))
 
 		// Send back packet from dym -> rollapp
 		transfer = ibc.WalletData{
@@ -504,14 +509,20 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 			Amount:  transferAmount,
 		}
 
-		transferTx, err = dymension.SendIBCTransfer(ctx, dymRollappChan.ChannelID, dymensionUser.KeyName(), transfer, ibc.TransferOptions{})
+		_, err = dymension.SendIBCTransfer(ctx, dymRollappChan.ChannelID, dymensionUser.KeyName(), transfer, ibc.TransferOptions{})
 		require.NoError(t, err)
 
 		// wait until rollapp receive transferAmount
 		err = testutil.WaitForBlocks(ctx, 10, rollapp1, dymension)
 		require.NoError(t, err)
 
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, secondHopIBCDenom, transferAmount)
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
+		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+		require.NoError(t, err)
+		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, secondHopIBCDenom, transferAmount)
+
+		// Run invariant check
+		CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 	})
 }
