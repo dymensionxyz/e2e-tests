@@ -74,7 +74,7 @@ func TestEIBC_No_Memo_RolX_Live(t *testing.T) {
 	require.NoError(t, err)
 
 	encoding := encodingConfig()
-	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, &hub, 20, false, encoding.InterfaceRegistry)
+	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
 	require.Equal(t, len(eibcEvents), 0)
 
 }
