@@ -272,7 +272,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	require.NoError(t, err)
 	// require.Error(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -618,7 +618,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
-	containerID = fmt.Sprintf("rollappevm_1234-1-val-0-%s", t.Name())
+	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)

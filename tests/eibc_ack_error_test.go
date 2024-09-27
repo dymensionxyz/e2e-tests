@@ -1675,6 +1675,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 		// catch ACK errors
+		err = testutil.WaitForBlocks(ctx, 10, dymension)
+		require.NoError(t, err)
+
 		rollappHeight, err = rollapp1.Height(ctx)
 		require.NoError(t, err)
 

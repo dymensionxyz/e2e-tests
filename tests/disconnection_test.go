@@ -248,7 +248,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["batch_submit_bytes"] = "1000"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
 	dymintTomlOverrides["max_batch_skew"] = "1"
