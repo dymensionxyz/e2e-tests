@@ -25,7 +25,7 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	// setup config for rollapp 1
+
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -34,10 +34,11 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -45,6 +46,7 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	numRollAppVals := 1
 	numVals := 1
 	numFullNodes := 0
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -229,7 +231,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	// setup config for rollapp 1
+
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -239,6 +241,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
