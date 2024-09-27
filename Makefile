@@ -14,8 +14,14 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_EVM .
 
-e2e-test-light-client-same-chain-id-transfer: clean-e2e
+e2e-test-light-client-same-chain-id: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferRA_3rdSameChainID_EVM .
+
+e2e-test-light-client-hub-3rd: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransferBetweenHub3rd_EVM .
+
+e2e-test-light-client-same-chain-id-no-light-client: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransfer_NoLightClient_EVM .
 
 e2e-test-spinup: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSpinUp .
