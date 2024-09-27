@@ -1,5 +1,5 @@
 {
-    "moniker": "sequencer",
+    "moniker": "sequencer1111",
     "details": "This is a description of the Rollapp.",
     "p2p_seeds": ["seed1"],
     "rpcs": ["https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443", "https://rpc.wpd.wasm.rollapp.noisnemyd.xyz:443"],

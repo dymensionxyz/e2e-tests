@@ -14,6 +14,9 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-one-sqc-rotation-success-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_OneSqc_Success_EVM .
+
 e2e-test-light-client-same-chain-id: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferRA_3rdSameChainID_EVM .
 
