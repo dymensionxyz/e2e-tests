@@ -121,8 +121,8 @@ func TestDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "20s"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_bytes"] = "1000"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
 	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
@@ -191,12 +191,11 @@ func TestDisconnection_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
 	rollapp1Height, err := rollapp1.Height(ctx)
-	fmt.Println(rollapp1Height)
 	require.NoError(t, err)
 	dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
 
@@ -206,7 +205,6 @@ func TestDisconnection_EVM(t *testing.T) {
 
 		// Wait until rollapp stops produce block
 		rollappHeight, err := rollapp1.Height(ctx)
-		fmt.Println(rollappHeight)
 		require.NoError(t, err)
 
 		err = testutil.WaitForCondition(
@@ -214,7 +212,6 @@ func TestDisconnection_EVM(t *testing.T) {
 			time.Second*5, // each epoch is 5 seconds
 			func() (bool, error) {
 				newRollappHeight, err := rollapp1.Height(ctx)
-				fmt.Println(newRollappHeight)
 				require.NoError(t, err)
 
 				if newRollappHeight > rollappHeight {
@@ -251,8 +248,8 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
-	dymintTomlOverrides["batch_submit_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_bytes"] = "1000"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
 	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
@@ -321,7 +318,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized

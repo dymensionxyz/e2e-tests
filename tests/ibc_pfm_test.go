@@ -36,8 +36,7 @@ package tests
 // 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
-// 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-// dymintTomlOverrides["batch_submit_time"] = "20s"
+// dymintTomlOverrides["batch_submit_time"] = "50s"
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension
@@ -287,8 +286,7 @@ package tests
 // 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
-// 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-// dymintTomlOverrides["batch_submit_time"] = "20s"
+// dymintTomlOverrides["batch_submit_time"] = "50s"
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension
@@ -538,8 +536,7 @@ package tests
 // 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
-// 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-// dymintTomlOverrides["batch_submit_time"] = "20s"
+// dymintTomlOverrides["batch_submit_time"] = "50s"
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension
@@ -785,8 +782,7 @@ package tests
 // 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 // 	dymintTomlOverrides["max_idle_time"] = "3s"
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
-// 	dymintTomlOverrides["batch_submit_max_time"] = "100s"
-// dymintTomlOverrides["batch_submit_time"] = "20s"
+// dymintTomlOverrides["batch_submit_time"] = "50s"
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension
