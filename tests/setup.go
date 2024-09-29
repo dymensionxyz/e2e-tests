@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -16,7 +17,10 @@ import (
 
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
+	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
@@ -80,9 +84,13 @@ type ForwardMetadata struct {
 }
 
 const (
-	ibcPath               = "dymension-demo"
-	anotherIbcPath        = "dymension-demo2"
-	BLOCK_FINALITY_PERIOD = 30
+	ibcPath                             = "dymension-demo"
+	anotherIbcPath                      = "dymension-demo2"
+	BLOCK_FINALITY_PERIOD               = 50
+	EventDemandOrderCreated             = "dymensionxyz.dymension.eibc.EventDemandOrderCreated"
+	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
+	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
+	EventDemandOrderPacketStatusUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderPacketStatusUpdated"
 )
 
 var (
@@ -182,11 +190,26 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       nil,
+		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
 		ConfigFileOverrides: nil,
 	}
 
+	gaiaGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
+	}
+
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
@@ -255,6 +278,14 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -283,6 +314,22 @@ var (
 	}
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.sequencer.params.notice_period",
+			Value: "180s",
+		},
+		{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
+		},
+		{
+			Key:   "app_state.sequencer.params.unbonding_time",
+			Value: "1200s",
+		},
+		{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "1200s",
+		},
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",
@@ -611,7 +658,7 @@ type rollappParam struct {
 // 	require.Equal(t, string(deployerWhitelistParams), newParams.Value)
 // }
 
-func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batchSubmitMaxTime string, optionalConfigs ...bool) map[string]any {
+func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxIdleTime, maxProofTime, batch_submit_time string, optionalConfigs ...bool) map[string]any {
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 
@@ -624,7 +671,6 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_layer"] = "grpc"
 		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 	}
 
@@ -634,7 +680,8 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	dymintTomlOverrides["settlement_gas_prices"] = gasPrices
 	dymintTomlOverrides["max_idle_time"] = maxIdleTime
 	dymintTomlOverrides["max_proof_time"] = maxProofTime
-	dymintTomlOverrides["batch_submit_max_time"] = batchSubmitMaxTime
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["batch_submit_time"] = batch_submit_time
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -648,13 +695,13 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 20, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, chainA, chainB)
+	err = testutil.WaitForBlocks(ctx, 5, chainA, chainB)
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
@@ -828,4 +875,162 @@ func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) *dymensiontesting.EibcEvent {
+	txResp, err := dymension.GetTransaction(txhash)
+	if err != nil {
+		require.NoError(t, err)
+		return nil
+	}
+
+	events := txResp.Events
+
+	var (
+		id, _           = cosmos.AttributeValue(events, EventDemandOrderFulfilled, "order_id")
+		price, _        = cosmos.AttributeValue(events, EventDemandOrderFulfilled, "price")
+		fee, _          = cosmos.AttributeValue(events, EventDemandOrderFulfilled, "fee")
+		isFulfilled, _  = cosmos.AttributeValue(events, EventDemandOrderFulfilled, "is_fulfilled")
+		packetStatus, _ = cosmos.AttributeValue(events, EventDemandOrderFulfilled, "packet_status")
+	)
+
+	eibcEvent := new(dymensiontesting.EibcEvent)
+	eibcEvent.OrderId = id
+	eibcEvent.Price = price
+	eibcEvent.Fee = fee
+	eibcEvent.IsFulfilled, err = strconv.ParseBool(isFulfilled)
+	if err != nil {
+		require.NoError(t, err)
+		return nil
+	}
+	eibcEvent.PacketStatus = packetStatus
+
+	return eibcEvent
+}
+
+func getEIbcEventsWithinBlockRange(
+	ctx context.Context,
+	dymension *dym_hub.DymHub,
+	blockRange int64,
+	breakOnFirstOccurence bool,
+) ([]dymensiontesting.EibcEvent, error) {
+	var eibcEventsArray []dymensiontesting.EibcEvent
+
+	height, err := dymension.Height(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Dymension height: %w", err)
+	}
+	fmt.Printf("Dymension height: %d\n", height)
+
+	eibcEvents, err := getEibcEventsOfType(dymension.CosmosChain, height-10, height+blockRange, breakOnFirstOccurence)
+	if err != nil {
+		return nil, fmt.Errorf("error getting events of type 'eibc': %w", err)
+	}
+
+	if len(eibcEvents) == 0 {
+		return nil, fmt.Errorf("There wasn't a single 'eibc' event registered within the specified block range on the hub")
+	}
+
+	for _, event := range eibcEvents {
+		eibcEvent, err := dymensiontesting.MapToEibcEvent(event)
+		if err != nil {
+			println("go to here man")
+			return nil, fmt.Errorf("error mapping to EibcEvent: %w", err)
+		}
+		eibcEventsArray = append(eibcEventsArray, eibcEvent)
+	}
+
+	return eibcEventsArray, nil
+}
+
+func areSlicesEqual(slice1, slice2 []blockdb.EventAttribute) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+
+	for i := range slice1 {
+		if slice1[i] != slice2[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func contains(slice []blockdb.Event, item blockdb.Event) bool {
+	for _, v := range slice {
+		if areSlicesEqual(v.Attributes, item.Attributes) {
+			return true
+		}
+	}
+	return false
+}
+
+func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight int64, breakOnFirstOccurence bool) ([]blockdb.Event, error) {
+	var eventTypeArray []blockdb.Event
+	shouldReturn := false
+
+	for height := startHeight; height <= endHeight && !shouldReturn; height++ {
+		err := testutil.WaitForBlocks(context.Background(), 1, chain)
+		if err != nil {
+			return nil, fmt.Errorf("error waiting for blocks: %w", err)
+		}
+
+		txs, err := chain.FindTxs(context.Background(), height)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching transactions at height %d: %w", height, err)
+		}
+
+		for _, tx := range txs {
+			for _, event := range tx.Events {
+				if event.Type == EventDemandOrderCreated {
+					if !contains(eventTypeArray, event) {
+						eventTypeArray = append(eventTypeArray, event)
+					}
+					if breakOnFirstOccurence {
+						shouldReturn = true
+						fmt.Printf("%s event found on block height: %d", event.Type, height)
+						break
+					}
+				}
+			}
+			if shouldReturn {
+				break
+			}
+		}
+	}
+
+	return eventTypeArray, nil
+}
+
+func BuildEIbcMemo(eibcFee math.Int) string {
+	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
+}
+func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub, keyName string) {
+	_, err := dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "demand-order-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "underlying-packet-exist")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-state-index")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "block-height-to-finalization-queue")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-by-eip155-key")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-per-rollapp")
+	require.NoError(t, err)
 }

@@ -121,11 +121,13 @@ func TestDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_bytes"] = "1000"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
+	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -189,7 +191,7 @@ func TestDisconnection_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
@@ -246,11 +248,13 @@ func TestDisconnection_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_bytes"] = "1000"
 	dymintTomlOverrides["block_batch_max_size_bytes"] = "1000"
-	dymintTomlOverrides["max_supported_batch_skew"] = "1"
+	dymintTomlOverrides["max_batch_skew"] = "1"
 	dymintTomlOverrides["batch_acceptance_attempts"] = "1"
 	dymintTomlOverrides["batch_acceptance_timeout"] = "5s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -314,7 +318,7 @@ func TestDisconnection_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
