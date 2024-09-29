@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -37,18 +36,10 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_max_time"] = "100s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
-			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
-		},
-	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -94,7 +85,7 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -136,7 +127,7 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -176,6 +167,9 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -186,6 +180,12 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
@@ -228,9 +228,9 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eIbc events
-	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 30, false)
+	eibcEvents, _ := getEIbcEventsWithinBlockRange(ctx, dymension, 45, false)
 	fmt.Println(eibcEvents)
-	require.True(t, len(eibcEvents) == 2) // verify 1 EIBC event was registered on the hub
+	require.True(t, len(eibcEvents) == 1) // verify 1 EIBC event was registered on the hub
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -238,6 +238,12 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).MulRaw(2))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, zeroBal)
@@ -251,5 +257,8 @@ func TestEIBCCorruptedMemoNegative_EVM(t *testing.T) {
 			}
 		},
 	)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 
 }

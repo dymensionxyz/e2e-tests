@@ -14,6 +14,18 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_EVM .
 
+e2e-test-one-sqc-rotation-success-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_OneSqc_Success_EVM .
+
+e2e-test-light-client-same-chain-id: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransferRA_3rdSameChainID_EVM .
+
+e2e-test-light-client-hub-3rd: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransferBetweenHub3rd_EVM .
+
+e2e-test-light-client-same-chain-id-no-light-client: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransfer_NoLightClient_EVM .
+
 e2e-test-spinup: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSpinUp .
 	
@@ -87,7 +99,7 @@ e2e-test-eibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutDymToRollapp_EVM .
 
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Evm .
+	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_EVM .
 
 e2e-test-transfer-multi-hop-evm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferMultiHop_EVM .
@@ -244,6 +256,12 @@ e2e-test-fullnode-disconnect-block-sync-evm: clean-e2e
 
 e2e-test-seq-rotation-one-seq-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_OneSeq_EVM .
+	
+e2e-test-sequencer-rotation-noseq-da-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_DA_EVM .
+
+e2e-test-sequencer-rotation-noseq-p2p-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_P2P_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e

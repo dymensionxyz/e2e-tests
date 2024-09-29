@@ -70,6 +70,10 @@ body:
         - "full node sync"
         - "base layer disconnection"
         - "sequencer rotation"
+        - "light client"
+        - "zero fee relay"
+        - "IRO"
+        - "eibc client"
     validations:
       required: true
 

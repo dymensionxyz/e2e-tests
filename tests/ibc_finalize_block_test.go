@@ -35,7 +35,7 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	modifyGenesisKV := append(
 		rollappEVMGenesisKV,
@@ -114,7 +114,7 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -159,6 +159,9 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymChannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -169,6 +172,9 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -194,12 +200,26 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -218,7 +238,7 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -316,7 +336,7 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
@@ -371,6 +391,9 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel0.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -381,6 +404,9 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
@@ -401,6 +427,9 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -418,7 +447,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -492,7 +521,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -541,6 +570,9 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymchannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -551,6 +583,9 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -567,8 +602,6 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	// Compose an IBC transfer and send from rollapp -> dymension
 	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{Timeout: testutil.ImmediatelyTimeout()})
 	require.NoError(t, err)
-	// Assert balance was updated on the rollapp
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	got, err := testutil.PollForTimeout(ctx, dymension, dymensionHeight, dymensionHeight+30, ibcTx.Packet)
 	require.NoError(t, err)
@@ -576,12 +609,26 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	// Make sure that we got the packet timeout
 	require.Equal(t, got.Packet.SourceChannel, channel.ChannelID)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and ack failed.
@@ -600,7 +647,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	modifyGenesisKV := append(
 		rollappWasmGenesisKV,
@@ -680,7 +727,7 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -729,6 +776,9 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, rollappDymChannel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -739,6 +789,10 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -764,12 +818,26 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and fail on ack.
@@ -788,7 +856,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "100s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -886,7 +954,7 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
@@ -941,6 +1009,9 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel0.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -951,6 +1022,9 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
 	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
@@ -972,6 +1046,9 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 
 	// Make sure that the ack contains error
 	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // This test case verifies the system's behavior when an IBC packet sent from the rollapp to the dym and timeout.
@@ -989,7 +1066,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	gas_price_rollapp1 := "0adym"
 	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "30s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -1063,7 +1140,7 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil)
+	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1109,6 +1186,9 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
@@ -1119,6 +1199,10 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
@@ -1143,10 +1227,24 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	// Make sure that we got the packet timeout
 	require.Equal(t, got.Packet.SourceChannel, channel.ChannelID)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	require.NoError(t, err)
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, zeroBal)
+
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
