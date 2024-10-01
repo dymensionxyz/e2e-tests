@@ -2717,15 +2717,11 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
 	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
+	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
 	time.Sleep(180 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
-
-	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
@@ -3142,8 +3138,16 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	lastBlock, err := rollapp1.Height(ctx)
+	// Unbond sequencer2
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetNode().HomeDir())
 	require.NoError(t, err)
+
+	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	require.NoError(t, err)
+
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
 	time.Sleep(180 * time.Second)
 
@@ -3161,6 +3165,10 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
@@ -3168,9 +3176,8 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 
 	time.Sleep(30 * time.Second)
 
-	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-	require.True(t, afterBlock > lastBlock)
+	_, err = rollapp1.Height(ctx)
+	require.Error(t, err)
 
 	// // Compose an IBC transfer and send from rollapp -> Hub
 	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
