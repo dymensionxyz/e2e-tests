@@ -9,6 +9,9 @@ import (
 	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -111,6 +114,31 @@ func copyFile(src, dst string) error {
 	}
 
 	return nil
+}
+func StartDB(ctx context.Context, t *testing.T, client *client.Client) {
+	fmt.Println("Starting pull image ...")
+	out, err := client.ImagePull(ctx, "mongo:7.0", types.ImagePullOptions{})
+	require.NoError(t, err)
+	defer out.Close()
+
+	time.Sleep(1 * time.Minute)
+	// Create the container
+	fmt.Println("Creating container ...")
+	resp, err := client.ContainerCreate(
+		ctx,
+		&container.Config{
+			Image: "mongo:7.0", // Image to run
+			Tty:   true,        // Attach to a TTY
+		},
+		nil, nil, nil, "mongoDB",
+	)
+	require.NoError(t, err)
+
+	fmt.Println("Starting container ...")
+
+	// Start the container
+	err = client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	require.NoError(t, err)
 }
 
 func Test_EIBC_Client_Success_EVM(t *testing.T) {
@@ -236,6 +264,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	cmd := append([]string{"eibc-client"}, "start", "--config", "/root/.eibc-client/config.yaml")
 
+	StartDB(ctx, t, client)
 	err = dymension.Sidecars[0].CreateContainer(ctx)
 	require.NoError(t, err)
 
@@ -254,7 +283,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	config.DBPath = "mongodb://localhost:27017"
+	config.DBPath = "mongodb://mongoDB:27017"
 	config.Gas.MinimumGasBalance = "1000000000000000000adym"
 	config.LogLevel = "info"
 	config.HomeDir = "/root/.eibc-client"
