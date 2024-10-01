@@ -2470,7 +2470,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.notice_period",
-			Value: "10s",
+			Value: "15s",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.staking.params.unbonding_time",
@@ -2703,13 +2703,17 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = dymension.StopAllNodes(ctx)
 	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(16 * time.Second)
+
+	_ = dymension.StartAllNodes(ctx)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
