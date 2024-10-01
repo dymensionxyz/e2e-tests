@@ -269,6 +269,9 @@ e2e-test-sequencer-rotation-noseq-da-evm: clean-e2e
 e2e-test-sequencer-rotation-noseq-p2p-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_P2P_EVM .
 
+e2e-test-eibc-client-success-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .

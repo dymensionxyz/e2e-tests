@@ -1,0 +1,33 @@
+home_dir: ""
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM
+db_path: ""
+gas:
+    prices: ""
+    fees: 3000000000000000adym
+    minimum_gas_balance: ""
+order_polling:
+    indexer_url: ""
+    interval: 0s
+    enabled: false
+whale:
+    account_name: ""
+    keyring_backend: ""
+    keyring_dir: ""
+    allowed_balance_thresholds: {}
+bots:
+    number_of_bots: 0
+    keyring_backend: ""
+    keyring_dir: ""
+    top_up_factor: 0
+    max_orders_per_tx: 0
+fulfill_criteria:
+    min_fee_percentage:
+        chain: {}
+        asset: {}
+log_level: ""
+slack:
+    enabled: false
+    bot_token: ""
+    app_token: ""
+    channel_id: ""
+skip_refund: false
