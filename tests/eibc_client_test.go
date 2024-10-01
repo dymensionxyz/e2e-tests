@@ -11,7 +11,9 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -115,12 +117,31 @@ func copyFile(src, dst string) error {
 
 	return nil
 }
-func StartDB(ctx context.Context, t *testing.T, client *client.Client) {
+func StartDB(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
 	out, err := client.ImagePull(ctx, "mongo:7.0", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
-
+	networkConfig := &network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{
+			net: {},
+		},
+	}
+	portBindings := nat.PortMap{
+		"27017/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0", // Host IP address (use 0.0.0.0 for all interfaces)
+				HostPort: "27017",   // Host port to bind to
+			},
+		},
+	}
+	hostConfig := &container.HostConfig{
+		PortBindings:    portBindings,
+		PublishAllPorts: true,
+		AutoRemove:      false,
+		DNS:             []string{},
+		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
+	}
 	time.Sleep(1 * time.Minute)
 	// Create the container
 	fmt.Println("Creating container ...")
@@ -130,7 +151,7 @@ func StartDB(ctx context.Context, t *testing.T, client *client.Client) {
 			Image: "mongo:7.0", // Image to run
 			Tty:   true,        // Attach to a TTY
 		},
-		nil, nil, nil, "mongoDB",
+		hostConfig, networkConfig, nil, "mongodb-container",
 	)
 	require.NoError(t, err)
 
@@ -264,7 +285,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	cmd := append([]string{"eibc-client"}, "start", "--config", "/root/.eibc-client/config.yaml")
 
-	StartDB(ctx, t, client)
+	StartDB(ctx, t, client, network)
 	err = dymension.Sidecars[0].CreateContainer(ctx)
 	require.NoError(t, err)
 
@@ -283,7 +304,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	config.DBPath = "mongodb://mongoDB:27017"
+	config.DBPath = "mongodb://mongodb-container:27017"
 	config.Gas.MinimumGasBalance = "1000000000000000000adym"
 	config.LogLevel = "info"
 	config.HomeDir = "/root/.eibc-client"
@@ -310,7 +331,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(configFile, modifiedContent, 0777)
 	require.NoError(t, err)
 
-	err = copyFile("data/config.yaml", "/tmp/client/.eibc-client/config.yaml")
+	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)

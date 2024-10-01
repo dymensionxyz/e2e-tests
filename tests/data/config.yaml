@@ -1,6 +1,6 @@
 home_dir: /root/.eibc-client
 node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
-db_path: mongodb://mongoDB:27017
+db_path: mongodb://mongodb-container:27017
 gas:
     prices: ""
     fees: 3000000000000000adym
