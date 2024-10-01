@@ -7,6 +7,7 @@ rm -rf /tmp/sequencer*
 rm -rf /tmp/celes*
 rm -rf /tmp/gaia*
 rm -rf /tmp/side*
+rm -rf /tmp/client*
 rm -rf /tmp/new_rollapp*
 echo "Clean success!!"
 

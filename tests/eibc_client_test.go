@@ -253,7 +253,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Modify a field
-	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s", t.Name())
+	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	config.DBPath = "mongodb://localhost:27017"
 	config.Gas.MinimumGasBalance = "1000000000000000000adym"
 	config.LogLevel = "info"

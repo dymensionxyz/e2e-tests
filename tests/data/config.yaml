@@ -1,30 +1,31 @@
-home_dir: ""
-node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM
-db_path: ""
+home_dir: /root/.eibc-client
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
+db_path: mongodb://localhost:27017
 gas:
     prices: ""
     fees: 3000000000000000adym
-    minimum_gas_balance: ""
+    minimum_gas_balance: 1000000000000000000adym
 order_polling:
     indexer_url: ""
-    interval: 0s
+    interval: 30s
     enabled: false
 whale:
     account_name: ""
-    keyring_backend: ""
+    keyring_backend: test
     keyring_dir: ""
-    allowed_balance_thresholds: {}
+    allowed_balance_thresholds:
+        adym: "1000000000000"
 bots:
-    number_of_bots: 0
-    keyring_backend: ""
-    keyring_dir: ""
-    top_up_factor: 0
-    max_orders_per_tx: 0
+    number_of_bots: 30
+    keyring_backend: test
+    keyring_dir: /root/.eibc-client
+    top_up_factor: 5
+    max_orders_per_tx: 10
 fulfill_criteria:
     min_fee_percentage:
         chain: {}
         asset: {}
-log_level: ""
+log_level: info
 slack:
     enabled: false
     bot_token: ""
