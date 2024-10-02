@@ -3250,7 +3250,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "500ms"
 	dymintTomlOverrides["max_proof_time"] = "200ms"
-	dymintTomlOverrides["batch_submit_bytes"] = "100000000000"
+	dymintTomlOverrides["batch_submit_bytes"] = "2000000"
 	dymintTomlOverrides["batch_submit_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
@@ -3612,7 +3612,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "500ms"
 	dymintTomlOverrides["max_proof_time"] = "200ms"
-	dymintTomlOverrides["batch_submit_bytes"] = "100000000000"
+	dymintTomlOverrides["batch_submit_bytes"] = "2000000"
 	dymintTomlOverrides["batch_submit_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
