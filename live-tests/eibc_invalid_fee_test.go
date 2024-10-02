@@ -106,7 +106,7 @@ func TestEIBC_Invalid_Fee_RolX_Live(t *testing.T) {
 	fmt.Println(rollappXHeight)
 
 	encoding := encodingConfig()
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 40, false, encoding.InterfaceRegistry)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, &hub, 30, false, encoding.InterfaceRegistry)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
