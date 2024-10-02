@@ -10,13 +10,13 @@ order_polling:
     interval: 30s
     enabled: false
 whale:
-    account_name: faucet
+    account_name: Test_EIBC_Client_Success_EVM-dymension_100-1-jzy
     keyring_backend: test
-    keyring_dir: /root/rollapp1-143c56d100b00544b6a540e46fd4b987007fb28f36333ede5b0f33c7cd01a5877
+    keyring_dir: /root/dymension-hub-22d4b1d6db51acfed43c2f1a359fec0018fd0c38c97fdc1c2f00139002ec4a7f5
     allowed_balance_thresholds:
         adym: "1000000000000"
 bots:
-    number_of_bots: 30
+    number_of_bots: 3
     keyring_backend: test
     keyring_dir: /root/.eibc-client
     top_up_factor: 5

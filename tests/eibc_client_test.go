@@ -284,66 +284,6 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
-	cmd := append([]string{"eibc-client"}, "start", "--config", "/root/.eibc-client/config.yaml")
-
-	StartDB(ctx, t, client, network)
-	err = dymension.Sidecars[0].CreateContainer(ctx)
-	require.NoError(t, err)
-
-	err = dymension.Sidecars[0].StartContainer(ctx)
-	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-	configFile := "data/config.yaml"
-	content, err := os.ReadFile(configFile)
-	require.NoError(t, err)
-
-	// Unmarshal the YAML content into the Config struct
-	var config Config
-	err = yaml.Unmarshal(content, &config)
-	require.NoError(t, err)
-
-	dymensionHomeDir := strings.Split(rollapp1.HomeDir(), "/")
-	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
-
-	// Modify a field
-	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	config.DBPath = "mongodb://mongodb-container:27017"
-	config.Gas.MinimumGasBalance = "1000000000000000000adym"
-	config.LogLevel = "info"
-	config.HomeDir = "/root/.eibc-client"
-	config.OrderPolling.Interval = 30 * time.Second
-	config.OrderPolling.Enabled = false
-	config.Bots.KeyringBackend = "test"
-	config.Bots.KeyringDir = "/root/.eibc-client"
-	config.Bots.NumberOfBots = 3
-	config.Bots.MaxOrdersPerTx = 10
-	config.Bots.TopUpFactor = 5
-	config.Whale.AccountName = "faucet"
-	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000000000000"}
-	config.Whale.KeyringBackend = "test"
-	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
-
-	// Marshal the updated struct back to YAML
-	modifiedContent, err := yaml.Marshal(&config)
-	require.NoError(t, err)
-
-	err = os.Chmod(configFile, 0777)
-	require.NoError(t, err)
-
-	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
-	require.NoError(t, err)
-
-	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	_, _, err = dymension.Sidecars[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -368,7 +308,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
+		Amount:  bigTransferAmount,
 	}
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -400,7 +340,67 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
+
+	cmd := append([]string{"eibc-client"}, "start", "--config", "/root/.eibc-client/config.yaml")
+
+	StartDB(ctx, t, client, network)
+	err = dymension.Sidecars[0].CreateContainer(ctx)
+	require.NoError(t, err)
+
+	err = dymension.Sidecars[0].StartContainer(ctx)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+	configFile := "data/config.yaml"
+	content, err := os.ReadFile(configFile)
+	require.NoError(t, err)
+
+	// Unmarshal the YAML content into the Config struct
+	var config Config
+	err = yaml.Unmarshal(content, &config)
+	require.NoError(t, err)
+
+	dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
+	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
+
+	// Modify a field
+	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	config.DBPath = "mongodb://mongodb-container:27017"
+	config.Gas.MinimumGasBalance = "1000000000000000000adym"
+	config.LogLevel = "info"
+	config.HomeDir = "/root/.eibc-client"
+	config.OrderPolling.Interval = 30 * time.Second
+	config.OrderPolling.Enabled = false
+	config.Bots.KeyringBackend = "test"
+	config.Bots.KeyringDir = "/root/.eibc-client"
+	config.Bots.NumberOfBots = 3
+	config.Bots.MaxOrdersPerTx = 10
+	config.Bots.TopUpFactor = 5
+	config.Whale.AccountName = dymensionUser.KeyName()
+	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000000000000"}
+	config.Whale.KeyringBackend = "test"
+	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
+
+	// Marshal the updated struct back to YAML
+	modifiedContent, err := yaml.Marshal(&config)
+	require.NoError(t, err)
+
+	err = os.Chmod(configFile, 0777)
+	require.NoError(t, err)
+
+	// Write the updated content back to the file
+	err = os.WriteFile(configFile, modifiedContent, 0777)
+	require.NoError(t, err)
+
+	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	_, _, err = dymension.Sidecars[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
 
 	// Get original account balances
 	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
