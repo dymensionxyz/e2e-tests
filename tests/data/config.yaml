@@ -10,9 +10,9 @@ order_polling:
     interval: 30s
     enabled: false
 whale:
-    account_name: ""
+    account_name: faucet
     keyring_backend: test
-    keyring_dir: ""
+    keyring_dir: /root/rollapp1-143c56d100b00544b6a540e46fd4b987007fb28f36333ede5b0f33c7cd01a5877
     allowed_balance_thresholds:
         adym: "1000000000000"
 bots:

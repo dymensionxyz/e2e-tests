@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -302,6 +303,9 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = yaml.Unmarshal(content, &config)
 	require.NoError(t, err)
 
+	dymensionHomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
+
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	config.DBPath = "mongodb://mongodb-container:27017"
@@ -312,13 +316,13 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.OrderPolling.Enabled = false
 	config.Bots.KeyringBackend = "test"
 	config.Bots.KeyringDir = "/root/.eibc-client"
-	config.Bots.NumberOfBots = 30
+	config.Bots.NumberOfBots = 3
 	config.Bots.MaxOrdersPerTx = 10
 	config.Bots.TopUpFactor = 5
-	config.Whale.AccountName = ""
+	config.Whale.AccountName = "faucet"
 	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000000000000"}
 	config.Whale.KeyringBackend = "test"
-	config.Whale.KeyringDir = ""
+	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
 
 	// Marshal the updated struct back to YAML
 	modifiedContent, err := yaml.Marshal(&config)
