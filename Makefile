@@ -287,6 +287,12 @@ e2e-test-sequencer-rotation-history-sync-da-evm: clean-e2e
 e2e-test-sequencer-rotation-history-sync-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_P2P_EVM .
 
+e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-da-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM .
+
+e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_OldSeq_Unbonded_P2P_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
