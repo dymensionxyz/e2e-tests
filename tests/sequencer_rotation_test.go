@@ -1095,7 +1095,6 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
-
 func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -1918,7 +1917,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	)
 
 	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV, 
+		rollappWasmGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencers.params.unbonding_time",
 			Value: "300s",
@@ -1944,7 +1943,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol", 
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -2176,6 +2175,17 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
+	// Get the IBC denom for the token on RollApp
+	var dymensionTokenDenom, dymensionIBCDenom string
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// Assert the balance on Dymension after sending the tokens
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+
+	// Query the balance of rollappUserAddr on RollApp
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
@@ -2313,6 +2323,17 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	// require.NoError(t, err)
 	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	// Get the IBC denom for the token on RollApp
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// Assert the balance on Dymension after sending the tokens
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+
+	// Query the balance of rollappUserAddr on RollApp
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+
 }
 
 func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
@@ -2788,7 +2809,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol", 
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -3649,7 +3670,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	)
 
 	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV, 
+		rollappWasmGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencers.params.unbonding_time",
 			Value: "300s",
@@ -3675,7 +3696,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "rol", 
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -4474,8 +4495,6 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
-
-
 func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -4507,7 +4526,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	)
 
 	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV, 
+		rollappWasmGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencers.params.unbonding_time",
 			Value: "300s",
@@ -4539,7 +4558,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
 				Denom:               "urax",
-				CoinType:            "118", 
+				CoinType:            "118",
 				GasPrices:           "0.0urax",
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
