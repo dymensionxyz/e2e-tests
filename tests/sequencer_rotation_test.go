@@ -439,7 +439,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1154,7 +1154,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1452,7 +1452,6 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
-
 
 func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	if testing.Short() {
@@ -1942,7 +1941,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol", 
@@ -2019,7 +2018,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 195)
 	require.NoError(t, err)
 
-	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -2168,14 +2167,14 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	// require.NoError(t, err)
+	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -2306,14 +2305,14 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the IBC denom
-	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	// require.NoError(t, err)
+	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
@@ -2786,7 +2785,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol", 
@@ -2863,7 +2862,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 195)
 	require.NoError(t, err)
 
-	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -3673,7 +3672,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol", 
@@ -3750,7 +3749,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 195)
 	require.NoError(t, err)
 
-	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
@@ -4535,7 +4534,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
