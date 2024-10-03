@@ -124,6 +124,9 @@ func StartDB(ctx context.Context, t *testing.T, client *client.Client, net strin
 	out, err := client.ImagePull(ctx, "mongo:7.0", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
+	out, err = client.ImagePull(ctx, "ghcr.io/decentrio/eibc-client:latest", types.ImagePullOptions{})
+	require.NoError(t, err)
+	defer out.Close()
 	networkConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			net: {},
@@ -144,7 +147,7 @@ func StartDB(ctx context.Context, t *testing.T, client *client.Client, net strin
 		DNS:             []string{},
 		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 	}
-	time.Sleep(1 * time.Minute)
+	time.Sleep(2 * time.Minute)
 	// Create the container
 	fmt.Println("Creating container ...")
 	resp, err := client.ContainerCreate(
