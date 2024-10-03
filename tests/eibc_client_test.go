@@ -124,9 +124,7 @@ func StartDB(ctx context.Context, t *testing.T, client *client.Client, net strin
 	out, err := client.ImagePull(ctx, "mongo:7.0", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
-	out, err = client.ImagePull(ctx, "ghcr.io/decentrio/eibc-client:latest", types.ImagePullOptions{})
-	require.NoError(t, err)
-	defer out.Close()
+
 	networkConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			net: {},
