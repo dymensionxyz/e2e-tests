@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -235,7 +236,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 						Image:            eibcClientImage,
 						HomeDir:          "/root",
 						Ports:            nil,
-						StartCmd:         []string{"eibc-client", "init"},
+						StartCmd:         []string{"eibc-client", "start", "--config", "/root/.eibc-client/config.yaml"},
 						PreStart:         true,
 						ValidatorProcess: false,
 					},
@@ -287,12 +288,13 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, dymensionUser2, rollappUser := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
+	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -342,16 +344,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
-	cmd := append([]string{"eibc-client"}, "start", "--config", "/root/.eibc-client/config.yaml")
-
 	StartDB(ctx, t, client, network)
-	err = dymension.Sidecars[0].CreateContainer(ctx)
-	require.NoError(t, err)
 
-	err = dymension.Sidecars[0].StartContainer(ctx)
-	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 	configFile := "data/config.yaml"
 	content, err := os.ReadFile(configFile)
 	require.NoError(t, err)
@@ -367,8 +361,9 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	config.DBPath = "mongodb://mongodb-container:27017"
-	config.Gas.MinimumGasBalance = "1000000000000000000adym"
-	config.LogLevel = "info"
+	config.Gas.MinimumGasBalance = "100adym"
+	config.Gas.Fees = "100adym"
+	config.LogLevel = "debug"
 	config.HomeDir = "/root/.eibc-client"
 	config.OrderPolling.Interval = 30 * time.Second
 	config.OrderPolling.Enabled = false
@@ -378,9 +373,12 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Bots.MaxOrdersPerTx = 10
 	config.Bots.TopUpFactor = 5
 	config.Whale.AccountName = dymensionUser.KeyName()
-	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000000000000"}
+	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000", "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": "1000"}
 	config.Whale.KeyringBackend = "test"
 	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
+	config.FulfillCriteria.MinFeePercentage.Asset = map[string]float32{"adym": 0.1, "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": 0.1}
+	config.FulfillCriteria.MinFeePercentage.Chain = map[string]float32{"rollappevm_1234-1": 0.1}
+	config.SkipRefund = true
 
 	// Marshal the updated struct back to YAML
 	modifiedContent, err := yaml.Marshal(&config)
@@ -393,45 +391,67 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(configFile, modifiedContent, 0777)
 	require.NoError(t, err)
 
+	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	require.NoError(t, err)
+
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	_, _, err = dymension.Sidecars[0].Exec(ctx, cmd, nil)
+	err = dymension.Sidecars[0].CreateContainer(ctx)
 	require.NoError(t, err)
 
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	err = dymension.Sidecars[0].StartContainer(ctx)
 	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Send a ibc tx from RA -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr2,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	multiplier := math.NewInt(10)
+
+	eibcFee := transferAmount.Quo(multiplier)
+
+	// set eIBC specific memo
+	var options ibc.TransferOptions
+	options.Memo = BuildEIbcMemo(eibcFee)
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	// get eIbc event
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
+	require.NoError(t, err)
+	for i, eibcEvent := range eibcEvents {
+		fmt.Println(i, "EIBC Event:", eibcEvent)
+	}
+
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
+
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Minus 0.1% of transfer amount for bridge fee
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())

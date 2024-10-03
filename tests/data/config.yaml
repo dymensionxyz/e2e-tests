@@ -3,18 +3,19 @@ node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
 db_path: mongodb://mongodb-container:27017
 gas:
     prices: ""
-    fees: 3000000000000000adym
-    minimum_gas_balance: 1000000000000000000adym
+    fees: 100adym
+    minimum_gas_balance: 100adym
 order_polling:
     indexer_url: ""
     interval: 30s
     enabled: false
 whale:
-    account_name: Test_EIBC_Client_Success_EVM-dymension_100-1-jzy
+    account_name: Test_EIBC_Client_Success_EVM-dymension_100-1-hvx
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-22d4b1d6db51acfed43c2f1a359fec0018fd0c38c97fdc1c2f00139002ec4a7f5
+    keyring_dir: /root/dymension-hub-2420180b2cc1d2332e0684c1c6f7dcf24e8619ab74ed7bf83dbacbb901365e8b3
     allowed_balance_thresholds:
-        adym: "1000000000000"
+        adym: "1000"
+        ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: "1000"
 bots:
     number_of_bots: 3
     keyring_backend: test
@@ -23,12 +24,15 @@ bots:
     max_orders_per_tx: 10
 fulfill_criteria:
     min_fee_percentage:
-        chain: {}
-        asset: {}
-log_level: info
+        chain:
+            rollappevm_1234-1: 0.1
+        asset:
+            adym: 0.1
+            ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: 0.1
+log_level: debug
 slack:
     enabled: false
     bot_token: ""
     app_token: ""
     channel_id: ""
-skip_refund: false
+skip_refund: true
