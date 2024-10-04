@@ -288,10 +288,10 @@ e2e-test-sequencer-rotation-history-sync-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_P2P_EVM .
 
 e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-da-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_Unbond_DA_EVM .
 
 e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_OldSeq_Unbonded_P2P_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_Unbond_P2P_EVM .
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
