@@ -635,6 +635,8 @@ func Test_EIBC_Client_Got_Polled_EVM(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
+	StartDB(ctx, t, client, network)
+
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
@@ -695,13 +697,6 @@ func Test_EIBC_Client_Got_Polled_EVM(t *testing.T) {
 	err = dymension.Sidecars[0].CreateContainer(ctx)
 	require.NoError(t, err)
 
-	err = dymension.Sidecars[0].StartContainer(ctx)
-	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	StartDB(ctx, t, client, network)
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -721,6 +716,9 @@ func Test_EIBC_Client_Got_Polled_EVM(t *testing.T) {
 	options.Memo = BuildEIbcMemo(eibcFee)
 
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	require.NoError(t, err)
+
+	err = dymension.Sidecars[0].StartContainer(ctx)
 	require.NoError(t, err)
 
 	// get eIbc event

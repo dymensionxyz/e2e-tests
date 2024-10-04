@@ -10,9 +10,9 @@ order_polling:
     interval: 30s
     enabled: false
 whale:
-    account_name: Test_EIBC_Client_Got_Polled_EVM-dymension_100-1-bdh
+    account_name: Test_EIBC_Client_Got_Polled_EVM-dymension_100-1-ljz
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-2dfcaf696e1d5e15d81b3aee96690570c2d287aa0da059b37135e6befa03ac881
+    keyring_dir: /root/dymension-hub-252e9025f5c49dc1cb71cb01d3e4f25ead0026a054409ff34e5ff079c3848e83a
     allowed_balance_thresholds:
         adym: "1000"
         ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: "1000"
