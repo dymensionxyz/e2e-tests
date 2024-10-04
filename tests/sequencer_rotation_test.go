@@ -156,94 +156,94 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -294,7 +294,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -321,64 +321,64 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
@@ -513,94 +513,94 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -619,7 +619,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -678,64 +678,64 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
@@ -1047,7 +1047,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -1376,7 +1376,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -1411,13 +1411,13 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
 	// Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1425,64 +1425,64 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1501,7 +1501,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -1528,58 +1528,58 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
@@ -1822,7 +1822,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -1885,78 +1885,78 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	require.Equal(t, len(res.Sequencers), 3, "should have 3 sequences")
 
 	// Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1975,7 +1975,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -2002,58 +2002,58 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
@@ -2188,94 +2188,94 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -2354,7 +2354,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -2381,64 +2381,64 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
@@ -2573,94 +2573,94 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -2719,7 +2719,7 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -2749,64 +2749,64 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	_, err = rollapp1.Height(ctx)
 	require.Error(t, err)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
@@ -3016,7 +3016,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -3051,13 +3051,13 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
 	// Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -3065,64 +3065,64 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -3149,7 +3149,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -3179,58 +3179,58 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	_, err = rollapp1.Height(ctx)
 	require.Error(t, err)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
@@ -3372,94 +3372,94 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -3510,7 +3510,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -3537,64 +3537,64 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
@@ -3805,7 +3805,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -3840,13 +3840,13 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
 	// Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -3854,64 +3854,64 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -3930,7 +3930,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -3957,58 +3957,58 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
@@ -4147,94 +4147,94 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -4281,11 +4281,12 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 
 	err = dymension.StopAllNodes(ctx)
 	require.NoError(t, err)
+
 	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// require.NoError(t, err)
 
-	// lastBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
+	lastBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
 
 	time.Sleep(16 * time.Second)
 
@@ -4296,85 +4297,85 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	// seq still on BONDED
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	// // Chain halted
-	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	// require.Error(t, err)
+	// Chain halted
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.Error(t, err)
 
-	// time.Sleep(300 * time.Second)
+	time.Sleep(300 * time.Second)
 
-	// queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	// require.NoError(t, err)
-	// require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	// err = rollapp1.StopAllNodes(ctx)
-	// require.NoError(t, err)
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
 
-	// _ = rollapp1.StartAllNodes(ctx)
+	_ = rollapp1.StartAllNodes(ctx)
 
-	// time.Sleep(30 * time.Second)
+	time.Sleep(30 * time.Second)
 
-	// afterBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-	// require.True(t, afterBlock > lastBlock)
+	afterBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
@@ -4509,94 +4510,94 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -4647,7 +4648,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -4674,64 +4675,64 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
@@ -4941,7 +4942,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -4976,13 +4977,13 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
 	// Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -4990,64 +4991,64 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -5066,7 +5067,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -5093,58 +5094,58 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM(t *testing.T) {
@@ -5279,94 +5280,94 @@ func Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, false, 195)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
-	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
-	// // Create some user accounts on both chains
-	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
-	// // Get our Bech32 encoded user addresses
-	// dymensionUser, rollappUser := users[0], users[1]
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
 
-	// dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -5385,7 +5386,7 @@ func Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
@@ -5444,64 +5445,64 @@ func Test_SqcRotation_HisSync_OldSeq_Unbonded_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
-	// // Compose an IBC transfer and send from rollapp -> Hub
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Check IBC after switch
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	// Check IBC after switch
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	// require.NoError(t, err)
+	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	require.NoError(t, err)
 
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // Get original account balances
-	// dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
+	// Get original account balances
+	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// // Get the IBC denom
-	// dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// Get the IBC denom
+	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
 
 func Test_SqcRotation_HisSync_OldSeq_Unbonded_P2P_EVM(t *testing.T) {
@@ -5813,7 +5814,7 @@ func Test_SqcRotation_HisSync_OldSeq_Unbonded_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(180 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)

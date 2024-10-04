@@ -322,7 +322,7 @@ var (
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.sequencer.params.notice_period",
-			Value: "180s",
+			Value: "60s",
 		},
 		{
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
