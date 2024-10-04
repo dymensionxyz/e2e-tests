@@ -150,6 +150,12 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	eibcClientImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/eibc-client",
+		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dym",
 		Name:                "dymension",
