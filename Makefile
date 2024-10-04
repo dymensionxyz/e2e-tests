@@ -296,6 +296,9 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-evm: clean-e
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
 
+e2e-test-eibc-client-lower-fee-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Lower_Fee_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
