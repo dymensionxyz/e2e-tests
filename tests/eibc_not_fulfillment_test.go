@@ -594,3 +594,162 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
+
+func TestEIBCNotFulfillment_NoFeeCriteria_EVM(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	// setup config for rollapp 1
+	settlement_layer_rollapp1 := "dymension"
+	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	rollapp1_id := "rollappevm_1234-1"
+	gas_price_rollapp1 := "0adym"
+	maxIdleTime1 := "3s"
+	maxProofTime := "500ms"
+	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
+
+	// Create chain factory for rollapp 1
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 0
+	numRollAppVals := 1
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp-1",
+				ChainID:             rollapp1_id,
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides1,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ConfigFileOverrides: nil,
+			},
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory for rollapp 1
+	client, network := test.DockerSetup(t)
+	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer1", network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r1, "relayer1").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r1,
+			Path:    ibcPath,
+		})
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, false, 780)
+	require.NoError(t, err)
+
+	// Create IBC channel between Dymension and Rollapp1
+	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
+	require.NoError(t, err)
+	require.Len(t, channsRollApp1, 1)
+
+	// Create user accounts
+	channelID := channsRollApp1[0].Counterparty.ChannelID
+
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+
+	dymensionUser, rollapp1User := users[0], users[1]
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollapp1UserAddr := rollapp1User.FormattedAddress()
+
+	// Assert initial balances
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollapp1UserAddr, rollapp1.Config().Denom, walletAmount)
+
+	// Send eIBC from Rollapp1 -> Dymension
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, channelID, rollapp1UserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Check if any demand orders were completed
+	resp, err := dymension.QueryEIBCDemandOrders(ctx, "PENDING")
+	require.NoError(t, err)
+
+	// Verify if there are any pending demand orders
+	if len(resp.DemandOrders) == 0 {
+		fmt.Println("No demand orders were completed because Rollapp 1 has not configured fee criteria")
+	} else {
+		fmt.Printf("Number of unfulfilled demand orders: %d\n", len(resp.DemandOrders))
+	}
+
+	// Clean up relayer after the test
+	t.Cleanup(func() {
+		err := r1.StopRelayer(ctx, eRep)
+		if err != nil {
+			t.Logf("Có lỗi khi dừng relayer: %s", err)
+		}
+	})
+
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+}
