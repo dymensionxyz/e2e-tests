@@ -297,7 +297,7 @@ e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
 
 e2e-test-eibc-client-fulfill-order-got-polled-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_FulFill_Order_Got_Polls_EVM .
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_FulFill_Order_Got_Polled_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
