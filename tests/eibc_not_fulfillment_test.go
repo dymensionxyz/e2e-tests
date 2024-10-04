@@ -747,7 +747,7 @@ func TestEIBCNotFulfillment_NoFeeCriteria_EVM(t *testing.T) {
 	t.Cleanup(func() {
 		err := r1.StopRelayer(ctx, eRep)
 		if err != nil {
-			t.Logf("Có lỗi khi dừng relayer: %s", err)
+			t.Logf("An error occurred while stopping the relayer: %s", err)
 		}
 	})
 
