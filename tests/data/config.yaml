@@ -1,5 +1,5 @@
 home_dir: /root/.eibc-client
-node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Got_Polled_EVM:26657
 db_path: mongodb://mongodb-container:27017
 gas:
     prices: ""
@@ -10,9 +10,9 @@ order_polling:
     interval: 30s
     enabled: false
 whale:
-    account_name: Test_EIBC_Client_Success_EVM-dymension_100-1-pqj
+    account_name: Test_EIBC_Client_Got_Polled_EVM-dymension_100-1-bdh
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-20f9f014ef3591c315b1261fa8963ddd291cf5644b240537c4a209eb52d300671
+    keyring_dir: /root/dymension-hub-2dfcaf696e1d5e15d81b3aee96690570c2d287aa0da059b37135e6befa03ac881
     allowed_balance_thresholds:
         adym: "1000"
         ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: "1000"

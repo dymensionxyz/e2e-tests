@@ -458,7 +458,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
-func Test_EIBC_Client_FulFill_Order_Got_Polled_EVM(t *testing.T) {
+func Test_EIBC_Client_Got_Polled_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -701,6 +701,9 @@ func Test_EIBC_Client_FulFill_Order_Got_Polled_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	StartDB(ctx, t, client, network)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Send a ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
