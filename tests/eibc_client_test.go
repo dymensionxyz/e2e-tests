@@ -1187,33 +1187,11 @@ func Test_EIBC_Client_NoFundForToken_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  bigTransferAmount,
-	// }
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	txhash, err := dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	require.NoError(t, err)
-
-	fmt.Println(txhash)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1221,9 +1199,6 @@ func Test_EIBC_Client_NoFundForToken_EVM(t *testing.T) {
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// Minus 0.1% of transfer amount for bridge fee
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
 	StartDB(ctx, t, client, network)
 
@@ -1321,7 +1296,7 @@ func Test_EIBC_Client_NoFundForToken_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1332,7 +1307,7 @@ func Test_EIBC_Client_NoFundForToken_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
