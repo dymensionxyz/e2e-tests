@@ -346,6 +346,9 @@ e2e-test-eibc-client-success-evm: clean-e2e
 
 e2e-test-eibc-client-nofeecriteria-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFeeCriteria_EVM .
+
+e2e-test-eibc-client-nofundfortoken-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFundForToken_EVM .
 	
 e2e-test-eibc-client-fulfill-order-got-polled-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Got_Polled_EVM .
