@@ -173,9 +173,6 @@ e2e-test-eibc-not-fulfillment-evm: clean-e2e
 e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
 
-e2e-test-eibc-not-fulfillment-nofeecriteria-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestEIBCNotFulfillment_NoFeeCriteria_EVM .
-
 e2e-test-erc20-hub-to-rollapp-without-register:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestERC20HubToRollAppWithoutRegister_EVM .
 	
@@ -346,6 +343,9 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
+
+e2e-test-eibc-client-nofeecriteria-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFeeCriteria_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
