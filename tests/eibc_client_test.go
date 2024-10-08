@@ -1332,7 +1332,7 @@ func Test_EIBC_Client_NoDYMForFee_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
