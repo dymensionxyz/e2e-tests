@@ -29,7 +29,7 @@ on:
   
 jobs:
     build-evm-matrix:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-latest-m
       outputs:
         matrix: ${{ steps.set-matrix.outputs.matrix }}
       steps:
@@ -56,7 +56,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix: ${{ fromJSON(needs.build-evm-matrix.outputs.matrix) }}
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-latest-m
       steps:
         - uses: actions/checkout@v4
           with:
