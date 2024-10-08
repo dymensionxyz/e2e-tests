@@ -1387,7 +1387,7 @@ func Test_EIBC_Client_BothRA_EVM(t *testing.T) {
 	var options ibc.TransferOptions
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, options)
 	require.NoError(t, err)
 
 	transferData = ibc.WalletData{
