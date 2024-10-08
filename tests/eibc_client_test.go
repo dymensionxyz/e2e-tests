@@ -1248,7 +1248,7 @@ func Test_EIBC_Client_BothRA_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  bigTransferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
