@@ -356,6 +356,15 @@ e2e-test-eibc-client-lower-fee-evm: clean-e2e
 e2e-test-eibc-client-fulfill-order-got-polled-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Got_Polled_EVM .
 
+e2e-test-eibc-client-ack-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Acknowledgement_EVM .
+	
+e2e-test-eibc-client-nodymforfee-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoDYMForFee_EVM .
+	
+e2e-test-eibc-client-both-ra-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_BothRA_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
