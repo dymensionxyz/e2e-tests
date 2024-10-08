@@ -350,6 +350,9 @@ e2e-test-eibc-client-lower-fee-evm: clean-e2e
 e2e-test-eibc-client-fulfill-order-got-polled-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Got_Polled_EVM .
 
+e2e-test-eibc-client-ack-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Acknowledgement_EVM .
+	
 e2e-test-eibc-client-nodymforfee-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoDYMForFee_EVM .
 	
