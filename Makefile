@@ -344,6 +344,12 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
 
+e2e-test-eibc-client-nofeecriteria-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFeeCriteria_EVM .
+
+e2e-test-eibc-client-nofundfortoken-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFundForToken_EVM .
+	
 e2e-test-eibc-client-lower-fee-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Lower_Fee_EVM .
 	
