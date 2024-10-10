@@ -314,7 +314,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -560,7 +560,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -991,7 +991,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -1232,7 +1232,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 
 	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(resp.Metadatas))
+	require.Equal(t, 2, len(resp.Metadatas))
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
