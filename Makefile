@@ -218,6 +218,9 @@ e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
 e2e-test-rollapp-genesis-transfer-connection-blocking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferConnectionBlock_EVM .
 
+e2e-test-genesis-bridge-invalid-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeInvalid_EVM .
+
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
 
@@ -511,6 +514,9 @@ e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_rollapp_wasm: clea
 
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
+
+e2e-test-genesis-bridge-invalid-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeInvalid_Wasm .
 
 e2e-test-rollapp-freeze-cant-fulfill-pending-eibc-packet-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestRollAppFreezeEibcPending_Wasm .
