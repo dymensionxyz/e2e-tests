@@ -30,7 +30,7 @@ jobs:
         tests:
           - "e2e-test-rollapp-upgrade-evm"
       fail-fast: false
-    runs-on: ubuntu-latest-m
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:

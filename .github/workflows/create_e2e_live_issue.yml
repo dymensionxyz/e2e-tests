@@ -7,7 +7,7 @@ on:
           - edited
 jobs:
   create_e2e_live_issue:
-    runs-on: ubuntu-latest-m
+    runs-on: self-hosted
 
     steps:
       - name: Check if a checkbox was checked

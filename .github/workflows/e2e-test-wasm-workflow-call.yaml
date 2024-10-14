@@ -29,7 +29,7 @@ on:
   
 jobs:
     build-wasm-matrix:
-      runs-on: ubuntu-latest-m
+      runs-on: self-hosted
       outputs:
         matrix: ${{ steps.set-matrix.outputs.matrix }}
       steps:
@@ -55,7 +55,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix: ${{ fromJSON(needs.build-wasm-matrix.outputs.matrix) }}
-      runs-on: ubuntu-latest-m
+      runs-on: self-hosted
       steps:
         - uses: actions/checkout@v4
           with:
