@@ -1176,7 +1176,7 @@ func TestGenesisBridgeNoRelayAck_Wasm(t *testing.T) {
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
-func TestGenesisBridgeBeforeCanonicalChannel_EVM(t *testing.T) {
+func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -1268,7 +1268,7 @@ func TestGenesisBridgeBeforeCanonicalChannel_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 780)
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
@@ -1280,7 +1280,7 @@ func TestGenesisBridgeBeforeCanonicalChannel_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1288,17 +1288,24 @@ func TestGenesisBridgeBeforeCanonicalChannel_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	// require.Error(t, err)
+
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.Error(t, err)
 
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-
+	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
 }

@@ -222,7 +222,7 @@ e2e-test-genesis-bridge-invalid-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeInvalid_EVM .
 
 e2e-test-genesis-bridge-beforeCanonicalChannel-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeBeforeCanonicalChannel_EVM .
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeBeforeChannelSet_EVM .
 
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
