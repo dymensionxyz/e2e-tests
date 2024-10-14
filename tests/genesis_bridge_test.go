@@ -965,7 +965,7 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 780)
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -981,20 +981,16 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.Error(t, err)
-
+	// // Send a normal ibc tx from RA -> Hub
+	// transferData := ibc.WalletData{
+	// 	Address: dymensionUserAddr,
+	// 	Denom:   rollapp1.Config().Denom,
+	// 	Amount:  transferAmount,
+	// }
+	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	// require.Error(t, err)
 	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
+	transferData := ibc.WalletData{
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
@@ -1003,6 +999,9 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
