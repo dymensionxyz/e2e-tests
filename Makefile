@@ -515,6 +515,9 @@ e2e-test-rollapp_genesis_transfer_hub_to_rollapp_with_trigger_rollapp_wasm: clea
 e2e-test-rollapp_genesis_transfer_back_and_forth_with_trigger_both_wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTransferTriggerGenesisBoth_Wasm .
 
+e2e-test-genesis-bridge-invalid-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeInvalid_Wasm .
+
 e2e-test-rollapp-freeze-cant-fulfill-pending-eibc-packet-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestRollAppFreezeEibcPending_Wasm .
 
