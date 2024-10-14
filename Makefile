@@ -559,6 +559,9 @@ e2e-test-update-do-timeout-unallowed-wasm: clean-e2e
 e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_Wasm .
 
+e2e-test-genesis-bridge-no-relay-ack-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
