@@ -1280,7 +1280,21 @@ func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.Error(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  bigTransferAmount,
+	}
+
+	_, err = rollapp1.SendIBCTransfer(ctx, "", rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.Error(t, err, "IBC transfer should fail because the channel is not created yet")
+
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1288,24 +1302,15 @@ func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.Error(t, err)
-
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-
 	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
+		Amount:  bigTransferAmount,
 	}
-
-	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
 }

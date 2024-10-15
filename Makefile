@@ -221,7 +221,7 @@ e2e-test-rollapp-genesis-transfer-connection-blocking-evm: clean-e2e
 e2e-test-genesis-bridge-invalid-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeInvalid_EVM .
 
-e2e-test-genesis-bridge-beforeCanonicalChannel-evm: clean-e2e
+e2e-test-genesis-bridge-before-channel-set-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeBeforeChannelSet_EVM .
 
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
