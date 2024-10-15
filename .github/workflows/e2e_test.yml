@@ -6,10 +6,6 @@ on:
     types:
       # trigger workflow if PR is opened directly as R4R.
       - opened
-      # trigger workflow if changes are pushed to the branch.
-      - synchronize
-      # trigger workflow if PR is marked ready for review.
-      - ready_for_review
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -22,7 +18,7 @@ permissions:
 
 jobs:
   build-evm-matrix:
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -39,7 +35,7 @@ jobs:
         env:
           ROLLAPP_TYPE: "EVM"
   build-wasm-matrix:
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -62,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-evm-matrix.outputs.matrix) }}
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,7 +78,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix: ${{ fromJSON(needs.build-wasm-matrix.outputs.matrix) }}
-      runs-on: ubuntu-latest-m
+      runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
           with:
