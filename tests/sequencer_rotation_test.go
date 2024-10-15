@@ -2710,6 +2710,12 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
 	// Compose an IBC transfer and send from rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
