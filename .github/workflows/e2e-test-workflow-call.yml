@@ -34,7 +34,7 @@ on:
 
 jobs:
   build-evm-matrix:
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -54,7 +54,7 @@ jobs:
           TEST_NAME: '${{ inputs.test }}'
           ROLLAPP_TYPE: "EVM"
   build-wasm-matrix:
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -80,7 +80,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-evm-matrix.outputs.matrix) }}
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -117,7 +117,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix: ${{ fromJSON(needs.build-wasm-matrix.outputs.matrix) }}
-      runs-on: ubuntu-latest-m
+      runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v4
           with:
