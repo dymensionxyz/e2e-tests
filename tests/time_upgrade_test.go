@@ -38,7 +38,6 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["block_time"] = "10s"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -144,6 +143,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	rollappHeightBeforeUpgrade, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err, "Failed to query Rollapp1 height before upgrade")
 	fmt.Printf("Rollapp1 current block height before upgrade version: %d\n", rollappHeightBeforeUpgrade)
+
+	//Wait 10s for create a gov proposal to change rollapp params version
+	time.Sleep(10 * time.Second)
 
 	// Change gov upgrade version
 	newBridgeFeeParam := json.RawMessage(`"0"`)
