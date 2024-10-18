@@ -11340,6 +11340,8 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
+	go StartDA()
+
 	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -11347,8 +11349,9 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "1s"
+	dymintTomlOverrides["max_proof_time"] = "200ms"
+	dymintTomlOverrides["batch_submit_time"] = "60s"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -11555,6 +11558,8 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
+	go StopDA()
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
