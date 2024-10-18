@@ -377,6 +377,9 @@ e2e-test-eibc-client-noenoughbalance-evm: clean-e2e
 e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_EVM .
 
+e2e-test-timebaseupgrade-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
