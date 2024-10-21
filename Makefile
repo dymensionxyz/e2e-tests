@@ -377,6 +377,9 @@ e2e-test-eibc-client-noenoughbalance-evm: clean-e2e
 e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_EVM .
 
+e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -567,6 +570,9 @@ e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
 
 e2e-test-genesis-bridge-no-relay-ack-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_Wasm .
+
+e2e-test-sequencer-rotation-roatate-request-no-da-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
