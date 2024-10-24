@@ -122,7 +122,7 @@ var (
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
-		Version:    dymensionVersion,
+		Version:    "6793f657",
 		UidGid:     "1025:1025",
 	}
 

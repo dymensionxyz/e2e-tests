@@ -1,13 +1,16 @@
 package tests
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -37,13 +40,13 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
-	numRollAppFn := 0
+	numRollAppFn := 1
 	numRollAppVals := 1
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
@@ -115,6 +118,75 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	}, nil, "", nil, false, 780)
 	require.NoError(t, err)
 
+	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
+
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
+
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	addrDym, _ := r.GetWallet(dymension.GetChainID())
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrDym.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrRA.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   rollapp1.Config().Denom,
+	})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -144,29 +216,76 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	require.NoError(t, err, "Failed to query Rollapp1 height before upgrade")
 	fmt.Printf("Rollapp1 current block height before upgrade version: %d\n", rollappHeightBeforeUpgrade)
 
-	//Wait 10s for create a gov proposal to change rollapp params version
 	time.Sleep(10 * time.Second)
 
-	// Change gov upgrade version
-	newBridgeFeeParam := json.RawMessage(`"0"`)
-	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
-		&utils.ParamChangeProposalJSON{
-			Title:       "Change bridge fee params",
-			Description: "Change bridge fee params",
-			Changes: utils.ParamChangesJSON{
-				utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
-			},
-			Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-		})
-	require.NoError(t, err)
+	height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
-	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	haltHeight := height + haltHeightDelta
+
+	msg := map[string]interface{}{
+		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
+		"original_upgrade": map[string]interface{}{
+			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+			"plan": map[string]interface{}{
+				"name":                  "v0.2.1",
+				"time":                  "0001-01-01T00:00:00Z",
+				"height":                "1800",
+				"info":                  "{}",
+				"upgraded_client_state": nil,
+			},
+		},
+		"upgrade_time": "2024-09-06T18:10:00Z",
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + rollapp1.Config().Denom, // greater than min deposit
+		Title:       "rollapp Upgrade 1",
+		Summary:     "test",
+		Description: "First software upgrade",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   true,
+	}
+
+	upgradeTx, err := rollapp1.SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	require.NoError(t, err, "error submitting software upgrade proposal tx")
+	fmt.Println("upgradeTx", upgradeTx)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	prop, _ := rollapp1.QueryProposal(ctx, upgradeTx.ProposalID)
+	fmt.Println("prop: ", prop)
+	require.Equal(t, prop.Status, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
+
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
+	defer timeoutCtxCancel()
+
+	height, err = rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height before upgrade")
+
+	// this should timeout due to chain halt at upgrade height.
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
+
+	// bring down nodes to prepare for upgrade
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err, "error stopping node(s)")
+
+	// upgrade version on all nodes
+	rollapp1.UpgradeVersion(ctx, client, RollappEVMMainRepo, rollappEVMVersion)
+
+	// start all nodes back up.
+	// validators reach consensus on first block after upgrade height
+	// and chain block production resumes.
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err, "error starting upgraded node(s)")
 
 	// Wait for chain halt within 10 second
 	startTime := time.Now()
