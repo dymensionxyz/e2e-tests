@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
+	"io"
+	"log"
+	"net/http"
+
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
@@ -17,6 +21,26 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
+
+func blockValidation(fullnodeAddr, blockHeight string) string {
+	// Construct the full URL
+	url := fmt.Sprintf("http://%s:/block_validated?height=%s", fullnodeAddr, blockHeight)
+
+	// Perform the GET request
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Failed to make the request: %v", err)
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatalf("Failed to read response body: %v", err)
+	}
+
+	return string(body)
+}                      
 
 func TestFraudDetection_EVM(t *testing.T) {
 	if testing.Short() {
@@ -132,10 +156,9 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
-	resp, err := rollapp1.FullNodes[0].QueryBlockValidation(ctx, string(fullnodeHeight))
-	require.NoError(t, err)
+	resp := blockValidation(rollapp1.FullNodes[0].Name(), fmt.Sprint(fullnodeHeight))
 	require.Equal(t, resp, "0")
-	
+
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
@@ -157,7 +180,6 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	fullnodeHeight, err = rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
-	resp, err = rollapp1.FullNodes[0].QueryBlockValidation(ctx, string(fullnodeHeight))
-	require.NoError(t, err)
+	resp = blockValidation(rollapp1.FullNodes[0].Name(), fmt.Sprint(fullnodeHeight))
 	require.Equal(t, resp, "2")
 }
