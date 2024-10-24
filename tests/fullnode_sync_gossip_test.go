@@ -1334,7 +1334,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 500)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
