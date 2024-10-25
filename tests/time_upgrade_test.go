@@ -115,7 +115,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, true, 780)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -216,13 +216,12 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	require.NoError(t, err, "Failed to query Rollapp1 height before upgrade")
 	fmt.Printf("Rollapp1 current block height before upgrade version: %d\n", rollappHeightBeforeUpgrade)
 
-	time.Sleep(10 * time.Second)
-
 	height, err := rollapp1.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	haltHeight := height + haltHeightDelta
 
+	upgradeTime := time.Now().Add(40 * time.Second).Format(time.RFC3339)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"original_upgrade": map[string]interface{}{
@@ -235,7 +234,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 				"upgraded_client_state": nil,
 			},
 		},
-		"upgrade_time": "2024-09-06T18:10:00Z",
+		"upgrade_time": upgradeTime,
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -244,7 +243,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	}
 
 	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom, // greater than min deposit
+		Deposit:     "500000000000" + rollapp1.Config().Denom,
 		Title:       "rollapp Upgrade 1",
 		Summary:     "test",
 		Description: "First software upgrade",
@@ -252,17 +251,20 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 		Expedited:   true,
 	}
 
-	upgradeTx, err := rollapp1.SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
-	fmt.Println("upgradeTx", upgradeTx)
 
-	err = rollapp1.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
+	fmt.Printf("Successfully deposited for proposal: %v\n", txProposal)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
-	prop, _ := rollapp1.QueryProposal(ctx, upgradeTx.ProposalID)
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	require.NoError(t, err)
+	prop, _ := rollapp1.QueryProposal(ctx, "1")
 	fmt.Println("prop: ", prop)
-	require.Equal(t, prop.Status, cosmos.ProposalStatusPassed)
+	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
@@ -275,6 +277,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
 
 	// bring down nodes to prepare for upgrade
+	time.Sleep(50 * time.Second)
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
 
@@ -284,22 +287,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	// start all nodes back up.
 	// validators reach consensus on first block after upgrade height
 	// and chain block production resumes.
+	
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err, "error starting upgraded node(s)")
-
-	// Wait for chain halt within 10 second
-	startTime := time.Now()
-	chainIsBackOnline := false
-
-	for time.Since(startTime) < 10*time.Second {
-		_, err := rollapp1.GetNode().Height(ctx)
-		if err == nil {
-			chainIsBackOnline = true
-			break
-		}
-		time.Sleep(1 * time.Second)
-	}
-	require.True(t, chainIsBackOnline, "Chain did not come back online within 10 seconds after upgrade")
 
 	rollappHeightAfterUpgrade, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err, "Failed to query Rollapp1 height after upgrade")
