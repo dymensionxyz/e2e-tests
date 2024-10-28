@@ -491,7 +491,7 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(connections))
+	require.Equal(t, 2, len(connections))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -662,7 +662,7 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 
 	connections, err := r.GetConnections(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(connections))
+	require.Equal(t, 2, len(connections))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
