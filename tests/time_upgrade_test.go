@@ -220,8 +220,18 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	haltHeight := height + haltHeightDelta
+	check, _ := rollapp1.GetNode().CliContext().GetNode()
+	blockInfo, _ := check.Block(ctx, &height)
+	// println("check data blocktime: ",blockInfo.Block.String())
+	// blockTime, err := rollapp1.GetLatestBlockTime(ctx)
+	blockTime := blockInfo.Block.Header.Time
+	fmt.Println("blockTime:", blockTime.Format(time.RFC3339))
+	if err != nil {
+		panic(fmt.Errorf("failed to get latest block time: %w", err))
+	}
 
-	upgradeTime := time.Now().Add(40 * time.Second).Format(time.RFC3339)
+	upgradeTime := blockTime.Add(40 * time.Second).Format(time.RFC3339)
+	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"original_upgrade": map[string]interface{}{
@@ -229,7 +239,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 			"plan": map[string]interface{}{
 				"name":                  "v0.2.1",
 				"time":                  "0001-01-01T00:00:00Z",
-				"height":                "1800",
+				"height":                haltHeight,
 				"info":                  "{}",
 				"upgraded_client_state": nil,
 			},
@@ -273,12 +283,29 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	height, err = rollapp1.Height(ctx)
 	require.NoError(t, err, "error fetching height before upgrade")
 
-	// this should timeout due to chain halt at upgrade height.
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
+	// // this should timeout due to chain halt at upgrade height.
+	// _ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
 
 	// bring down nodes to prepare for upgrade
-	time.Sleep(50 * time.Second)
-	err = rollapp1.StopAllNodes(ctx)
+	check2, _ := rollapp1.GetNode().CliContext().GetNode()
+	blockInfo2, _ := check2.Block(ctx, &height)
+	blockTime2 := blockInfo2.Block.Header.Time
+	fmt.Println("blockTime:", blockTime2.Format(time.RFC3339))
+	parsedUpgradeTime, err := time.Parse(time.RFC3339, upgradeTime)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse upgrade time: %w", err))
+	}
+
+	err = testutil.WaitForTime(timeoutCtx, blockTime2, parsedUpgradeTime)
+	if err != nil {
+		fmt.Errorf("failed to wait for upgrade time: %w", err)
+	}
+
+	if blockTime2.After(parsedUpgradeTime) {
+		err = rollapp1.StopAllNodes(ctx)
+	} else {
+		fmt.Println("blockTime2 is before upgradeTime")
+	}
 	require.NoError(t, err, "error stopping node(s)")
 
 	// upgrade version on all nodes
@@ -287,7 +314,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	// start all nodes back up.
 	// validators reach consensus on first block after upgrade height
 	// and chain block production resumes.
-	
+
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err, "error starting upgraded node(s)")
 
