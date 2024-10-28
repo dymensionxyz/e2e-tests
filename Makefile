@@ -383,6 +383,9 @@ e2e-test-timebaseupgrade-evm: clean-e2e
 e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
 
+e2e-test-timebaseupgradeinpast-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
