@@ -4378,13 +4378,13 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -4400,7 +4400,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -4409,7 +4409,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
 	require.NoError(t, err)
 
 	sequencer, err = dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
@@ -4489,7 +4489,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check IBC after switch
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err = rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
@@ -4500,7 +4500,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	_, err = dymension.FullNodes[0].FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
@@ -4710,7 +4710,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	// require.NoError(t, err)
 
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	// rollappHeight, err := rollapp1.FullNodes[0].Height(ctx)
 	// require.NoError(t, err)
 
 	// // Assert balance was updated on the hub
@@ -4721,7 +4721,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	// require.NoError(t, err)
 	// require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	// _, err = dymension.FullNodes[0].FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	// require.NoError(t, err)
 
 	// // Get the IBC denom for urax on Hub
@@ -4762,13 +4762,13 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -4784,7 +4784,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -4793,7 +4793,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
 	require.NoError(t, err)
 
 	sequencer, err = dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
@@ -4884,7 +4884,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	// require.NoError(t, err)
 	// require.True(t, isFinalized)
 
-	// _, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	// _, err = dymension.FullNodes[0].FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
 	// require.NoError(t, err)
 
 	// // Get the IBC denom for urax on Hub
@@ -5147,13 +5147,13 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -5169,7 +5169,7 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -5193,10 +5193,10 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer2
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
@@ -5459,13 +5459,13 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -5481,7 +5481,7 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -5505,10 +5505,10 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer2
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
@@ -5756,13 +5756,13 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -5778,7 +5778,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -5885,10 +5885,10 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer2
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
@@ -6136,13 +6136,13 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -6158,7 +6158,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -6265,10 +6265,10 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer2
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	seqAddr2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr2)
@@ -6535,13 +6535,13 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -6557,7 +6557,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -6899,13 +6899,13 @@ func Test_SeqRotation_AccumData_DA_Wasm(t *testing.T) {
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -6921,7 +6921,7 @@ func Test_SeqRotation_AccumData_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -7245,13 +7245,13 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -7267,7 +7267,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -7677,13 +7677,13 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 	// users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -7699,7 +7699,7 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
