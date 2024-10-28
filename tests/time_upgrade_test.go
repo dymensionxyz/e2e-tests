@@ -262,7 +262,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	}
 
 	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
-	require.Error(t, err, "failed to submit proposal") 
+	require.NoError(t, err, "failed to submit proposal") 
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
 	fmt.Printf("Successfully deposited for proposal: %v\n", txProposal)
@@ -271,7 +271,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	require.NoError(t, err, "failed to submit votes")
 
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
-	require.NoError(t, err)
+	require.Error(t, err)   // this should error out as upgrade time is in the past
 	prop, _ := rollapp1.QueryProposal(ctx, "1")
 	fmt.Println("prop: ", prop)
 	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
