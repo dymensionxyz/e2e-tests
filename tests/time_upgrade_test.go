@@ -211,7 +211,6 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 1, "should have 1 sequences")
 
-	// Assuming block height is located in status["SyncInfo"]["latest_block_height"]
 	rollappHeightBeforeUpgrade, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err, "Failed to query Rollapp1 height before upgrade")
 	fmt.Printf("Rollapp1 current block height before upgrade version: %d\n", rollappHeightBeforeUpgrade)
@@ -220,8 +219,15 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	haltHeight := height + haltHeightDelta
+	check, _ := rollapp1.GetNode().CliContext().GetNode()
+	blockInfo, _ := check.Block(ctx, &height)
 
-	upgradeTime := time.Now().Add(40 * time.Second).Format(time.RFC3339)
+	blockTime := blockInfo.Block.Header.Time
+	fmt.Println("blockTime:", blockTime.Format(time.RFC3339))
+	if err != nil {
+		panic(fmt.Errorf("failed to get latest block time: %w", err))
+	}
+
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"original_upgrade": map[string]interface{}{
@@ -229,12 +235,12 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 			"plan": map[string]interface{}{
 				"name":                  "v0.2.1",
 				"time":                  "0001-01-01T00:00:00Z",
-				"height":                "1800",
+				"height":                haltHeight,
 				"info":                  "{}",
 				"upgraded_client_state": nil,
 			},
 		},
-		"upgrade_time": upgradeTime,
+		"upgrade_time": "2024-09-06T18:10:00Z",
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -252,49 +258,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	}
 
 	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
-	require.NoError(t, err, "error submitting software upgrade proposal tx")
-
-	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
-	fmt.Printf("Successfully deposited for proposal: %v\n", txProposal)
-
-	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
-	require.NoError(t, err)
-	prop, _ := rollapp1.QueryProposal(ctx, "1")
-	fmt.Println("prop: ", prop)
-	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
-	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
-
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
-	defer timeoutCtxCancel()
-
-	height, err = rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height before upgrade")
-
-	// this should timeout due to chain halt at upgrade height.
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
-
-	// bring down nodes to prepare for upgrade
-	time.Sleep(50 * time.Second)
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err, "error stopping node(s)")
-
-	// upgrade version on all nodes
-	rollapp1.UpgradeVersion(ctx, client, RollappEVMMainRepo, rollappEVMVersion)
-
-	// start all nodes back up.
-	// validators reach consensus on first block after upgrade height
-	// and chain block production resumes.
-	
-	err = rollapp1.StartAllNodes(ctx)
-	require.NoError(t, err, "error starting upgraded node(s)")
-
-	rollappHeightAfterUpgrade, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err, "Failed to query Rollapp1 height after upgrade")
-	fmt.Printf("Rollapp1 current block height after upgrade version: %d\n", rollappHeightAfterUpgrade)
-	require.Greater(t, rollappHeightAfterUpgrade, rollappHeightBeforeUpgrade, "Block height after upgrade should be greater than before upgrade")
+	require.Error(t, err)  //upgrade time is in the past
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
