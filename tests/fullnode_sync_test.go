@@ -53,6 +53,14 @@ func StartDA() {
 	}
 }
 
+func StopDA() {
+	conf := grpcda.DefaultConfig
+	kv := store.NewDefaultKVStore(".", "db", "dymint")
+	srv := mockserv.GetServer(kv, conf, nil)
+	log.Println("Stopping DA...")
+	srv.Stop()
+}
+
 func TestFullnodeSync_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
