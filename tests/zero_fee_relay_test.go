@@ -250,12 +250,9 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	// Canot minus 0.1% of transfer amount for bridge fee
+	// Don't need minus 0.1% of transfer amount for bridge fee because permissioned relayer address of sequencer can send free IBC txs on the rollapp
 	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount)
-
-	res, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	sequencerAddr2 := res. // Get the address of the second sequencer
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
@@ -264,7 +261,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, sequencerAddr2, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, sequencer, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
@@ -295,37 +292,6 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
-
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
-
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
