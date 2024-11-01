@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -422,13 +423,17 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
+	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
-	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyHubGenesisKV := append(
@@ -614,7 +619,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
-	
+
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
