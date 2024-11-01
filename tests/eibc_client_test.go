@@ -613,6 +613,18 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	StartDB(ctx, t, client, network)
 
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", "members.json")
+	fmt.Println(txHash)
+	require.NoError(t, err)
+
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", "policy.json", "1")
+	fmt.Println(txHash)
+	require.NoError(t, err)
+
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	fmt.Println(txHash)
+	require.NoError(t, err)
+
 	configFile := "data/config.yaml"
 	content, err := os.ReadFile(configFile)
 	require.NoError(t, err)
