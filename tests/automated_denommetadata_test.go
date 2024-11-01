@@ -1413,7 +1413,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 		modifyTransferData.Address, fmt.Sprintf("%s%s", strconv.FormatFloat(modifyTransferData.Amount, 'f', 6, 64), modifyTransferData.Denom),
 		"--gas", "auto",
 	}
-	_, err = dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, command...)
+	_, err = dymension.Validators[0].ExecTx(ctx, dymensionUserAddr, command...)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
@@ -1615,7 +1615,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 		modifyTransferData.Address, fmt.Sprintf("%s%s", strconv.FormatFloat(modifyTransferData.Amount, 'f', 6, 64), modifyTransferData.Denom),
 		"--gas", "auto",
 	}
-	_, err = dymension.FullNodes[0].ExecTx(ctx, dymensionUserAddr, command...)
+	_, err = dymension.Validators[0].ExecTx(ctx, dymensionUserAddr, command...)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
