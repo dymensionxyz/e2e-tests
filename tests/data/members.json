@@ -1,0 +1,8 @@
+{
+    "members": [
+         {
+              "address": "<operator_address>",
+              "weight": "1", "metadata": "president"
+         }
+      ]
+ }
