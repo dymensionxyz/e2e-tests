@@ -612,7 +612,9 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 	})
 	require.NoError(t, err)
-
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+	
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
