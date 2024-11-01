@@ -350,32 +350,26 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
 
-e2e-test-eibc-client-nofeecriteria-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFeeCriteria_EVM .
-
-e2e-test-eibc-client-nofundfortoken-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFundForToken_EVM .
-	
-e2e-test-eibc-client-lower-fee-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Lower_Fee_EVM .
-	
-e2e-test-eibc-client-fulfill-order-got-polled-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Got_Polled_EVM .
-
-e2e-test-eibc-client-ack-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Acknowledgement_EVM .
-	
-e2e-test-eibc-client-nodymforfee-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoDYMForFee_EVM .
-	
-e2e-test-eibc-client-both-ra-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_BothRA_EVM .
-
-e2e-test-eibc-client-noenoughbalance-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoEnoughBalance_EVM .
+e2e-test-eibc-client-nofulfillrollapp-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFulfillRollapp_EVM .
 
 e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_EVM .
+
+e2e-test-timebaseupgrade-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_EVM .
+
+e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
+
+e2e-test-timebaseupgradeinpast-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
+
+e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RotatedSequencer_EVM .
+	
+e2e-test-zero-fee-relay-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
@@ -567,6 +561,12 @@ e2e-test-eibc-timeout_and_fulfill-wasm: clean-e2e
 
 e2e-test-genesis-bridge-no-relay-ack-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_Wasm .
+
+e2e-test-sequencer-rotation-roatate-request-no-da-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_Wasm .
+
+e2e-test-zero-fee-relay-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_Wasm .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
