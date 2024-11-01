@@ -1214,7 +1214,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	config.OrderPolling.Enabled = false
 	config.Bots.KeyringBackend = "test"
 	config.Bots.KeyringDir = "/root/.eibc-client"
-	// config.Bots.NumberOfBots = 10
+	config.Bots.NumberOfBots = 10
 	config.Bots.MaxOrdersPerTx = 10
 	config.Bots.TopUpFactor = 5
 	config.Whale.AccountName = dymensionUser.KeyName()
@@ -1260,7 +1260,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	multiplier := math.NewInt(10)
+	multiplier := math.NewInt(100)
 
 	eibcFee := transferAmount.Quo(multiplier)
 
