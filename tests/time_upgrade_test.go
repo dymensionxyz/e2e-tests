@@ -545,7 +545,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 		panic(fmt.Errorf("failed to get latest block time: %w", err))
 	}
 
-	upgradeTime := "2024-09-06T18:10:00Z"  // upgrade time in the past
+	upgradeTime := "2024-09-06T18:10:00Z" // upgrade time in the past
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
@@ -577,7 +577,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	}
 
 	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
-	require.NoError(t, err, "failed to submit proposal") 
+	require.NoError(t, err, "failed to submit proposal")
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
 	fmt.Printf("Successfully deposited for proposal: %v\n", txProposal)
@@ -586,7 +586,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	require.NoError(t, err, "failed to submit votes")
 
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
-	require.Error(t, err)   // this should error out as upgrade time is in the past
+	require.Error(t, err) // this should error out as upgrade time is in the past
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
