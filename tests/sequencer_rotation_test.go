@@ -1637,7 +1637,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -2074,7 +2074,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -2543,7 +2543,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -2994,7 +2994,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -3407,7 +3407,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -3899,7 +3899,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -5795,7 +5795,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -6183,7 +6183,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -7316,7 +7316,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -7764,7 +7764,7 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -9659,7 +9659,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -10836,7 +10836,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -11289,7 +11289,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))

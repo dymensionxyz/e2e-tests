@@ -307,12 +307,12 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -1144,12 +1144,12 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -1808,23 +1808,23 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp2.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp2.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -2331,12 +2331,12 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
