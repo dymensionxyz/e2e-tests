@@ -409,6 +409,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		balance, err = rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of moduleAccAddr right before sending eIBC transfer (that fulfilled):", balance)
+
 		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
 		require.NoError(t, err)
 
@@ -457,7 +458,7 @@ func TestEIBC_AckError_Dym_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), rollappUserAddr)
+		res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 		fmt.Println(res)
 		require.NoError(t, err)
 
@@ -906,7 +907,7 @@ func TestEIBC_AckError_RA_Token_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), rollappUserAddr)
+		res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 		fmt.Println(res)
 		require.NoError(t, err)
 

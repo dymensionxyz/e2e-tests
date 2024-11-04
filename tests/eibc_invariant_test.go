@@ -301,7 +301,7 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
