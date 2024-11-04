@@ -364,6 +364,7 @@ e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
 
 e2e-test-fraud-detection-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetection_EVM .
+
 e2e-test-timebaseupgradeinpast-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
 
