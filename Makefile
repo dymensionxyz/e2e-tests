@@ -371,6 +371,9 @@ e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
 e2e-test-zero-fee-relay-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_EVM .
 
+e2e-test-hardfork-kick-proposer-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_KickProposer_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	// "time"
+	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -1670,6 +1670,8 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
+	go StartDA()
+
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -1689,18 +1691,18 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 			Key:   "app_state.staking.params.unbonding_time",
 			Value: "300s",
 		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_blocks",
-			Value: "5",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_interval",
-			Value: "5",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.kick_threshold",
-			Value: `{"denom":"uband","amount":"250000"}`,
-		},
+				// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_blocks",
+		// 	Value: "5",
+		// },
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_interval",
+		// 	Value: "5",
+		// },
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.kick_threshold",
+		// 	Value: `{"denom":"uband","amount":"250000"}`,
+		// },
 	)
 
 	modifyRAGenesisKV := append(
@@ -1712,6 +1714,10 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 		cosmos.GenesisKV{
 			Key:   "app_state.staking.params.unbonding_time",
 			Value: "300s",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
 		},
 	)
 
@@ -1922,11 +1928,29 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
-	// Stop sequencer
+	// Unbond sequencer1
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	require.NoError(t, err)
 
-	// Wait alit bit
+	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	require.NoError(t, err)
 
-	// bond new sequencer
+	queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	lastBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(60 * time.Second)
+
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
+
 
 	// kick current proposer
 	kicker := res.Sequencers[1].SequencerAddress
@@ -1936,51 +1960,24 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// setup hard fork here
-
-	// // Unbond sequencer1
-	// err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
-	// require.NoError(t, err)
-
-	// seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
-	// require.NoError(t, err)
-
-	// queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, seqAddr)
-	// require.NoError(t, err)
-	// require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
-
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
-
-	// lastBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// time.Sleep(60 * time.Second)
-
-	// queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	// require.NoError(t, err)
-	// require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
-
-	// Chain halted
+	// // preparing to kick current proposer
 	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	// require.Error(t, err)
 
-	// time.Sleep(300 * time.Second)
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	// queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	// require.NoError(t, err)
-	// require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
 
-	// err = rollapp1.StopAllNodes(ctx)
-	// require.NoError(t, err)
+	_ = rollapp1.StartAllNodes(ctx)
 
-	// _ = rollapp1.StartAllNodes(ctx)
+	time.Sleep(30 * time.Second)
 
-	// time.Sleep(30 * time.Second)
-
-	// afterBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-	// require.True(t, afterBlock > lastBlock)
+	afterBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
