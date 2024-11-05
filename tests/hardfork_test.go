@@ -1824,40 +1824,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
-
-	// Get new height after frozen
-	rollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
-
-	var rollapp1ClientOnDym string
-
-	for _, client := range dymClients {
-		if client.ClientState.ChainID == rollapp1.Config().ChainID {
-			rollapp1ClientOnDym = client.ClientID
-		}
-	}
-
-	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	height, err := dymension.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
-
 	// Create sequencer
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -1881,6 +1847,32 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
+	submitFraudStr := "fraud"
+	deposit := "500000000000" + dymension.Config().Denom
+
+	// Get height
+	rollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	fraudHeight := fmt.Sprint(rollappHeight)
+
+	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(dymClients))
+
+	var rollapp1ClientOnDym string
+
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			rollapp1ClientOnDym = client.ClientID
+		}
+	}
+
+	// Submit fraud proposal
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	require.NoError(t, err)
+
+	//Bond 
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
 
@@ -1890,6 +1882,15 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
+
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
