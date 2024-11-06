@@ -1661,3 +1661,225 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
+
+func TestHardForkDueToDrs_EVM(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	go StartDA()
+
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+
+	modifyHubGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.sequencer.params.unbonding_time",
+			Value: "300s",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "300s",
+		},
+	)
+
+	modifyRAGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.sequencers.params.unbonding_time",
+			Value: "300s",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "300s",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppVals := 1
+	numRollAppFn := 1
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ConfigFileOverrides: nil,
+			},
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+
+	// relayer for rollapp 1
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer", network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r, "relayer").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r,
+			Path:    ibcPath,
+		})
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+	}, nil, "", nil, false, 195)
+	require.NoError(t, err)
+
+	// Check IBC Transfer before switch
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+
+	// Get our Bech32 encoded user addresses
+	dymensionUser, rollappUser := users[0], users[1]
+
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+	rollappUserAddr := rollappUser.FormattedAddress()
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	require.NoError(t, err)
+
+	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+	
+	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 1, "should have 1 sequences")
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	submitDrsDeprecationStr := "DRS deprecation"
+	deposit := "500000000000" + dymension.Config().Denom
+
+	// Get height
+	rollappHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	drsHeight := fmt.Sprint(rollappHeight)
+
+	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(dymClients))
+
+	var rollapp1ClientOnDym string
+
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			rollapp1ClientOnDym = client.ClientID
+		}
+	}
+
+	// Submit DRS deprecation proposal
+	propTx, err := dymension.SubmitDRSDeprecationProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, drsHeight, sequencerAddr, rollapp1ClientOnDym, submitDrsDeprecationStr, submitDrsDeprecationStr, deposit)
+	require.NoError(t, err)
+
+	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// Run invariant check
+	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+}
