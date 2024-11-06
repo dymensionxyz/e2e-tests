@@ -33,8 +33,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -379,8 +377,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
-
-	go StartDA()
 
 	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
