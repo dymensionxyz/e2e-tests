@@ -156,7 +156,7 @@ func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -345,7 +345,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -438,7 +438,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -603,7 +603,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -705,7 +705,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -863,7 +863,7 @@ func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1052,7 +1052,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1142,7 +1142,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1307,7 +1307,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1404,7 +1404,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1592,7 +1592,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1807,7 +1807,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 

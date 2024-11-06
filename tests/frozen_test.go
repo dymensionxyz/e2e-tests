@@ -266,7 +266,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -629,7 +629,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1037,7 +1037,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1047,7 +1047,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 		fmt.Println(txhash)
 	}
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1218,7 +1218,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1516,7 +1516,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1527,7 +1527,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1699,7 +1699,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1889,7 +1889,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2042,7 +2042,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2262,7 +2262,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2413,7 +2413,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2716,7 +2716,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2727,7 +2727,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3079,7 +3079,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3090,7 +3090,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3444,7 +3444,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3455,7 +3455,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3882,7 +3882,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3893,7 +3893,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -4240,7 +4240,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -4577,7 +4577,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -4914,7 +4914,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -5272,7 +5272,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 

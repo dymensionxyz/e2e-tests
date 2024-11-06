@@ -252,7 +252,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -263,7 +263,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -307,7 +307,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -403,7 +403,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), rollappUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), rollappUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -422,7 +422,7 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), rollapp2UserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), rollapp2UserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -705,7 +705,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -716,7 +716,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -760,7 +760,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -861,7 +861,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -890,7 +890,7 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1144,7 +1144,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1221,7 +1221,7 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1466,7 +1466,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1544,7 +1544,7 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1808,7 +1808,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1819,7 +1819,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1941,7 +1941,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), rollappUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), rollappUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1952,7 +1952,7 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp2.GetChainID(), rollapp2UserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp2.GetChainID(), rollapp2UserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2254,7 +2254,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2331,7 +2331,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2395,7 +2395,7 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2692,7 +2692,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2769,7 +2769,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2834,7 +2834,7 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3090,7 +3090,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -3356,7 +3356,7 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 	// end of preconditions
 
-	res, err := dymension.GetNode().QueryPendingPacketsByReceiver(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
