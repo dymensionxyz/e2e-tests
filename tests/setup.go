@@ -196,26 +196,11 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
+		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
 
-	gaiaGenesisKV = []cosmos.GenesisKV{
-		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
-		},
-	}
-
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
-		// {
-		// 	Key:   "app_state.sequencers.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
@@ -284,14 +269,6 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
-		// {
-		// 	Key:   "app_state.sequencers.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -328,10 +305,6 @@ var (
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",

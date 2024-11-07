@@ -7663,16 +7663,8 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	dymensionGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "15s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
 		},
 	)
 
@@ -8039,16 +8031,8 @@ func Test_SqcRotation_StateUpd_Fail_Wasm(t *testing.T) {
 	dymensionGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "15s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
 		},
 	)
 
