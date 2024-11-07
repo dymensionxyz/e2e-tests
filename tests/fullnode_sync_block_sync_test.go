@@ -33,8 +33,6 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -128,7 +126,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -268,7 +266,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 	// require.Error(t, err)
 
@@ -291,7 +289,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -379,8 +377,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
-
-	go StartDA()
 
 	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
@@ -475,7 +471,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -615,7 +611,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -637,7 +633,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))

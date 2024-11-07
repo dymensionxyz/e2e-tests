@@ -121,7 +121,7 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -342,7 +342,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -498,9 +498,16 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		txhash, err := dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+		res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+		fmt.Println(res)
 		require.NoError(t, err)
-		fmt.Println(txhash)
+
+		for _, packet := range res.RollappPackets {
+			txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+			require.NoError(t, err)
+
+			fmt.Println(txhash)
+		}
 
 		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferAmount))
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, firstHopIBCDenom, transferAmount.Sub(bridgingFee))
@@ -634,7 +641,7 @@ func TestIBCTransfer_NoLightClient_EVM(t *testing.T) {
 		SkipPathCreation: true,
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
