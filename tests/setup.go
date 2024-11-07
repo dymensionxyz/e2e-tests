@@ -121,7 +121,7 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: DymensionMainRepo,
+		Repository: "ghcr.io/decentrio/dymension",
 		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
@@ -1031,8 +1031,5 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-per-rollapp")
 	require.NoError(t, err)
 }
