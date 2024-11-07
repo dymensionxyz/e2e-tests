@@ -42,28 +42,9 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -115,7 +96,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -423,28 +404,9 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -496,7 +458,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -780,28 +742,9 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -853,7 +796,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1153,28 +1096,9 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -1226,7 +1150,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1513,28 +1437,8 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -1582,7 +1486,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1950,28 +1854,8 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -2019,7 +1903,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2419,28 +2303,8 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -2488,7 +2352,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2870,28 +2734,8 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -2939,7 +2783,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -3283,28 +3127,8 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -3352,7 +3176,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -3775,28 +3599,8 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -3844,7 +3648,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -4246,28 +4050,9 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -4319,7 +4104,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -4646,28 +4431,9 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -4719,7 +4485,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -5031,28 +4797,9 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -5104,7 +4851,7 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -5348,28 +5095,9 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -5421,7 +5149,7 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -5671,28 +5399,8 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -5740,7 +5448,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -6059,28 +5767,8 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -6128,7 +5816,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -6451,28 +6139,9 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -6524,7 +6193,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -6831,28 +6500,9 @@ func Test_SeqRotation_AccumData_DA_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -6904,7 +6554,7 @@ func Test_SeqRotation_AccumData_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -7192,28 +6842,8 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -7261,7 +6891,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -7640,28 +7270,8 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -7709,7 +7319,7 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -8050,7 +7660,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
+	dymensionGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.unbonding_time",
@@ -8068,14 +7678,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -8127,7 +7730,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -8433,7 +8036,7 @@ func Test_SqcRotation_StateUpd_Fail_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
+	dymensionGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.unbonding_time",
@@ -8451,14 +8054,7 @@ func Test_SqcRotation_StateUpd_Fail_Wasm(t *testing.T) {
 
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -8510,7 +8106,7 @@ func Test_SqcRotation_StateUpd_Fail_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -8799,28 +8395,9 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -8872,7 +8449,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -9175,28 +8752,9 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -9248,7 +8806,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -9535,28 +9093,8 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -9604,7 +9142,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -9979,28 +9517,9 @@ func Test_SqcRotation_HisSync_Unbond_DA_EVM(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -10052,7 +9571,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -10352,28 +9871,9 @@ func Test_SqcRotation_HisSync_Unbond_DA_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -10425,7 +9925,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -10712,28 +10212,8 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -10781,7 +10261,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -11165,28 +10645,8 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappWasmGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -11234,7 +10694,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -11608,28 +11068,9 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -11681,7 +11122,7 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -11988,28 +11429,9 @@ func Test_SeqRot_RotReq_No_DA_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
+
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -12061,7 +11483,7 @@ func Test_SeqRot_RotReq_No_DA_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
