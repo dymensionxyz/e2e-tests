@@ -126,7 +126,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -266,7 +266,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 	// require.Error(t, err)
 
@@ -471,7 +471,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -611,7 +611,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())

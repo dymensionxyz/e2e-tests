@@ -174,7 +174,7 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -262,7 +262,7 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -468,7 +468,7 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -541,7 +541,7 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -774,7 +774,7 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -862,7 +862,7 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1108,7 +1108,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1191,7 +1191,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1372,7 +1372,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1418,7 +1418,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1582,7 +1582,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1628,7 +1628,7 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 

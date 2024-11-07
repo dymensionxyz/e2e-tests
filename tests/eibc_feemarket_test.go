@@ -163,7 +163,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -223,7 +223,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -306,7 +306,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -481,7 +481,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -551,7 +551,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -637,7 +637,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -813,7 +813,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -875,7 +875,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -955,7 +955,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), marketMakerAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1129,7 +1129,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1200,7 +1200,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1279,7 +1279,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1413,7 +1413,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1466,7 +1466,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1678,7 +1678,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1731,7 +1731,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1823,7 +1823,7 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1960,7 +1960,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2013,7 +2013,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2199,7 +2199,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2252,7 +2252,7 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 

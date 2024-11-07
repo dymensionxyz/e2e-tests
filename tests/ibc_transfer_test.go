@@ -98,7 +98,7 @@ func TestSpinUp(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 }
 
@@ -240,7 +240,7 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -387,7 +387,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -435,7 +435,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -578,7 +578,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 // 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 // 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-// 	}, nil, "", nil, false, 780)
+// 	}, nil, "", nil, false, 1179360)
 // 	require.NoError(t, err)
 
 // 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -758,7 +758,7 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 
 // 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 // 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-// 	}, nil, "", nil, false, 780)
+// 	}, nil, "", nil, false, 1179360)
 // 	require.NoError(t, err)
 
 // 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)

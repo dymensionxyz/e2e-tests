@@ -156,7 +156,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -205,7 +205,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -356,7 +356,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -537,7 +537,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -894,7 +894,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -943,7 +943,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1086,7 +1086,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1267,7 +1267,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1623,7 +1623,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -2060,7 +2060,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -2178,7 +2178,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2335,7 +2335,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2529,7 +2529,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -2679,7 +2679,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2798,7 +2798,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2980,7 +2980,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -3393,7 +3393,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -3885,7 +3885,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -4360,7 +4360,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -4409,7 +4409,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -4580,7 +4580,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.FullNodes[0].QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.FullNodes[0].QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -4760,7 +4760,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5145,7 +5145,7 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5194,7 +5194,7 @@ func Test_SeqRotation_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -5462,7 +5462,7 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5511,7 +5511,7 @@ func Test_SeqRotation_Unbond_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -5781,7 +5781,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -5931,7 +5931,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -6169,7 +6169,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -6319,7 +6319,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -6565,7 +6565,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -6614,7 +6614,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -6757,7 +6757,7 @@ func Test_SeqRotation_AccumData_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -6945,7 +6945,7 @@ func Test_SeqRotation_AccumData_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -7302,7 +7302,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -7452,7 +7452,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -7566,7 +7566,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -7750,7 +7750,7 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -8168,7 +8168,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -8217,7 +8217,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -8366,7 +8366,7 @@ func Test_SqcRotation_StateUpd_Fail_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -8551,7 +8551,7 @@ func Test_SqcRotation_StateUpd_Fail_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -8913,7 +8913,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -8962,7 +8962,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -9108,7 +9108,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -9289,7 +9289,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -9645,7 +9645,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -9795,7 +9795,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -9909,7 +9909,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -10093,7 +10093,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -10142,7 +10142,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -10285,7 +10285,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -10466,7 +10466,7 @@ func Test_SqcRotation_HisSync_Unbond_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -10822,7 +10822,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -10940,7 +10940,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -11092,7 +11092,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -11275,7 +11275,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 195)
+	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -11393,7 +11393,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -11536,7 +11536,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -11722,7 +11722,7 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -11771,7 +11771,7 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -11916,7 +11916,7 @@ func Test_SeqRot_RotReq_No_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -12102,7 +12102,7 @@ func Test_SeqRot_RotReq_No_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -12151,7 +12151,7 @@ func Test_SeqRot_RotReq_No_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -12296,7 +12296,7 @@ func Test_SeqRot_RotReq_No_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, rollapp1.GetChainID(), dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
