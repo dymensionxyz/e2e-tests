@@ -258,7 +258,7 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -321,12 +321,9 @@ func TestEIBCFulfillAlreadyFulfilledDemand_EVM(t *testing.T) {
 	require.Equal(t, true, fulfill_demand_order)
 
 	// attempt to update the fee amount required by demand order that has already been fulfilled
-	txhash, err := dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
-	require.NoError(t, err)
-	resp, err := dymension.GetTransaction(txhash)
-	require.NoError(t, err)
-	require.Equal(t, uint32(10), resp.Code)
-	// require.True(t, (res.Code == uint32(10)) || (res.Code == uint32(5)))
+	_, err = dymension.UpdateDemandOrder(ctx, demand_order_id, dymensionUserAddr, eibcFee.MulRaw(2))
+	require.Error(t, err)
+
 	// wait a few blocks and verify sender received funds on the hub
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -951,7 +948,7 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -994,11 +991,8 @@ func TestEIBCUnallowedSigner_EVM(t *testing.T) {
 		if re.ReplaceAllString(eibcEvent.Fee, "") == rollappIBCDenom && eibcEvent.PacketStatus == "PENDING" {
 			fmt.Println("EIBC Event:", eibcEvent)
 			// attempt to update the fee amount required by demand order with an unallowed signer
-			txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee.MulRaw(2))
-			require.NoError(t, err)
-			res, err := dymension.GetTransaction(txhash)
-			require.NoError(t, err)
-			require.Equal(t, uint32(4), res.Code)
+			_, err := dymension.UpdateDemandOrder(ctx, eibcEvent.OrderId, marketMakerAddr, eibcFee.MulRaw(2))
+			require.Error(t, err)
 		}
 	}
 

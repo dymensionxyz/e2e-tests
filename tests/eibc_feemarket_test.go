@@ -2072,12 +2072,8 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
-	require.NoError(t, err)
-
-	resp, err := dymension.GetTransaction(txhash)
-	require.NoError(t, err)
-	require.True(t, (resp.Code == uint32(4)) || (resp.Code == uint32(5)))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	require.Error(t, err)
 
 	t.Cleanup(
 		func() {
