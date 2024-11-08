@@ -117,8 +117,6 @@ func TestZeroFee_RelaySuccess_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
-	println("check wallet address: ", string(wallet.Address()))
-
 	require.True(t, found)
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -131,12 +129,13 @@ func TestZeroFee_RelaySuccess_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	// require.NoError(t, err)
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, dymensionUser.KeyName(), []string{wallet.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath,  []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -334,11 +333,12 @@ func TestZeroFee_RelaySuccess_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, sequencerAddr, []string{wallet.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -647,8 +647,9 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
 	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
@@ -684,7 +685,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	fmt.Printf("Sequencer check: %v\n", resp.Sequencers)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, sequencerAddr, []string{wallet.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
