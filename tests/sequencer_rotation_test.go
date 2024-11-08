@@ -1437,10 +1437,6 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1464,7 +1460,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1854,10 +1850,6 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1881,7 +1873,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -2303,10 +2295,6 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -2330,7 +2318,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -2734,10 +2722,6 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -2761,7 +2745,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -3127,10 +3111,6 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -3154,7 +3134,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -3599,10 +3579,6 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -3626,7 +3602,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -5399,10 +5375,6 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -5426,7 +5398,7 @@ func Test_SqcRotation_Unbond_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -5767,10 +5739,6 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -5794,7 +5762,7 @@ func Test_SqcRotation_Unbond_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -6842,10 +6810,6 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -6869,7 +6833,7 @@ func Test_SqcRotation_AccumData_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -7270,10 +7234,6 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -7297,7 +7257,7 @@ func Test_SqcRotation_AccumData_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -9077,10 +9037,6 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -9104,7 +9060,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -10196,10 +10152,6 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappEVMGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -10223,7 +10175,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -10629,10 +10581,6 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
-		rollappWasmGenesisKV,
-	)
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -10656,7 +10604,7 @@ func Test_SqcRotation_HisSync_Unbond_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,

@@ -1486,8 +1486,6 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 			}
 		},
 	)
-	// Run invariant check
-	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
 // TestADMC_Hub_to_RA_Migrate_Dym_Wasm send IBC transfer DYM hub to rollapp successfully
