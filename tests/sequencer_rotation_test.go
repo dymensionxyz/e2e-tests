@@ -252,11 +252,15 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
 
+	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -265,6 +269,14 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
+
+	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
+
+	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -293,19 +305,13 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
-	// Chain halted
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.Error(t, err)
-
-	time.Sleep(300 * time.Second)
-
-	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+	// currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	// require.NoError(t, err)
+	// println("checking new proposer: ", currentProposer.ProposerAddr)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
