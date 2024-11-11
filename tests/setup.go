@@ -201,6 +201,10 @@ var (
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "urax",
+		},
+		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
 		},
@@ -268,6 +272,22 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "urax",
+		},
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -297,6 +317,22 @@ var (
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "adym",
+		},
+		{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "60s",
 		},
@@ -308,15 +344,6 @@ var (
 		{
 			Key:   "app_state.gov.params.voting_period",
 			Value: "20s",
-		},
-		// staking params
-		{
-			Key:   "app_state.staking.params.bond_denom",
-			Value: "adym",
-		},
-		{
-			Key:   "app_state.mint.params.mint_denom",
-			Value: "adym",
 		},
 		// increase the tx size cost per byte from 10 to 100
 		{
@@ -359,10 +386,6 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0",
-		},
-		{
-			Key:   "app_state.evm.params.evm_denom",
-			Value: "adym",
 		},
 		{
 			Key:   "app_state.evm.params.enable_create",
