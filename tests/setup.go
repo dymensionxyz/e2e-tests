@@ -317,10 +317,6 @@ var (
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
-			Key:   "app_state.claims.params.claims_denom",
-			Value: "adym",
-		},
-		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "adym",
 		},
