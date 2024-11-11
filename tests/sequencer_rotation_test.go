@@ -256,7 +256,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -610,7 +610,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -989,7 +989,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -1335,7 +1335,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -1739,7 +1739,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -2171,7 +2171,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -2481,7 +2481,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -2908,7 +2908,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -3330,7 +3330,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -3358,7 +3358,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -3798,7 +3798,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -3826,7 +3826,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -4240,7 +4240,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -4268,7 +4268,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -4613,7 +4613,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -4641,7 +4641,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -4987,7 +4987,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -5288,7 +5288,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -5561,7 +5561,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -5925,7 +5925,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -6321,7 +6321,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -6674,7 +6674,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -6996,7 +6996,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -7420,7 +7420,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -7842,7 +7842,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -8202,7 +8202,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -8556,7 +8556,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -8902,7 +8902,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -9223,7 +9223,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -9704,7 +9704,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -10050,7 +10050,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -10462,7 +10462,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -10888,7 +10888,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -11249,7 +11249,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -11610,7 +11610,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 // 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 // 	require.NoError(t, err)
 
-// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+// 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 // 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
 
 // 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)

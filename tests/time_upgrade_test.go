@@ -29,6 +29,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	configFileOverrides := make(map[string]any)
@@ -41,6 +44,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -48,6 +52,14 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+
+	modifyEVMGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -66,7 +78,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -344,6 +356,9 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	configFileOverrides := make(map[string]any)
@@ -356,6 +371,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -363,6 +379,14 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+
+	modifyEVMGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -381,7 +405,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,

@@ -94,8 +94,7 @@ const (
 )
 
 var (
-	walletAmount = math.NewInt(1_000_000_000_000)
-
+	walletAmount   = math.NewInt(100_000_000_000_000_000).MulRaw(100_000)
 	transferAmount = math.NewInt(1_000_000)
 
 	bigTransferAmount = math.NewInt(1_000_000_000)
