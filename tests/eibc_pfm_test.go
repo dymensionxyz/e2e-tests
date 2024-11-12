@@ -166,7 +166,7 @@ func TestEIBCPFM_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -279,8 +279,16 @@ func TestEIBCPFM_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollapp1Height))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -449,7 +457,7 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 		SkipPathCreation: true,
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -562,8 +570,16 @@ func TestEIBCPFM_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollapp1Height))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

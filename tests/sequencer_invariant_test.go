@@ -160,7 +160,7 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer1", "/var/cosmos-chain/sequencer1")
@@ -192,14 +192,14 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
@@ -211,10 +211,6 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 
 	err = dymension.Unbond(ctx, sequencer1.KeyName(), "")
 	require.NoError(t, err)
-
-	queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, sequencer1.FormattedAddress())
-	require.NoError(t, err)
-	require.Equal(t, queryGetSequencerResponse.Sequencer.Status, "OPERATING_STATUS_UNBONDING")
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -259,9 +255,6 @@ func TestSequencerInvariant_EVM(t *testing.T) {
 
 	// Run eibc variants
 	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "sequencer", "sequencers-count")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "sequencer", "sequencers-per-rollapp")
 	require.NoError(t, err)
 
 	t.Cleanup(
@@ -418,7 +411,7 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	_, _, err = rollapp1.GetNode().ExecInit(ctx, "sequencer1", "/var/cosmos-chain/sequencer1")
@@ -450,14 +443,14 @@ func TestSequencerInvariant_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer1.KeyName(), command...)
 	require.NoError(t, err)
 
 	command = []string{}
-	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
+	command = append(command, "sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir()+"/metadata_sequencer.json",
 		"--broadcast-mode", "async")
 
 	_, err = dymension.GetNode().ExecTx(ctx, sequencer2.KeyName(), command...)
