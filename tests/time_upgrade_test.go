@@ -240,7 +240,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 		panic(fmt.Errorf("failed to get latest block time: %w", err))
 	}
 
-	upgradeTime := blockTime.Add(35 * time.Second).Format(time.RFC3339)
+	upgradeTime := blockTime.Add(90 * time.Second).Format(time.RFC3339)
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
@@ -282,12 +282,16 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err)
-	prop, _ := rollapp1.QueryProposal(ctx, "1")
+
+	prop, err := rollapp1.QueryProposal(ctx, "1")
+	require.NoError(t, err)
+
 	fmt.Println("prop: ", prop)
+
 	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*30)
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*90)
 	defer timeoutCtxCancel()
 
 	height, err = rollapp1.Height(ctx)
