@@ -75,6 +75,7 @@ body:
         - "IRO"
         - "eibc client"
         - "time based upgrade"
+        - "Sequencer reward address"
     validations:
       required: true
 
