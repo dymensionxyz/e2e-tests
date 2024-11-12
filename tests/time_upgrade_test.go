@@ -234,15 +234,13 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	haltHeight := height + haltHeightDelta
 	check, _ := rollapp1.GetNode().CliContext().GetNode()
 	blockInfo, _ := check.Block(ctx, &height)
-	// println("check data blocktime: ",blockInfo.Block.String())
-	// blockTime, err := rollapp1.GetLatestBlockTime(ctx)
 	blockTime := blockInfo.Block.Header.Time
 	fmt.Println("blockTime:", blockTime.Format(time.RFC3339))
 	if err != nil {
 		panic(fmt.Errorf("failed to get latest block time: %w", err))
 	}
 
-	upgradeTime := blockTime.Add(40 * time.Second).Format(time.RFC3339)
+	upgradeTime := blockTime.Add(35 * time.Second).Format(time.RFC3339)
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
@@ -289,34 +287,32 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*30)
 	defer timeoutCtxCancel()
 
 	height, err = rollapp1.Height(ctx)
 	require.NoError(t, err, "error fetching height before upgrade")
 
-	// // this should timeout due to chain halt at upgrade height.
-	// _ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
-
 	// bring down nodes to prepare for upgrade
 	check2, _ := rollapp1.GetNode().CliContext().GetNode()
 	blockInfo2, _ := check2.Block(ctx, &height)
 	blockTime2 := blockInfo2.Block.Header.Time
-	fmt.Println("blockTime:", blockTime2.Format(time.RFC3339))
+	fmt.Println("blockTime2:", blockTime2.Format(time.RFC3339))
 	parsedUpgradeTime, err := time.Parse(time.RFC3339, upgradeTime)
+	fmt.Println("parsedUpgradeTime:", parsedUpgradeTime)
 	if err != nil {
 		panic(fmt.Errorf("failed to parse upgrade time: %w", err))
-	}
-
-	err = testutil.WaitForTime(timeoutCtx, blockTime2, parsedUpgradeTime)
-	if err != nil {
-		fmt.Errorf("failed to wait for upgrade time: %w", err)
 	}
 
 	if blockTime2.After(parsedUpgradeTime) {
 		err = rollapp1.StopAllNodes(ctx)
 	} else {
-		fmt.Println("blockTime2 is before upgradeTime")
+		// fmt.Println("blockTime2 is before upgradeTime")
+		err = testutil.WaitForTime(timeoutCtx, blockTime2, parsedUpgradeTime)
+		if err != nil {
+			fmt.Errorf("failed to wait for upgrade time: %w", err)
+		}
+		err = rollapp1.StopAllNodes(ctx)
 	}
 	require.NoError(t, err, "error stopping node(s)")
 
