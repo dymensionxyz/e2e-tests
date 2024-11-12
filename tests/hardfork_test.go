@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
+	// "time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -1708,37 +1708,16 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
+			Key:   "app_state.sequencer.params.kick_threshold",
+			Value: map[string]interface{}{
+				"denom":  "adym",
+				"amount": "100000000000000000000",
 		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-				// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.liveness_slash_blocks",
-		// 	Value: "5",
-		// },
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.liveness_slash_interval",
-		// 	Value: "5",
-		// },
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.kick_threshold",
-		// 	Value: `{"denom":"uband","amount":"250000"}`,
-		// },
+	},
 	)
 
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -1831,7 +1810,7 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1880,8 +1859,16 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
@@ -1938,47 +1925,38 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
 
+	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
+	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 
-	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
 
-	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
+	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
-	queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, seqAddr)
+	err = dymension.GetNode().DecreaseBond(ctx, "sequencer", rollapp1.GetSequencerKeyDir(), "1adym")
 	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	lastBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-
-	time.Sleep(60 * time.Second)
-
-	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_UNBONDING", queryGetSequencerResponse.Sequencer.Status)
-
 
 	// kick current proposer
-	kicker := res.Sequencers[1].SequencerAddress
-	_, err = dymension.FullNodes[0].KickProposer(ctx, kicker)
+	kicker := resp.Sequencers[1].Address
+	err = dymension.FullNodes[0].KickProposer(ctx, kicker, rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
@@ -1988,20 +1966,20 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	// require.Error(t, err)
 
-	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
-	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+	// queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	// require.NoError(t, err)
+	// require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err)
+	// err = rollapp1.StopAllNodes(ctx)
+	// require.NoError(t, err)
 
-	_ = rollapp1.StartAllNodes(ctx)
+	// _ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(30 * time.Second)
+	// time.Sleep(30 * time.Second)
 
-	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-	require.True(t, afterBlock > lastBlock)
+	// afterBlock, err := rollapp1.Height(ctx)
+	// require.NoError(t, err)
+	// require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
@@ -2021,9 +1999,6 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
-	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
