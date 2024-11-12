@@ -1711,9 +1711,17 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 			Key:   "app_state.sequencer.params.kick_threshold",
 			Value: map[string]interface{}{
 				"denom":  "adym",
-				"amount": "100000000000000000000",
+				"amount": "99999999999999999999",
+			},
 		},
-	},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_blocks",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_interval",
+			Value: "1",
+		},
 	)
 
 	modifyRAGenesisKV := append(
@@ -1951,8 +1959,11 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
-	err = dymension.GetNode().DecreaseBond(ctx, "sequencer", rollapp1.GetSequencerKeyDir(), "1adym")
+	// stop proposer => slashing then
+	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
 
 	// kick current proposer
 	kicker := resp.Sequencers[1].Address
