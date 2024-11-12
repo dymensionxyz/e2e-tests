@@ -2612,6 +2612,9 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
@@ -2623,13 +2626,13 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(90 * time.Second)
+	time.Sleep(100 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
