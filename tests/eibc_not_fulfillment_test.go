@@ -240,7 +240,7 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -298,7 +298,7 @@ func TestEIBCNotFulfillment_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -541,7 +541,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -602,7 +602,7 @@ func TestEIBCNotFulfillment_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)

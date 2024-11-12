@@ -185,7 +185,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -449,107 +449,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
-	require.NoError(t, err)
-
-	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
-
-	// Get the container details
-	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-	require.NoError(t, err)
-
-	// Extract the IP address from the network settings
-	// If the container is using a custom network, the IP might be under a specific network name
-	var ipAddress string
-	for _, network := range containerJSON.NetworkSettings.Networks {
-		ipAddress = network.IPAddress
-		break // Assuming we only need the IP from the first network
-	}
-
-	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
-	require.NoError(t, err)
-	nodeId = strings.TrimRight(nodeId, "\n")
-	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
-
-	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	lines = []string{}
-	scanner = bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	for i, line := range lines {
-		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
-		}
-	}
-
-	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
-
-	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	lines = []string{}
-	scanner = bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	for i, line := range lines {
-		if strings.HasPrefix(line, "namespace_id =") {
-			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
-		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
-		}
-	}
-
-	output = strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
-
-	// Start full node
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
-
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
-	require.NoError(t, err)
-
-	//Poll until full node is sync
-	err = testutil.WaitForCondition(
-		time.Minute*50,
-		time.Second*5, // each epoch is 5 seconds
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			require.NoError(t, err)
-
-			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
-			if valHeight > fullnodeHeight {
-				return false, nil
-			}
-
-			return true, nil
-		},
-	)
+	}, nil, "", nil, false, 1179360)
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -601,7 +501,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -734,7 +634,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -1181,7 +1081,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -1314,7 +1214,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)

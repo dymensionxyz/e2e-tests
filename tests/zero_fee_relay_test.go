@@ -14,7 +14,6 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
-	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -135,7 +134,7 @@ func TestZeroFee_RelaySuccess_EVM(t *testing.T) {
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath,  []string{wallet.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -175,7 +174,7 @@ func TestZeroFee_RelaySuccess_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -378,7 +377,7 @@ func TestZeroFee_RelaySuccess_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -450,28 +449,8 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
-
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 	)
 
 	// Create chain factory with dymension
@@ -519,7 +498,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -673,7 +652,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -725,7 +704,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)

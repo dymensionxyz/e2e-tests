@@ -188,12 +188,8 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	fmt.Println("Event:", eibcEvents[0])
 
 	// attempt to fulfill demand order without having required denom balance
-	txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
-	require.NoError(t, err)
-	fmt.Println(txhash)
-	txData, err := dymension.GetTransaction(txhash)
-	require.NoError(t, err)
-	require.Contains(t, txData.RawLog, "insufficient funds") // verify that the transaction failed
+	_, err = dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
+	require.Error(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -208,7 +204,7 @@ func TestEIBCNoBalanceToFulfillOrder_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)

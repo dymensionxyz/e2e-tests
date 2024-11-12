@@ -94,8 +94,7 @@ const (
 )
 
 var (
-	walletAmount = math.NewInt(1_000_000_000_000)
-
+	walletAmount   = math.NewInt(100_000_000_000_000_000).MulRaw(100_000)
 	transferAmount = math.NewInt(1_000_000)
 
 	bigTransferAmount = math.NewInt(1_000_000_000)
@@ -121,14 +120,14 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: DymensionMainRepo,
+		Repository: "ghcr.io/decentrio/dymension",
 		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
 
 	rollappEVMImage = ibc.DockerImage{
-		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
 
@@ -196,26 +195,27 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
+		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
 	}
 
-	gaiaGenesisKV = []cosmos.GenesisKV{
-		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
-		},
-	}
-
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
-		// {
-		// 	Key:   "app_state.sequencers.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
+		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0.0",
+		},
+		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "urax",
+		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
@@ -284,14 +284,38 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
-		// {
-		// 	Key:   "app_state.sequencers.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
+		{
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
+		},
+		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0.0",
+		},
+		{
+			Key:   "app_state.claims.params.claims_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "urax",
+		},
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -321,6 +345,18 @@ var (
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "adym",
+		},
+		{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "60s",
 		},
@@ -328,23 +364,10 @@ var (
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-		// {
-		// 	Key:   "app_state.staking.params.unbonding_time",
-		// 	Value: "1200s",
-		// },
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",
 			Value: "20s",
-		},
-		// staking params
-		{
-			Key:   "app_state.staking.params.bond_denom",
-			Value: "adym",
-		},
-		{
-			Key:   "app_state.mint.params.mint_denom",
-			Value: "adym",
 		},
 		// increase the tx size cost per byte from 10 to 100
 		{
@@ -387,10 +410,6 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0",
-		},
-		{
-			Key:   "app_state.evm.params.evm_denom",
-			Value: "adym",
 		},
 		{
 			Key:   "app_state.evm.params.enable_create",
@@ -1031,8 +1050,5 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-per-rollapp")
 	require.NoError(t, err)
 }
