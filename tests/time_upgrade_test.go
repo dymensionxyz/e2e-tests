@@ -54,7 +54,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	numRollAppVals := 1
 
 	modifyEVMGenesisKV := append(
-		rollappWasmGenesisKV,
+		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -273,7 +273,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
@@ -381,7 +381,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	numRollAppVals := 1
 
 	modifyEVMGenesisKV := append(
-		rollappWasmGenesisKV,
+		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
@@ -600,7 +600,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "failed to submit proposal")
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")

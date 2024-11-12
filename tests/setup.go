@@ -201,6 +201,18 @@ var (
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0.0",
+		},
+		{
 			Key:   "app_state.claims.params.claims_denom",
 			Value: "urax",
 		},
@@ -272,6 +284,22 @@ var (
 	}
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
+		{
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
+		},
+		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0.0",
+		},
 		{
 			Key:   "app_state.claims.params.claims_denom",
 			Value: "urax",
