@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	// "time"
+	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -1974,6 +1974,13 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	_ = rollapp1.StartAllNodes(ctx)
+
+	time.Sleep(30 * time.Second)
 
 	// // preparing to kick current proposer
 	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
