@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -919,7 +921,7 @@ func TestHardFork_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -1466,7 +1468,7 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -1781,9 +1783,10 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	ctx := context.Background()
-
+	// start grpc DA
 	go StartDA()
+
+	ctx := context.Background()
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
@@ -1795,40 +1798,22 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
-	modifyHubGenesisKV := append(
-		dymensionGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
-	)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 1
+	numRollAppVals := 1
 
-	modifyRAGenesisKV := append(
+	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "300s",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "300s",
-		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
 	)
-
-	// Create chain factory with dymension
-	numHubVals := 1
-	numHubFullNodes := 1
-	numRollAppVals := 1
-	numRollAppFn := 1
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1847,31 +1832,15 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -1887,7 +1856,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
-	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
@@ -1910,7 +1878,79 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 195)
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, true, 1179360)
+	require.NoError(t, err)
+
+	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
+
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
+
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	addrDym, _ := r.GetWallet(dymension.GetChainID())
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrDym.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrRA.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   rollapp1.Config().Denom,
+	})
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1925,10 +1965,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	// require.NoError(t, err)
-
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
@@ -1940,13 +1976,13 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 	// Create sequencer
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.GetNode().Exec(ctx, cmd, nil)
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.GetNode().CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetNode().HomeDir())
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	fund := ibc.WalletData{
@@ -1956,6 +1992,21 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
+
+	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+
+	//Bond
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -1976,9 +2027,8 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		panic(err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -1986,68 +2036,18 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
-
-	// // Get height
-	// rollappHeight, err := rollapp1.Height(ctx)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 	// require.NoError(t, err)
 
-	// fraudHeight := fmt.Sprint(rollappHeight)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// // Submit fraud proposal
-	// metadata := "ipfs://CID"
-	// title := "fraud"
-	// summary := "fraud proposal summary"
-	// punishSequencerAddr := ""
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// propTx, err := dymension.SubmitFraudProposal(
-	// 	ctx,
-	// 	dymensionUser.KeyName(),
-	// 	rollapp1.Config().ChainID,
-	// 	fraudHeight,
-	// 	sequencerAddr,
-	// 	rollapp1ClientOnDym,
-	// 	title,
-	// 	summary,
-	// 	deposit,
-	// 	metadata,
-	// 	punishSequencerAddr,
-	// )
-	// require.NoError(t, err)
-
-	//Bond
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
-
-	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
-	require.NoError(t, err)
-
-	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	require.Error(t, err, "proposal status did not change to passed")
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{

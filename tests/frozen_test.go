@@ -329,7 +329,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -742,7 +742,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -1168,7 +1168,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -1675,7 +1675,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -2143,7 +2143,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -2542,7 +2542,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -2956,7 +2956,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -3346,7 +3346,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -3804,7 +3804,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -4267,7 +4267,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -4641,7 +4641,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -5005,7 +5005,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -5375,7 +5375,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
@@ -5759,7 +5759,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
-		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
 		Summary:  "test",
 		Messages: []json.RawMessage{rawMsg},
