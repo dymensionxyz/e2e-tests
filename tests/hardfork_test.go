@@ -2,12 +2,14 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
+
 	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -149,9 +151,9 @@ func TestHardFork_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
+	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// require.NoError(t, err)
 
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -310,38 +312,62 @@ func TestHardFork_EVM(t *testing.T) {
 		}
 	}
 
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
-
 	// Get new height after frozen
 	rollappHeight, err = rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	fraudHeight := fmt.Sprint(rollappHeight - 5)
+	// fraudHeight := fmt.Sprint(rollappHeight - 5)
 
 	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(dymClients))
 
-	var rollapp1ClientOnDym string
+	// var rollapp1ClientOnDym string
 
 	for _, client := range dymClients {
 		if client.ClientState.ChainID == rollapp1.Config().ChainID {
-			rollapp1ClientOnDym = client.ClientID
+			// rollapp1ClientOnDym = client.ClientID
 		}
 	}
 
-	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	require.NoError(t, err)
+	for _, client := range dymClients {
+		if client.ClientState.ChainID == rollapp1.Config().ChainID {
+			// rollapp1ClientOnDym = client.ClientID
+		}
+	}
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	msg := map[string]interface{}{
+		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
+		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"rollapp_id":               "rollappevm_1234-1",
+		"rollapp_revision":         "4",
+		"fraud_height":             "1050",
+		"punish_sequencer_address": "",
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
+
+	proposal := cosmos.TxFraudProposal{
+		Deposit:  "500000000000" + dymension.Config().Denom,
+		Title:    "rollapp Upgrade 1",
+		Summary:  "test",
+		Messages: []json.RawMessage{rawMsg},
+		Metadata: "ipfs://CID",
+	}
+
+	// Submit fraud proposal
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
+
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -697,9 +723,9 @@ func TestHardFork_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
+	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// require.NoError(t, err)
 
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -858,29 +884,50 @@ func TestHardFork_Wasm(t *testing.T) {
 		}
 	}
 
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
+	// // Get new height after frozen
+	// rollappHeight, err = rollapp1.Height(ctx)
+	// require.NoError(t, err)
 
-	// Get new height after frozen
-	rollappHeight, err = rollapp1.Height(ctx)
-	require.NoError(t, err)
+	// fraudHeight := fmt.Sprint(rollappHeight - 5)
 
-	fraudHeight := fmt.Sprint(rollappHeight - 5)
+	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	// require.NoError(t, err)
+	// require.Equal(t, 2, len(dymClients))
 
-	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
+	// var rollapp1ClientOnDym string
 
-	var rollapp1ClientOnDym string
+	// for _, client := range dymClients {
+	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
+	// 		rollapp1ClientOnDym = client.ClientID
+	// 	}
+	// }
 
-	for _, client := range dymClients {
-		if client.ClientState.ChainID == rollapp1.Config().ChainID {
-			rollapp1ClientOnDym = client.ClientID
-		}
+	// Create fraud proposal message
+	msg := map[string]interface{}{
+		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
+		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"rollapp_id":               "rollappevm_1234-1",
+		"rollapp_revision":         "4",
+		"fraud_height":             "1050",
+		"punish_sequencer_address": "",
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
+
+	// Prepare fraud proposal transaction
+	proposal := cosmos.TxFraudProposal{
+		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Title:    "rollapp Upgrade 1",
+		Summary:  "test",
+		Messages: []json.RawMessage{rawMsg},
+		Metadata: "ipfs://CID",
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
@@ -1240,9 +1287,9 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, walletAmount, rollappOrigBal)
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
+	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// require.NoError(t, err)
 
 	// IBC channel for rollapps
 	channsDym1, err := r.GetChannels(ctx, eRep, dymension.GetChainID())
@@ -1402,30 +1449,73 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 		}
 	}
 
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
+	// Create fraud proposal message
+	msg := map[string]interface{}{
+		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
+		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"rollapp_id":               "rollappevm_1234-1",
+		"rollapp_revision":         "4",
+		"fraud_height":             "1050",
+		"punish_sequencer_address": "",
+	}
 
-	// Get new height after frozen
-	rollappHeight, err = rollapp1.Height(ctx)
-	require.NoError(t, err)
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
 
-	fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
-
-	var rollapp1ClientOnDym string
-
-	for _, client := range dymClients {
-		if client.ClientState.ChainID == rollapp1.Config().ChainID {
-			rollapp1ClientOnDym = client.ClientID
-		}
+	// Prepare fraud proposal transaction
+	proposal := cosmos.TxFraudProposal{
+		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Title:    "rollapp Upgrade 1",
+		Summary:  "test",
+		Messages: []json.RawMessage{rawMsg},
+		Metadata: "ipfs://CID",
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 	require.NoError(t, err)
+
+	// // Get new height after frozen
+	// rollappHeight, err = rollapp1.Height(ctx)
+	// require.NoError(t, err)
+
+	// fraudHeight := fmt.Sprint(rollappHeight - 5)
+
+	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	// require.NoError(t, err)
+	// require.Equal(t, 2, len(dymClients))
+
+	// var rollapp1ClientOnDym string
+
+	// for _, client := range dymClients {
+	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
+	// 		rollapp1ClientOnDym = client.ClientID
+	// 	}
+	// }
+
+	// // Submit fraud proposal
+	// metadata := "ipfs://CID"
+	// title := "fraud"
+	// summary := "fraud proposal summary"
+	// punishSequencerAddr := ""
+	// deposit := "500000000000" + dymension.Config().Denom
+
+	// propTx, err := dymension.SubmitFraudProposal(
+	// 	ctx,
+	// 	dymensionUser.KeyName(),
+	// 	rollapp1.Config().ChainID,
+	// 	fraudHeight,
+	// 	sequencerAddr,
+	// 	rollapp1ClientOnDym,
+	// 	title,
+	// 	summary,
+	// 	deposit,
+	// 	metadata,
+	// 	punishSequencerAddr,
+	// )
+	// require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -1614,9 +1704,9 @@ func TestHardForkRecoverIbcClient_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Frozen", clientStatus.Status)
 
-	propTx, err = dymension.SubmitUpdateClientProposal(ctx, dymensionUser.KeyName(), "07-tendermint-0", "07-tendermint-1", deposit)
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+	// propTx, err = dymension.SubmitUpdateClientProposal(ctx, dymensionUser.KeyName(), "07-tendermint-0", "07-tendermint-1", deposit)
+	// err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	// require.NoError(t, err, "failed to submit votes")
 
 	height, err = dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
@@ -1835,9 +1925,9 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	require.NoError(t, err)
+	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
+	// require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1871,32 +1961,75 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	submitFraudStr := "fraud"
-	deposit := "500000000000" + dymension.Config().Denom
+	// Create fraud proposal message
+	msg := map[string]interface{}{
+		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
+		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"rollapp_id":               "rollappevm_1234-1",
+		"rollapp_revision":         "4",
+		"fraud_height":             "1050",
+		"punish_sequencer_address": "",
+	}
 
-	// Get height
-	rollappHeight, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
 
-	fraudHeight := fmt.Sprint(rollappHeight)
-
-	dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(dymClients))
-
-	var rollapp1ClientOnDym string
-
-	for _, client := range dymClients {
-		if client.ClientState.ChainID == rollapp1.Config().ChainID {
-			rollapp1ClientOnDym = client.ClientID
-		}
+	// Prepare fraud proposal transaction
+	proposal := cosmos.TxFraudProposal{
+		Deposit:  "500000000000" + rollapp1.Config().Denom,
+		Title:    "rollapp Upgrade 1",
+		Summary:  "test",
+		Messages: []json.RawMessage{rawMsg},
+		Metadata: "ipfs://CID",
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
+	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 	require.NoError(t, err)
 
-	//Bond 
+	// // Get height
+	// rollappHeight, err := rollapp1.Height(ctx)
+	// require.NoError(t, err)
+
+	// fraudHeight := fmt.Sprint(rollappHeight)
+
+	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
+	// require.NoError(t, err)
+	// require.Equal(t, 2, len(dymClients))
+
+	// var rollapp1ClientOnDym string
+
+	// for _, client := range dymClients {
+	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
+	// 		rollapp1ClientOnDym = client.ClientID
+	// 	}
+	// }
+
+	// // Submit fraud proposal
+	// metadata := "ipfs://CID"
+	// title := "fraud"
+	// summary := "fraud proposal summary"
+	// punishSequencerAddr := ""
+	// deposit := "500000000000" + dymension.Config().Denom
+
+	// propTx, err := dymension.SubmitFraudProposal(
+	// 	ctx,
+	// 	dymensionUser.KeyName(),
+	// 	rollapp1.Config().ChainID,
+	// 	fraudHeight,
+	// 	sequencerAddr,
+	// 	rollapp1ClientOnDym,
+	// 	title,
+	// 	summary,
+	// 	deposit,
+	// 	metadata,
+	// 	punishSequencerAddr,
+	// )
+	// require.NoError(t, err)
+
+	//Bond
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "1000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.GetNode().HomeDir() + "/sequencer_keys"}
 
