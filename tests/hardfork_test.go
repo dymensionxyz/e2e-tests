@@ -1963,11 +1963,13 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 5, dymension)
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
 
 	// kick current proposer
-	kicker := resp.Sequencers[1].Address
-	err = dymension.FullNodes[0].KickProposer(ctx, kicker, rollapp1.GetSequencerKeyDir())
+	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
