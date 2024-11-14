@@ -31,8 +31,6 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -114,6 +112,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
+	StartDA(ctx, t, client, network)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -399,8 +398,6 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -481,6 +478,8 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -737,8 +736,6 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -819,6 +816,8 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -1081,8 +1080,6 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -1163,6 +1160,8 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -1417,9 +1416,6 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -1432,7 +1428,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1507,6 +1503,8 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -1832,9 +1830,6 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -1847,7 +1842,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1922,6 +1917,8 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -2288,8 +2285,6 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-	// start grpc DA
-	go StartDA()
 
 	ctx := context.Background()
 
@@ -2304,7 +2299,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -2380,6 +2375,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
+	StartDA(ctx, t, client, network)
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -2733,9 +2729,6 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -2748,7 +2741,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -2823,6 +2816,8 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -3134,9 +3129,6 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -3149,7 +3141,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -3224,6 +3216,8 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -3608,9 +3602,6 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -3623,7 +3614,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -3698,6 +3689,8 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -4072,8 +4065,6 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -4154,6 +4145,8 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -4441,8 +4434,6 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -4523,6 +4514,8 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -4807,8 +4800,6 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -4889,6 +4880,8 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -5158,8 +5151,6 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -5240,6 +5231,8 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
@@ -5494,9 +5487,6 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -5509,7 +5499,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -5584,6 +5574,8 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),

@@ -30,9 +30,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	configFileOverrides := make(map[string]any)
@@ -45,7 +42,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -102,6 +99,8 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
