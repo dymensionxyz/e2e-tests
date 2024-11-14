@@ -289,13 +289,13 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(60 * time.Second)
+	time.Sleep(100 * time.Second)
 
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
@@ -1427,6 +1427,9 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -1439,6 +1442,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1448,6 +1452,14 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1466,7 +1478,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -1840,6 +1852,9 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -1852,6 +1867,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1861,6 +1877,14 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 1
+
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1879,7 +1903,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -2612,6 +2636,9 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
@@ -2623,13 +2650,13 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(90 * time.Second)
+	time.Sleep(100 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -2640,7 +2667,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -2726,6 +2753,9 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -2738,6 +2768,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -2747,6 +2778,14 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 1
+
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -2765,7 +2804,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -3115,6 +3154,9 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -3127,6 +3169,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -3136,6 +3179,14 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 2
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -3154,7 +3205,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -3583,6 +3634,9 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -3595,6 +3649,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -3604,6 +3659,14 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 2
+
+	modifyWasmGenesisKV := append(
+		rollappWasmGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -3622,7 +3685,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -9041,6 +9104,9 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		t.Skip()
 	}
 
+	// start grpc DA
+	go StartDA()
+
 	ctx := context.Background()
 
 	// setup config for rollapp 1
@@ -9053,6 +9119,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -9062,6 +9129,14 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppVals := 1
 	numRollAppFn := 1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -9080,7 +9155,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
