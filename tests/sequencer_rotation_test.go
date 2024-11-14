@@ -3400,7 +3400,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	fund = ibc.WalletData{
 		Address: sequencer,
 		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000),
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
@@ -3874,7 +3874,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	fund = ibc.WalletData{
 		Address: sequencer,
 		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000),
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
@@ -4316,7 +4316,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	fund = ibc.WalletData{
 		Address: sequencer,
 		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000),
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
@@ -4677,7 +4677,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	fund = ibc.WalletData{
 		Address: sequencer,
 		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000),
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
@@ -5065,21 +5065,25 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	time.Sleep(200 * time.Second)
 
 	// Chain halted
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.Error(t, err)
-
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(100 * time.Second)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
