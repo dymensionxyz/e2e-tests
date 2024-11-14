@@ -259,13 +259,16 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
+	crHeight, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(crHeight),
 		"punish_sequencer_address": "",
 	}
 
@@ -295,6 +298,20 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
+
+	command = []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
