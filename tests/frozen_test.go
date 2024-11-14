@@ -340,7 +340,6 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -711,7 +710,6 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -1122,7 +1120,6 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -1610,7 +1607,6 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -2058,7 +2054,6 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -2436,7 +2431,6 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -2827,7 +2821,6 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -3198,7 +3191,6 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -3637,7 +3629,6 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -4082,7 +4073,6 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -4435,7 +4425,6 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -4778,7 +4767,6 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -5121,7 +5109,6 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -5479,7 +5466,6 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	// Submit fraud proposal
 	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
