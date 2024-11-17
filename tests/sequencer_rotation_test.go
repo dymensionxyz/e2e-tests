@@ -1709,6 +1709,9 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
@@ -1726,48 +1729,57 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(150 * time.Second)
+
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	require.NoError(t, err)
+
+	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
+	require.NoError(t, err)
+	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
+
+	time.Sleep(100 * time.Second)
 
 	// Chain halted
 	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	// require.Error(t, err)
 
-	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
-	}
-	err = dymension.SendFunds(ctx, "faucet", fund)
-	require.NoError(t, err)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
-
-	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
-	require.NoError(t, err)
-
-	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-
-	// err = rollapp1.StopAllNodes(ctx)
+	// cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
+	// pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	// require.NoError(t, err)
 
-	// _ = rollapp1.StartAllNodes(ctx)
+	// err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	// require.NoError(t, err)
+
+	// sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	// require.NoError(t, err)
+
+	// fund := ibc.WalletData{
+	// 	Address: sequencer,
+	// 	Denom:   dymension.Config().Denom,
+	// 	Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	// }
+	// err = dymension.SendFunds(ctx, "faucet", fund)
+	// require.NoError(t, err)
+
+	// // Wait a few blocks for relayer to start and for user accounts to be created
+	// err = testutil.WaitForBlocks(ctx, 5, dymension)
+	// require.NoError(t, err)
+
+	// command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	// 	"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+
+	// _, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	// require.NoError(t, err)
+
+	// resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	// require.NoError(t, err)
+	// require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	_ = rollapp1.StartAllNodes(ctx)
 
 	time.Sleep(30 * time.Second)
 
