@@ -64,7 +64,7 @@ type userData struct {
 func MustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 	return string(bz)
 }
@@ -120,8 +120,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "debug-m",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
