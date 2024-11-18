@@ -328,8 +328,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.FullNodes[0].SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -3562,7 +3561,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.FullNodes[1].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
 	require.NoError(t, err)
 
 	sequencer2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
@@ -3771,8 +3770,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.FullNodes[0].SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	// Check IBC after switch
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
@@ -4554,7 +4552,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
-	err = dymension.FullNodes[1].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
 	require.NoError(t, err)
 
 	sequencer, err = dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
@@ -4621,8 +4619,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.FullNodes[0].SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -5347,8 +5344,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.FullNodes[0].SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -6171,8 +6167,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.FullNodes[0].SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

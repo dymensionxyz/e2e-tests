@@ -504,8 +504,6 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
-	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
