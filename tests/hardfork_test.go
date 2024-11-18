@@ -614,9 +614,6 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// check client was frozen after kicked
 	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
@@ -627,7 +624,7 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(150 * time.Second)
 
 	// check client was frozen after kicked
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")

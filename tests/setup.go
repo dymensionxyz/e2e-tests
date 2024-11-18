@@ -120,14 +120,14 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "debug-m-old",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "debug-m-old",
+		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
 
