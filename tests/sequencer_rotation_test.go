@@ -8388,58 +8388,132 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
-	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+	// containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
-	// Get the container details
-	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-	require.NoError(t, err)
+	// // Get the container details
+	// containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	// require.NoError(t, err)
 
-	// Extract the IP address from the network settings
-	// If the container is using a custom network, the IP might be under a specific network name
-	var ipAddress string
-	for _, network := range containerJSON.NetworkSettings.Networks {
-		ipAddress = network.IPAddress
-		break // Assuming we only need the IP from the first network
-	}
+	// // Extract the IP address from the network settings
+	// // If the container is using a custom network, the IP might be under a specific network name
+	// var ipAddress string
+	// for _, network := range containerJSON.NetworkSettings.Networks {
+	// 	ipAddress = network.IPAddress
+	// 	break // Assuming we only need the IP from the first network
+	// }
 
-	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
-	require.NoError(t, err)
-	nodeId = strings.TrimRight(nodeId, "\n")
-	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+	// nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	// require.NoError(t, err)
+	// nodeId = strings.TrimRight(nodeId, "\n")
+	// p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+	// rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	// rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	// file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
 
-	lines := []string{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
+	// lines := []string{}
+	// scanner := bufio.NewScanner(file)
+	// for scanner.Scan() {
+	// 	lines = append(lines, scanner.Text())
+	// }
 
-	for i, line := range lines {
-		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+	// for i, line := range lines {
+	// 	if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+	// 		lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+	// 	}
+	// }
+
+	// output := strings.Join(lines, "\n")
+	// file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	// require.NoError(t, err)
+	// defer file.Close()
+
+	// _, err = file.Write([]byte(output))
+	// require.NoError(t, err)
+
+	// // Start full node
+	// err = rollapp1.FullNodes[0].StopContainer(ctx)
+	// require.NoError(t, err)
+
+	// err = rollapp1.FullNodes[0].StartContainer(ctx)
+	// require.NoError(t, err)
+
+	// addrDym, _ := r.GetWallet(dymension.GetChainID())
+	// err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+	// 	Address: addrDym.FormattedAddress(),
+	// 	Amount:  math.NewInt(10_000_000_000_000),
+	// 	Denom:   dymension.Config().Denom,
+	// })
+	// require.NoError(t, err)
+
+	// addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	// err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+	// 	Address: addrRA.FormattedAddress(),
+	// 	Amount:  math.NewInt(10_000_000_000_000),
+	// 	Denom:   rollapp1.Config().Denom,
+	// })
+	// require.NoError(t, err)
+
+	bootstrapNodes := []string{}
+
+	for i := 0; i <= 2; i++ {
+		containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-%d-%s", i, t.Name())
+		containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+		require.NoError(t, err)
+
+		var ipAddress string
+		for _, network := range containerJSON.NetworkSettings.Networks {
+			ipAddress = network.IPAddress
+			break
 		}
+
+		nodeId, err := rollapp1.FullNodes[i].GetNodeId(ctx)
+		require.NoError(t, err)
+		nodeId = strings.TrimRight(nodeId, "\n")
+
+		bootstrapNodes = append(bootstrapNodes, fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId))
 	}
 
-	output := strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	require.NoError(t, err)
-	defer file.Close()
+	bootstrapNodesString := strings.Join(bootstrapNodes, ",")
 
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
+	for i := 0; i <= 2; i++ {
+		rollappHomeDir := strings.Split(rollapp1.FullNodes[i].HomeDir(), "/")
+		rollappFolderName := rollappHomeDir[len(rollappHomeDir)-1]
 
-	// Start full node
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
+		filePath := fmt.Sprintf("/tmp/%s/config/dymint.toml", rollappFolderName)
+		file, err := os.Open(filePath)
+		require.NoError(t, err)
+		defer file.Close()
 
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
+		lines := []string{}
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			lines = append(lines, scanner.Text())
+		}
+
+		for j, line := range lines {
+			if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+				lines[j] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", bootstrapNodesString)
+			}
+		}
+
+		output := strings.Join(lines, "\n")
+		file, err = os.Create(filePath)
+		require.NoError(t, err)
+		defer file.Close()
+
+		_, err = file.Write([]byte(output))
+		require.NoError(t, err)
+
+		err = rollapp1.FullNodes[i].StopContainer(ctx)
+		require.NoError(t, err)
+
+		err = rollapp1.FullNodes[i].StartContainer(ctx)
+		require.NoError(t, err)
+	}
 
 	addrDym, _ := r.GetWallet(dymension.GetChainID())
 	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
