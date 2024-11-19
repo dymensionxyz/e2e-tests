@@ -348,7 +348,7 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key:   "app_state.sequencer.params.kick_threshold",
+			Key: "app_state.sequencer.params.kick_threshold",
 			Value: map[string]interface{}{
 				"denom":  "adym",
 				"amount": "99999999999999999999",
@@ -622,9 +622,12 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	_ = rollapp1.StartAllNodes(ctx)
+	_ = rollapp1.FullNodes[0].StartContainer(ctx)
+	testutil.WaitForBlocks(ctx, 10, dymension)
 
-	time.Sleep(150 * time.Second)
+	_ = rollapp1.Validators[0].StartContainer(ctx)
+
+	time.Sleep(100 * time.Second)
 
 	// check client was frozen after kicked
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
