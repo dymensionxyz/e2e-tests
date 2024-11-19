@@ -325,7 +325,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -700,7 +700,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -1120,7 +1120,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -1622,7 +1622,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -2079,7 +2079,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -2466,7 +2466,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -2871,7 +2871,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -3251,7 +3251,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -3699,7 +3699,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -4153,7 +4153,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -4510,7 +4510,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -4857,7 +4857,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -5204,7 +5204,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -5566,7 +5566,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}

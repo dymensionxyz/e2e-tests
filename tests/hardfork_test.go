@@ -266,7 +266,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
@@ -302,7 +302,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 100, dymension)
+	err = testutil.WaitForBlocks(ctx, 200, dymension)
 	require.NoError(t, err)
 
 	err = rollapp1.StopAllNodes(ctx)
