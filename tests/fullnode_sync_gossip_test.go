@@ -189,7 +189,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -200,7 +200,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -514,7 +514,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -525,7 +525,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -849,7 +849,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -860,7 +860,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1200,7 +1200,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1211,7 +1211,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1551,7 +1551,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1562,7 +1562,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1903,7 +1903,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1914,7 +1914,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)

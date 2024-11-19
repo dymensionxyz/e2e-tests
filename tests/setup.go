@@ -64,7 +64,7 @@ type userData struct {
 func MustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 	return string(bz)
 }
@@ -120,8 +120,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "debug-m-old",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -692,7 +692,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+		dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer

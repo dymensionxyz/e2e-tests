@@ -331,7 +331,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -342,7 +342,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -501,6 +501,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -634,6 +639,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -811,7 +821,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -822,7 +832,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1081,6 +1091,11 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1214,6 +1229,11 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 

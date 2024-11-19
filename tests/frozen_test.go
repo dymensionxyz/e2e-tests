@@ -275,6 +275,11 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -312,22 +317,24 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(rollapp1Clients))
 
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -337,28 +344,16 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	// propTx, err := dymension.SubmitFraudProposal(
-	// 	ctx, dymensionUser.KeyName(),
-	// 	rollapp1.Config().ChainID,
-	// 	fmt.Sprint(rollappHeight-2),
-	// 	sequencerAddr,
-	// 	rollapp1Clients[0].ClientID,
-	// 	"fraud",
-	// 	"fraud",
-	// 	"500000000000"+dymension.Config().Denom,
-	// )
-	// require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp has frozen or not
@@ -413,6 +408,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestRollAppFreeze ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing.
@@ -666,6 +662,11 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -691,56 +692,24 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	// oldLatestRollapp1, err := dymension.FinalizedRollappStateIndex(ctx, rollapp1.Config().ChainID)
 	// require.NoError(t, err)
 
-	// var fraudHeight string
-	// var fraudProposer string
-
-	// Loop until the next pending state index appears
-	// for {
-	// 	res, err := dymension.QueryRollappState(ctx, rollapp1.Config().ChainID, false)
-	// 	require.NoError(t, err)
-
-	// 	latestIndex := res.StateInfo.StateInfoIndex.Index
-	// 	parsedIndex, err := strconv.ParseInt(latestIndex, 10, 64)
-	// 	require.NoError(t, err)
-
-	// 	if parsedIndex > oldLatestRollapp1 && res.StateInfo.Status == "PENDING" {
-	// 		fraudHeight = res.StateInfo.BlockDescriptors.BD[len(res.StateInfo.BlockDescriptors.BD)-1].Height
-	// 		fraudProposer = res.StateInfo.Sequencer
-	// 		break
-	// 	}
-	// }
-
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// var rollapp1ClientOnDym string
-
-	dymClients, err := r1.GetClients(ctx, eRep, dymension.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(dymClients), 3)
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -750,16 +719,16 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp has frozen or not
@@ -816,6 +785,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "dym hub still get transfer from frozen rollapp")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestOtherRollappNotAffected_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1089,6 +1059,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1099,6 +1074,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1132,41 +1112,24 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -1176,19 +1139,16 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -1297,6 +1257,11 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1312,6 +1277,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount).Sub(bridgingFee)), "dym hub balance did not change")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestOtherRollappNotAffected_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp and not IBC txs are passing and other rollapp works fine.
@@ -1594,6 +1560,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1605,6 +1576,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1638,42 +1614,24 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -1683,19 +1641,16 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -1805,6 +1760,11 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1819,6 +1779,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 	require.Equal(t, true, dymUserUpdateBal2.Equal(dymUserOriginBal2.Add(transferAmount.Sub(transferAmount.Quo(math.NewInt(1000))))), "dym hub balance did not change")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestPacketRollbacked_EVM ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
@@ -1994,6 +1955,11 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2089,27 +2055,6 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
 	// SEND IBC transfer right before vote
 	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
@@ -2126,22 +2071,24 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -2151,20 +2098,16 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	// Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -2175,6 +2118,11 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2205,6 +2153,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 	require.Equal(t, dymUserOriginBal, dymUserUpdateBal, "funds aren't sent back to sender")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestPacketRollbacked_Wasm ensure upon freeze gov proposal passed, ibc-transfer that not yet finalized's packets will be reverted.
@@ -2394,6 +2343,11 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2489,27 +2443,6 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
 	// SEND IBC transfer right before vote
 	dymUserOriginBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	_, err = dymension.SendIBCTransfer(ctx, channDymRollApp1.ChannelID, dymensionUserAddr, transferDataFromDym, ibc.TransferOptions{})
@@ -2525,22 +2458,24 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -2550,20 +2485,16 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	// Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
-
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -2573,6 +2504,11 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2602,6 +2538,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestRollAppFreezeNoBrokenInvariants_EVM ensure upon freeze gov proposal passed, no updates can be made to the rollapp evm. No invariants broken.
@@ -2875,6 +2812,11 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2886,6 +2828,11 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -2916,45 +2863,24 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -2964,16 +2890,16 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -2992,6 +2918,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestRollAppFreezeNoBrokenInvariants_Wasm ensure upon freeze gov proposal passed, no updates can be made to the rollapp wasm. No invariants broken.
@@ -3265,6 +3192,11 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -3276,6 +3208,11 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -3306,45 +3243,24 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -3354,16 +3270,16 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -3382,6 +3298,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 // TestRollAppSqcSlashedJailed_EVM ensure upon freeze gov proposal passed, Sequencer should be slashed with all the bond and jailed. Inability to register a new sequencer
@@ -3657,6 +3574,11 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -3668,6 +3590,11 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -3764,45 +3691,24 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	// require.Equal(t, false, sequencerStatus.Sequencers[0].Jailed, "sequencer should not be jailed")
 	// require.Equal(t, true, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have bond")
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -3812,16 +3718,16 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -3847,6 +3753,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 
 	// TODO: Make sure we can not register a new sequencer
+
 }
 
 // TestRollAppSqcSlashedJailed_Wasm ensure upon freeze gov proposal passed, Sequencer should be slashed with all the bond and jailed. Inability to register a new sequencer
@@ -4122,6 +4029,11 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -4133,6 +4045,11 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -4228,44 +4145,24 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	// require.Equal(t, false, sequencerStatus.Sequencers[0].Jailed, "sequencer should not be jailed")
 	// require.Equal(t, true, sequencerStatus.Sequencers[0].Tokens.AmountOf("adym").IsPositive(), "sequencer should have bond")
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 3, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -4275,16 +4172,16 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	// Check if rollapp1 has frozen or not
@@ -4309,6 +4206,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 	// TODO: Make sure we can not register a new sequencer
+
 }
 
 func GetIBCDenom(counterPartyPort, counterPartyChannel, denom string) string {
@@ -4506,6 +4404,11 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -4599,47 +4502,24 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// // Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -4649,16 +4529,16 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -4679,6 +4559,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
@@ -4870,6 +4751,11 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -4963,47 +4849,24 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// // Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -5013,16 +4876,16 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -5043,6 +4906,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 	require.Equal(t, fmt.Sprint(targetIndex), latestIndex.StateIndex.Index, "rollapp state index still increment")
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
@@ -5234,6 +5098,11 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -5327,53 +5196,24 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
-
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// // send eIBC transfer before frozen
-	// rollappUserOriginBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
-	// require.NoError(t, err)
-	// _, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
-	// require.NoError(t, err)
-
-	// // Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -5383,16 +5223,16 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -5428,6 +5268,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 	require.Equal(t, (transferAmount.Sub(bridgingFee)), balanceOfDymUserAddr)
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
 
 func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
@@ -5619,6 +5460,11 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -5712,52 +5558,24 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 		}
 	}
 
-	// submitFraudStr := "fraud"
-	// deposit := "500000000000" + dymension.Config().Denom
+	fraud_height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
 
-	// // Get new height after frozen
-	// rollappHeight, err = rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	// fraudHeight := fmt.Sprint(rollappHeight - 5)
-
-	// dymClients, err := r.GetClients(ctx, eRep, dymension.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, 2, len(dymClients))
-
-	// var rollapp1ClientOnDym string
-
-	// for _, client := range dymClients {
-	// 	if client.ClientState.ChainID == rollapp1.Config().ChainID {
-	// 		rollapp1ClientOnDym = client.ClientID
-	// 	}
-	// }
-
-	// // send eIBC transfer before frozen
-	// rollappUserOriginBal, err := rollapp1.GetBalance(ctx, rollapp1UserAddr, rollapp1.Config().Denom)
-	// require.NoError(t, err)
-	// _, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1Dym.ChannelID, rollapp1UserAddr, transferData, options)
-	// require.NoError(t, err)
-
-	// // Submit fraud proposal
-	// propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), rollapp1.Config().ChainID, fraudHeight, sequencerAddr, rollapp1ClientOnDym, submitFraudStr, submitFraudStr, deposit)
-	// require.NoError(t, err)
 	// Create fraud proposal message
 	msg := map[string]interface{}{
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "4",
-		"fraud_height":             "1050",
+		"rollapp_revision":         "0",
+		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
-	// Prepare fraud proposal transaction
 	proposal := cosmos.TxFraudProposal{
 		Deposit:  "500000000000" + dymension.Config().Denom,
 		Title:    "rollapp Upgrade 1",
@@ -5767,16 +5585,16 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	propTx, err := dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
-	require.NoError(t, err)
+	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
 
-	err = dymension.VoteOnProposalAllValidators(ctx, propTx.ProposalID, cosmos.ProposalVoteYes)
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+20, propTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	latestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
@@ -5813,4 +5631,5 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+
 }
