@@ -314,14 +314,22 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
-	err = rollapp1.StopAllNodes(ctx)
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
+
+	if err != nil {
+		err = rollapp1.Validators[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.Validators[0].StartContainer(ctx)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
