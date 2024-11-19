@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
+	// "time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -266,14 +266,14 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		"@type":                    "/dymensionxyz.dymension.rollapp.MsgRollappFraudProposal",
 		"authority":                "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
 		"rollapp_id":               "rollappevm_1234-1",
-		"rollapp_revision":         "0",
+		"fraud_revision":           "0",
 		"fraud_height":             fmt.Sprint(fraud_height),
 		"punish_sequencer_address": "",
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -302,13 +302,28 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 50, dymension)
+	require.NoError(t, err)
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	err = rollapp1.StartAllNodes(ctx)
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
@@ -619,15 +634,27 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Frozen", clientStatus.Status)
 
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
+	require.NoError(t, err)
+
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	_ = rollapp1.FullNodes[0].StartContainer(ctx)
-	testutil.WaitForBlocks(ctx, 10, dymension)
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
-	_ = rollapp1.Validators[0].StartContainer(ctx)
-
-	time.Sleep(100 * time.Second)
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
 
 	// check client was frozen after kicked
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
