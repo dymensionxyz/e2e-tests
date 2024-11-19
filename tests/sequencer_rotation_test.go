@@ -8251,9 +8251,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 		t.Skip()
 	}
 
-	// start grpc DA
-	go StartDA()
-
 	ctx := context.Background()
 
 	configFileOverrides := make(map[string]any)
@@ -8360,6 +8357,8 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
