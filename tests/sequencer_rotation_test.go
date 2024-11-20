@@ -8253,7 +8253,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	configFileOverrides := make(map[string]any)
+	// setup config for rollapp 1
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -8263,8 +8263,9 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
+	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// Create chain factory with dymension
@@ -8359,7 +8360,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	client, network := test.DockerSetup(t)
 
 	StartDA(ctx, t, client, network)
-
+	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
@@ -8382,9 +8383,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
@@ -8441,29 +8439,14 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	// err = rollapp1.FullNodes[0].StartContainer(ctx)
 	// require.NoError(t, err)
 
-	// addrDym, _ := r.GetWallet(dymension.GetChainID())
-	// err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
-	// 	Address: addrDym.FormattedAddress(),
-	// 	Amount:  math.NewInt(10_000_000_000_000),
-	// 	Denom:   dymension.Config().Denom,
-	// })
-	// require.NoError(t, err)
-
-	// addrRA, _ := r.GetWallet(rollapp1.GetChainID())
-	// err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
-	// 	Address: addrRA.FormattedAddress(),
-	// 	Amount:  math.NewInt(10_000_000_000_000),
-	// 	Denom:   rollapp1.Config().Denom,
-	// })
-	// require.NoError(t, err)
-
 	bootstrapNodes := []string{}
+	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
 
 	for i := 0; i <= 2; i++ {
-		containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-%d-%s", i, t.Name())
-		containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-		require.NoError(t, err)
-
 		var ipAddress string
 		for _, network := range containerJSON.NetworkSettings.Networks {
 			ipAddress = network.IPAddress
