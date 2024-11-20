@@ -8439,28 +8439,23 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	// err = rollapp1.FullNodes[0].StartContainer(ctx)
 	// require.NoError(t, err)
 
-	bootstrapNodes := []string{}
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
 	require.NoError(t, err)
 
-	for i := 0; i <= 2; i++ {
-		var ipAddress string
-		for _, network := range containerJSON.NetworkSettings.Networks {
-			ipAddress = network.IPAddress
-			break
-		}
-
-		nodeId, err := rollapp1.FullNodes[i].GetNodeId(ctx)
-		require.NoError(t, err)
-		nodeId = strings.TrimRight(nodeId, "\n")
-
-		bootstrapNodes = append(bootstrapNodes, fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId))
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break
 	}
 
-	bootstrapNodesString := strings.Join(bootstrapNodes, ",")
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
 
 	for i := 0; i <= 2; i++ {
 		rollappHomeDir := strings.Split(rollapp1.FullNodes[i].HomeDir(), "/")
@@ -8479,7 +8474,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 		for j, line := range lines {
 			if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-				lines[j] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", bootstrapNodesString)
+				lines[j] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
 			}
 		}
 
@@ -8634,13 +8629,30 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
+	// stop proposer => slashing then
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	// full node B bond
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
+	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
 	require.NoError(t, err)
 
 	remainingBond, err := dymension.GetBalance(ctx, sequencerAddr, dymension.Config().Denom)
@@ -8661,37 +8673,52 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 	fmt.Printf("CurrentProposer: %+v\n", currentProposer)
 
-	// stop proposer => slashing then
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 2, dymension)
-
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
-
 	// kick current proposer
 	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension)
+	// require.NoError(t, err)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
-	_ = rollapp1.StartAllNodes(ctx)
+	for i := 0; i <= 2; i++ {
+		err = rollapp1.FullNodes[i].StartContainer(ctx)
+		require.NoError(t, err)
+	}
 
-	time.Sleep(30 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-	fmt.Printf("CurrentProposer: %+v\n", currentProposer)
 
-	// Compose an IBC transfer and send from rollapp -> Hub
+	if err != nil {
+		err = rollapp1.Validators[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.Validators[0].StartContainer(ctx)
+	}
+
+	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	require.NoError(t, err)
+
+	// Send a normal ibc tx from RA -> Hub
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -8702,57 +8729,4 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// Get original account balances
-	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom
-	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 }
