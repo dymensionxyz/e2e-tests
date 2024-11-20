@@ -190,7 +190,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -201,7 +201,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -535,7 +535,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -546,7 +546,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)

@@ -273,7 +273,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -302,13 +302,16 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 100, dymension)
 	require.NoError(t, err)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 60, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub

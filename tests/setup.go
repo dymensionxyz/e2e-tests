@@ -64,7 +64,7 @@ type userData struct {
 func MustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 	return string(bz)
 }

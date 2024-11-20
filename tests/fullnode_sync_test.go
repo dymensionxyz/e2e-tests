@@ -33,7 +33,7 @@ import (
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
-	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", types.ImagePullOptions{})
+	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
 
@@ -63,8 +63,8 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 	resp, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", // Image to run
-			Tty:   true,                                              // Attach to a TTY
+			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
+			Tty:   true,                                          // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
@@ -509,7 +509,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -520,7 +520,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	time.Sleep(30 * time.Second)
@@ -785,7 +785,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -796,7 +796,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)

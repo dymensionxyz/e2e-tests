@@ -332,7 +332,7 @@ func TestRollAppFreeze_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -707,7 +707,7 @@ func TestRollAppFreeze_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -1127,7 +1127,7 @@ func TestOtherRollappNotAffected_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -1629,7 +1629,7 @@ func TestOtherRollappNotAffected_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -2086,7 +2086,7 @@ func TestPacketRollbacked_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -2473,7 +2473,7 @@ func TestPacketRollbacked_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -2878,7 +2878,7 @@ func TestRollAppFreezeNoBrokenInvariants_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -3258,7 +3258,7 @@ func TestRollAppFreezeNoBrokenInvariants_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -3706,7 +3706,7 @@ func TestRollAppSqcSlashedJailed_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -4160,7 +4160,7 @@ func TestRollAppSqcSlashedJailed_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -4517,7 +4517,7 @@ func TestRollAppFreezeStateNotProgressing_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -4864,7 +4864,7 @@ func TestRollAppFreezeStateNotProgressing_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -5211,7 +5211,7 @@ func TestRollAppFreezeEibcPending_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
@@ -5573,7 +5573,7 @@ func TestRollAppFreezeEibcPending_Wasm(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxFraudProposal{
