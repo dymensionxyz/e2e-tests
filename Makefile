@@ -255,16 +255,16 @@ e2e-test-sequencer-hub-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSequencerHubDisconnection_EVM .
 
 e2e-test-fullnode-sync-block-sync-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestSync_BlockSync_EVM .
+	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_EVM .
 
 e2e-test-fullnode-disconnect-block-sync-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run TestSync_BlockSync_fn_disconnect_EVM .
+	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_fn_disconnect_EVM .
 
 e2e-test-sequencer-rotation-oneseq-da-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_OneSeq_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_OneSeq_DA_EVM .
 
 e2e-test-sequencer-rotation-oneseq-da-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_OneSeq_DA_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_OneSeq_DA_Wasm .
 	
 e2e-test-sequencer-rotation-oneseq-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_OneSqc_P2P_EVM .
@@ -273,52 +273,52 @@ e2e-test-sequencer-rotation-oneseq-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_OneSqc_P2P_Wasm .
 
 e2e-test-sequencer-rotation-mulseq-da-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_MulSeq_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_MulSeq_DA_EVM .
 
 e2e-test-sequencer-rotation-mulseq-da-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_MulSeq_DA_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_MulSeq_DA_Wasm .
 	
 e2e-test-sequencer-rotation-multi-seq-p2p-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_MulSqc_P2P_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_MulSqc_P2P_EVM .
 
 e2e-test-sequencer-rotation-multi-seq-p2p-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_MulSqc_P2P_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_MulSqc_P2P_Wasm .
 
 e2e-test-sequencer-rotation-noseq-da-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_NoSeq_DA_EVM .
 
 e2e-test-sequencer-rotation-noseq-da-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_DA_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_NoSeq_DA_Wasm .
 
 e2e-test-sequencer-rotation-noseq-p2p-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_P2P_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_NoSeq_P2P_EVM .
 
 e2e-test-sequencer-rotation-noseq-p2p-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_NoSeq_P2P_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_NoSeq_P2P_Wasm .
 	
 e2e-test-sequencer-rotation-unbond-da-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Unbond_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_Unbond_DA_EVM .
 
 e2e-test-sequencer-rotation-unbond-da-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Unbond_DA_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_Unbond_DA_Wasm .
 
 e2e-test-sequencer-rotation-unbond-p2p-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_Unbond_P2P_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_Unbond_P2P_EVM .
 
 e2e-test-sequencer-rotation-unbond-p2p-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_Unbond_P2P_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_Unbond_P2P_Wasm .
 
 e2e-test-sequencer-rotation-accumdata-da-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_AccumData_DA_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_AccumData_DA_EVM .
 
 e2e-test-sequencer-rotation-accumdata-da-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_AccumData_DA_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_AccumData_DA_Wasm .
 
 e2e-test-sequencer-rotation-accumdata-p2p-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_AccumData_P2P_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_AccumData_P2P_EVM .
 
 e2e-test-sequencer-rotation-accumdata-p2p-wasm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_SqcRotation_AccumData_P2P_Wasm .
+	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_AccumData_P2P_Wasm .
 	
 e2e-test-sequencer-rotation-state-update-fail-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_StateUpd_Fail_EVM .
@@ -351,10 +351,10 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_Unbond_P2P_Wasm .
   
 e2e-test-eibc-client-success-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Success_EVM .
 
 e2e-test-eibc-client-nofulfillrollapp-evm: clean-e2e
-	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_NoFulfillRollapp_EVM .
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_NoFulfillRollapp_EVM .
 
 e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_EVM .

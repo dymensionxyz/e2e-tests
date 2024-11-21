@@ -126,8 +126,8 @@ var (
 	}
 
 	rollappEVMImage = ibc.DockerImage{
-		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
 
