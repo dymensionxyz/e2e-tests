@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-	// "time"
+	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -616,6 +616,9 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
 	// stop proposer => slashing then
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
@@ -634,10 +637,6 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Frozen", clientStatus.Status)
 
-	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-
 	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
 	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
 
@@ -647,14 +646,22 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
-	err = rollapp1.StopAllNodes(ctx)
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
+
+	if err != nil {
+		err = rollapp1.Validators[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.Validators[0].StartContainer(ctx)
+	}
 
 	// check client was frozen after kicked
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
@@ -674,16 +681,16 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 
 	// _ = rollapp1.StartAllNodes(ctx)
 
-	// time.Sleep(30 * time.Second)
+	time.Sleep(45 * time.Second)
 
-	// afterBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-	// require.True(t, afterBlock > lastBlock)
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
 
-	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
