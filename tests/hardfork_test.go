@@ -518,10 +518,6 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	// keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	// sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", keyDir)
-	// require.NoError(t, err)
-
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
@@ -534,6 +530,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 1, "should have 1 sequences")
+	fmt.Println("Numberofsequencers:", len(res.Sequencers))
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -559,6 +556,9 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 		Metadata: "ipfs://CID",
 	}
 
+	initialHeight, err := dymension.Height(ctx)
+	fmt.Println("InitialHeight:", initialHeight)
+
 	// Submit DRS deprecation proposal
 	_, _ = dymension.SubmitDRSDeprecationProposal(ctx, dymensionUser.KeyName(), proposal)
 
@@ -567,10 +567,26 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+	fmt.Println("height:", height)
 	haltHeight := height + haltHeightDelta
+
+	// Assert that the chain is halted
+	// require.Equal(t, initialHeight, height, "chain is not halted as expected")
 
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
+
+	height2, err := dymension.Height(ctx)
+	fmt.Println("height2:", height2)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
