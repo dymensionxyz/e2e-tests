@@ -530,7 +530,6 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(res.Sequencers), 1, "should have 1 sequences")
-	fmt.Println("Numberofsequencers:", len(res.Sequencers))
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -540,7 +539,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/dymensionxyz.dymension.rollapp.MsgMarkObsoleteRollapps",
 		"authority":    "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
-		"drs_versions": []int{1},
+		"drs_versions": []int{2},
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -556,9 +555,6 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 		Metadata: "ipfs://CID",
 	}
 
-	initialHeight, err := dymension.Height(ctx)
-	fmt.Println("InitialHeight:", initialHeight)
-
 	// Submit DRS deprecation proposal
 	_, _ = dymension.SubmitDRSDeprecationProposal(ctx, dymensionUser.KeyName(), proposal)
 
@@ -567,7 +563,6 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	fmt.Println("height:", height)
 	haltHeight := height + haltHeightDelta
 
 	// Assert that the chain is halted
@@ -576,8 +571,10 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
-	height2, err := dymension.Height(ctx)
-	fmt.Println("height2:", height2)
+	command := []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.Validators[0].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.Validators[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
