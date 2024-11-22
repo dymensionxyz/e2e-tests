@@ -1,9 +1,9 @@
 {
-    "members": [
-         {
-              "address": "<operator_address>",
-              "weight": "1", 
-              "metadata": "president"
-         }
-      ]
- }
+  "members": [
+    {
+      "address": "dym1ea2cqs892mkmghv8r8nq84hewwlk77n3s0m3n0",
+      "weight": "1",
+      "metadata": "president"
+    }
+  ]
+}
