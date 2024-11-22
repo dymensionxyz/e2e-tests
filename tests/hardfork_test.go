@@ -539,7 +539,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/dymensionxyz.dymension.rollapp.MsgMarkObsoleteRollapps",
 		"authority":    "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
-		"drs_versions": []int{2},
+		"drs_versions": []int{1},
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -576,11 +576,22 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	_, err = dymension.Validators[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
+	require.NoError(t, err)
+
+	rollapp1.UpgradeVersion(ctx, client, "ghcr.io/decentrio/rollapp-evm", "drs-2")
 
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
