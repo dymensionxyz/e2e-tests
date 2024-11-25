@@ -8641,59 +8641,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360)
 	require.NoError(t, err)
 
-	// containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
-
-	// // Get the container details
-	// containerJSON, err := client.ContainerInspect(context.Background(), containerID)
-	// require.NoError(t, err)
-
-	// // Extract the IP address from the network settings
-	// // If the container is using a custom network, the IP might be under a specific network name
-	// var ipAddress string
-	// for _, network := range containerJSON.NetworkSettings.Networks {
-	// 	ipAddress = network.IPAddress
-	// 	break // Assuming we only need the IP from the first network
-	// }
-
-	// nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
-	// require.NoError(t, err)
-	// nodeId = strings.TrimRight(nodeId, "\n")
-	// p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
-
-	// rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	// rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	// require.NoError(t, err)
-	// defer file.Close()
-
-	// lines := []string{}
-	// scanner := bufio.NewScanner(file)
-	// for scanner.Scan() {
-	// 	lines = append(lines, scanner.Text())
-	// }
-
-	// for i, line := range lines {
-	// 	if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
-	// 		lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
-	// 	}
-	// }
-
-	// output := strings.Join(lines, "\n")
-	// file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
-	// require.NoError(t, err)
-	// defer file.Close()
-
-	// _, err = file.Write([]byte(output))
-	// require.NoError(t, err)
-
-	// // Start full node
-	// err = rollapp1.FullNodes[0].StopContainer(ctx)
-	// require.NoError(t, err)
-
-	// err = rollapp1.FullNodes[0].StartContainer(ctx)
-	// require.NoError(t, err)
-
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
