@@ -682,6 +682,12 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 
 	// _ = rollapp1.StartAllNodes(ctx)
 
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	time.Sleep(45 * time.Second)
 
 	transferData = ibc.WalletData{
