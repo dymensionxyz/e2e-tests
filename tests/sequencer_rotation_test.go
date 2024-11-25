@@ -8711,7 +8711,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-
 	for i := 0; i <= 2; i++ {
 		rollappHomeDir := strings.Split(rollapp1.FullNodes[i].HomeDir(), "/")
 		rollappFolderName := rollappHomeDir[len(rollappHomeDir)-1]
@@ -8884,6 +8883,9 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
 	// stop proposer => slashing then
 	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
@@ -8932,11 +8934,10 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension)
-	// require.NoError(t, err)
-
-	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+	// check client was frozen after kicked
+	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Frozen", clientStatus.Status)
 
 	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
 	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
@@ -8947,16 +8948,28 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err)
-
-	for i := 0; i <= 2; i++ {
-		err = rollapp1.FullNodes[i].StartContainer(ctx)
+	for i, fullNode := range rollapp1.FullNodes {
+		fmt.Printf("Stopping Full Node %d: %s\n", i, fullNode.Name())
+		err := fullNode.StopContainer(ctx)
 		require.NoError(t, err)
 	}
 
-	err = rollapp1.Validators[0].StartContainer(ctx)
+	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	fmt.Printf("Start Full Node 0: \n")
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[1].StartContainer(ctx)
+	fmt.Printf("Start Full Node 1: \n")
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[2].StartContainer(ctx)
+	fmt.Printf("Start Full Node 2: \n")
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
 
 	if err != nil {
 		err = rollapp1.Validators[0].StopContainer(ctx)
@@ -8964,8 +8977,12 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
+
+	time.Sleep(45 * time.Second)
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
