@@ -481,7 +481,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	println("check addrDym: ", addrDym.FormattedAddress())
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), addrDym.FormattedAddress(), "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -583,7 +584,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr2)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -593,7 +594,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr2, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
