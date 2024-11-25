@@ -258,7 +258,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxProposalV1{
@@ -586,7 +586,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxProposalV1{

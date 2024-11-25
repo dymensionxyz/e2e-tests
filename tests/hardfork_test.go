@@ -327,6 +327,9 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, dymension)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 60, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
