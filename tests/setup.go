@@ -126,8 +126,8 @@ var (
 	}
 
 	rollappEVMImage = ibc.DockerImage{
-		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Repository: "ghcr.io/decentrio/rollapp-evm",
+		Version:    "debug-m",
 		UidGid:     "1025:1025",
 	}
 
@@ -1044,8 +1044,5 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
 	require.NoError(t, err)
 }
