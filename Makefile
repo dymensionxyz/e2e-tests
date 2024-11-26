@@ -349,6 +349,9 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-evm: clean-e
 
 e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_Unbond_P2P_Wasm .
+
+e2e-test-sequencer-rotation-forced-da-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Forced_DA_EVM .
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_EIBC_Client_Success_EVM .
