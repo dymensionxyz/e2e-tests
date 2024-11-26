@@ -473,11 +473,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = ioutil.WriteFile("./data/members.json", updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", dymension.HomeDir() + "/members.json")
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", dymension.HomeDir()+"/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A",  dymension.HomeDir() + "/policy.json", "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", dymension.HomeDir()+"/policy.json", "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
