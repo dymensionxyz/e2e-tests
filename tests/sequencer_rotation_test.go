@@ -1906,6 +1906,12 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep)
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -6233,10 +6239,6 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
