@@ -539,7 +539,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/dymensionxyz.dymension.rollapp.MsgMarkObsoleteRollapps",
 		"authority":    "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
-		"drs_versions": []int{1},
+		"drs_versions": []int{2},
 	}
 
 	rawMsg, err := json.Marshal(msg)
