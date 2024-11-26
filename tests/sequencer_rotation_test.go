@@ -1836,6 +1836,12 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
 
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep)
+	require.NoError(t, err)
+
 	if err != nil {
 		err = rollapp1.Validators[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1905,12 +1911,6 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Second)
-
-	err = r.StopRelayer(ctx, eRep)
-	require.NoError(t, err)
-
-	err = r.StartRelayer(ctx, eRep)
-	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
