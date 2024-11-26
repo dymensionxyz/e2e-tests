@@ -6678,13 +6678,24 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
+	// Get original account balances
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	rollappOrigBal2, err := rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	dymensionOrigBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+
 	// Send a normal ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -6693,7 +6704,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, rollappOrigBal2.Sub(transferData.Amount))
 
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -6719,10 +6730,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymensionOrigBal2.Add(transferData.Amount).Sub(bridgingFee))
 }
