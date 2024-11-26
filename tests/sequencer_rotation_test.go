@@ -6669,7 +6669,17 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
 
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	time.Sleep(45 * time.Second)
+
+	// Get original account balances
+	dymensionOrigBal2, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
@@ -6688,4 +6698,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	// Assert balance on the Hub after transfer
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal2.Add(transferData.Amount))
 }
