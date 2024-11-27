@@ -600,7 +600,24 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 
 	err = rollapp1.StopAllNodes(ctx)
 
-	rollapp1.UpgradeVersion(ctx, client, "ghcr.io/decentrio/rollapp-evm", "drs-2")
+	// rollapp1.UpgradeVersion(ctx, client, "ghcr.io/decentrio/rollapp-evm", "drs-2")
+
+	for _, n := range rollapp1.Validators {
+		n.Image.Version = "drs-2"
+		n.Image.Repository = "ghcr.io/decentrio/rollapp-evm"
+	}
+
+	err = rollapp1.StartAllNodes(ctx)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	for _, n := range rollapp1.FullNodes {
+		n.Image.Version = "drs-2"
+		n.Image.Repository = "ghcr.io/decentrio/rollapp-evm"
+	}
+
+	err = rollapp1.StopAllNodes(ctx)
 
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
