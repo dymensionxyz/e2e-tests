@@ -333,7 +333,10 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	err = r.StopRelayer(ctx, eRep)
+	require.NoError(t, err)
+
+	err = r.StartRelayer(ctx, eRep)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 60, dymension, rollapp1)
