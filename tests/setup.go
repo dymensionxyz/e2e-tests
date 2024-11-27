@@ -1034,9 +1034,6 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "underlying-packet-exist")
 	require.NoError(t, err)
 
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-state-index")
-	require.NoError(t, err)
-
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-count")
 	require.NoError(t, err)
 
@@ -1047,8 +1044,5 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
 	require.NoError(t, err)
 }

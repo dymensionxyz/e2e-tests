@@ -349,6 +349,9 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-evm: clean-e
 
 e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_HisSync_Unbond_P2P_Wasm .
+
+e2e-test-sequencer-rotation-forced-da-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Forced_DA_EVM .
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Success_EVM .
@@ -373,6 +376,9 @@ e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
 	
 e2e-test-zero-fee-relay-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_EVM .
+
+e2e-test-hardfork-kick-proposer-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_KickProposer_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e

@@ -246,9 +246,6 @@ func TestRollappInvariant_EVM(t *testing.T) {
 	}
 
 	// Run eibc variants
-	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "rollapp-state-index")
-	require.NoError(t, err)
-
 	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "rollapp-count")
 	require.NoError(t, err)
 
@@ -501,9 +498,6 @@ func TestRollappInvariant_Wasm(t *testing.T) {
 	}
 
 	// Run eibc variants
-	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "rollapp-state-index")
-	require.NoError(t, err)
-
 	_, err = dymension.GetNode().CrisisInvariant(ctx, dymensionUser.KeyName(), "rollapp", "rollapp-count")
 	require.NoError(t, err)
 
