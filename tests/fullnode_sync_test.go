@@ -33,7 +33,7 @@ import (
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
-	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", types.ImagePullOptions{})
+	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
 
@@ -57,14 +57,14 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 		DNS:             []string{},
 		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 	}
-	// time.Sleep(2 * time.Minute)
+	time.Sleep(2 * time.Minute)
 	// Create the container
 	fmt.Println("Creating container ...")
 	resp, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", // Image to run
-			Tty:   true,                                              // Attach to a TTY
+			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
+			Tty:   true,                                          // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
@@ -893,4 +893,3 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	)
 	require.NoError(t, err)
 }
-
