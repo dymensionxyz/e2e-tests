@@ -1903,7 +1903,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep)
+	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Second)
@@ -3820,6 +3820,9 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
 	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, sequencer, currentProposer.ProposerAddr)
@@ -4641,9 +4644,15 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
+
 	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Sequencers), 3, "should have 3 sequences")
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -4741,7 +4750,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom
