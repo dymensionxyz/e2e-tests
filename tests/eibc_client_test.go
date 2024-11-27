@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -35,6 +34,7 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type Member struct {
@@ -364,6 +364,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
@@ -386,13 +388,14 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, dymensionUser2, rollappUser := users[0], users[1], users[2]
+	dymensionUser, lp1, lp2, rollappUser := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
+	lp1Addr := lp1.FormattedAddress()
+	lp2Addr := lp2.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -453,9 +456,100 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// register ibc denom on rollapp1
+	metadata := banktypes.Metadata{
+		Description: "IBC token from Dymension",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    dymensionIBCDenom,
+				Exponent: 0,
+				Aliases:  []string{"udym"},
+			},
+			{
+				Denom:    "udym",
+				Exponent: 6,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    dymensionIBCDenom,
+		Display: "udym",
+		Name:    "udym",
+		Symbol:  "udym",
+	}
+
+	data := map[string][]banktypes.Metadata{
+		"metadata": {metadata},
+	}
+
+	contentFile, err := json.Marshal(data)
+	require.NoError(t, err)
+	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	deposit := "500000000000" + rollapp1.Config().Denom
+	rollapp1.GetNode().HostName()
+	_, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
+	require.NoError(t, err)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount.Mul(math.NewInt(5)),
+	}
+
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Check fund was set to erc20 module account on rollapp
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	require.True(t, rollappErc20MaccBalance.Equal(transferAmount.Mul(math.NewInt(5))))
+	require.NoError(t, err)
+
+	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
+	require.NoError(t, err)
+	require.NotNil(t, tokenPair)
+
+	// convert erc20
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferData.Amount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
+	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+
 	StartDB(ctx, t, client, network)
 
-	membersData, err := ioutil.ReadFile("./data/members.json")
+	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
+	dymFolderName := dymHomeDir[len(dymHomeDir) - 1]
+
+	os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
+
+	membersData, err := os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
 	require.NoError(t, err)
 
 	var members MembersJSON
@@ -470,19 +564,22 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = ioutil.WriteFile("./data/members.json", updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", dymension.HomeDir() + "/members.json")
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A",  dymension.HomeDir() + "/policy.json", "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/policy.json", dymFolderName), "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	println("check addrDym: ", addrDym.FormattedAddress())
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), addrDym.FormattedAddress(), "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp1Addr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", "false")
+	fmt.Println(txHash)
+	require.NoError(t, err)
+
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp2Addr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", "true")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -550,7 +647,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Send a ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
-		Address: dymensionUserAddr2,
+		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
@@ -584,7 +681,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr2)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -594,7 +691,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr2, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -604,7 +701,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -1072,7 +1169,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1", "false")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
