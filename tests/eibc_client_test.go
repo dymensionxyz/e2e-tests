@@ -3,6 +3,7 @@ package tests
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -33,7 +34,18 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
+
+type Member struct {
+	Address  string `json:"address"`
+	Weight   string `json:"weight"`
+	Metadata string `json:"metadata"`
+}
+
+type MembersJSON struct {
+	Members []Member `json:"members"`
+}
 
 type Config struct {
 	HomeDir      string             `yaml:"home_dir"`
@@ -186,182 +198,26 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
-	configFileOverrides1 := make(map[string]any)
-	configTomlOverrides1 := make(testutil.Toml)
-	configTomlOverrides1["timeout_commit"] = "2s"
-	configTomlOverrides1["timeout_propose"] = "2s"
-	configTomlOverrides1["index_all_keys"] = "true"
-	configTomlOverrides1["mode"] = "validator"
-
-	configFileOverrides1["config/config.toml"] = configTomlOverrides1
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// Create chain factory with dymension
 	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
-			Value: "celestia",
+			Value: "grpc",
 		},
 	)
 
 	numHubVals := 1
 	numHubFullNodes := 1
-	numCelestiaFn := 0
 	numRollAppFn := 1
 	numRollAppVals := 1
-	nodeStore := "/home/celestia/light"
-	p2pNetwork := "mocha-4"
-	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
-
-	url := "https://api-mocha.celenium.io/v1/block/count"
-	headerKey := "User-Agent"
-	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://rpc-mocha.pops.one:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "celes-hub",
-			ChainConfig: ibc.ChainConfig{
-				Name:           "celestia",
-				Denom:          "utia",
-				Type:           "hub-celes",
-				GasPrices:      "0.002utia",
-				TrustingPeriod: "112h",
-				ChainID:        "test",
-				Bin:            "celestia-appd",
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/decentrio/light",
-						Version:    "latest",
-						UidGid:     "1025:1025",
-					},
-				},
-				Bech32Prefix:        "celestia",
-				CoinType:            "118",
-				GasAdjustment:       1.5,
-				ConfigFileOverrides: configFileOverrides1,
-			},
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numCelestiaFn,
-		},
-	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	celestia := chains[0].(*celes_hub.CelesHub)
-
-	// Relayer Factory
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddChain(celestia)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
-	require.NoError(t, err)
-
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
-
-	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 3, celestia)
-	require.NoError(t, err)
-
-	file, err := os.Open("/tmp/celestia/light/config.toml")
-	require.NoError(t, err)
-	defer file.Close()
-
-	lastestBlockHeight, err := GetLatestBlockHeight(url, headerKey, headerValue)
-	require.NoError(t, err)
-	lastestBlockHeight = strings.TrimRight(lastestBlockHeight, "\n")
-	heightOfBlock, err := strconv.ParseInt(lastestBlockHeight, 10, 64) // base 10, bit size 64
-	require.NoError(t, err)
-
-	hash, err := celestia.GetNode().GetHashOfBlockHeightWithCustomizeRpcEndpoint(ctx, fmt.Sprintf("%d", heightOfBlock-2), rpcEndpoint)
-	require.NoError(t, err)
-
-	hash = strings.TrimRight(hash, "\n")
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	for i, line := range lines {
-		if strings.HasPrefix(line, "  TrustedHash =") {
-			lines[i] = fmt.Sprintf("  TrustedHash = \"%s\"", hash)
-		} else if strings.HasPrefix(line, "  SampleFrom =") {
-			lines[i] = fmt.Sprintf("  SampleFrom = %d", heightOfBlock-2)
-		} else if strings.HasPrefix(line, "  Address =") {
-			lines[i] = fmt.Sprintf("  Address = \"0.0.0.0\"")
-		}
-	}
-
-	output := strings.Join(lines, "\n")
-	file, err = os.Create("/tmp/celestia/light/config.toml")
-	require.NoError(t, err)
-	defer file.Close()
-
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
-
-	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
-
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
-
-	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
-	require.NoError(t, err)
-	println("check token: ", celestia_token)
-	celestia_namespace_id, err := RandomHex(10)
-	require.NoError(t, err)
-	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
-
-	configFileOverrides := make(map[string]any)
-	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
-	dymintTomlOverrides["da_config"] = da_config
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	cf = test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
@@ -420,18 +276,21 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	})
 
 	// Get chains from the chain factory
-	chains, err = cf.Chains(t.Name())
+	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
 
 	// Relayer Factory
+	client, network := test.DockerSetup(t)
+	StartDA(ctx, t, client, network)
+
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer", network)
 
-	ic = test.NewSetup().
+	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1).
 		AddRelayer(r, "relayer").
 		AddLink(test.InterchainLink{
@@ -441,6 +300,9 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 			Path:    ibcPath,
 		})
 
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
 	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
 		TestName:         t.Name(),
 		Client:           client,
@@ -449,19 +311,91 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, true, 1179360)
+	require.NoError(t, err)
+
+	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
+
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
+
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	addrDym, _ := r.GetWallet(dymension.GetChainID())
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrDym.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrRA.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   rollapp1.Config().Denom,
+	})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, dymensionUser2, rollappUser := users[0], users[1], users[2]
+	dymensionUser, lp1, lp2, rollappUser := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	dymensionUserAddr2 := dymensionUser2.FormattedAddress()
+	lp1Addr := lp1.FormattedAddress()
+	lp2Addr := lp2.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -522,17 +456,130 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	// register ibc denom on rollapp1
+	metadata := banktypes.Metadata{
+		Description: "IBC token from Dymension",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    dymensionIBCDenom,
+				Exponent: 0,
+				Aliases:  []string{"udym"},
+			},
+			{
+				Denom:    "udym",
+				Exponent: 6,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    dymensionIBCDenom,
+		Display: "udym",
+		Name:    "udym",
+		Symbol:  "udym",
+	}
+
+	data := map[string][]banktypes.Metadata{
+		"metadata": {metadata},
+	}
+
+	contentFile, err := json.Marshal(data)
+	require.NoError(t, err)
+	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	deposit := "500000000000" + rollapp1.Config().Denom
+	rollapp1.GetNode().HostName()
+	_, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
+	require.NoError(t, err)
+
+	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := rollapp1.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount.Mul(math.NewInt(5)),
+	}
+
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Check fund was set to erc20 module account on rollapp
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	require.NoError(t, err)
+
+	require.True(t, rollappErc20MaccBalance.Equal(transferAmount.Mul(math.NewInt(5))))
+	require.NoError(t, err)
+
+	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
+	require.NoError(t, err)
+	require.NotNil(t, tokenPair)
+
+	// convert erc20
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferData.Amount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
+	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+
 	StartDB(ctx, t, client, network)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", "members.json")
+	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
+	dymFolderName := dymHomeDir[len(dymHomeDir) - 1]
+
+	os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
+
+	membersData, err := os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
+	require.NoError(t, err)
+
+	var members MembersJSON
+	err = json.Unmarshal(membersData, &members)
+	require.NoError(t, err)
+
+	newAddress := dymensionUserAddr
+	for i := range members.Members {
+		members.Members[i].Address = newAddress
+	}
+
+	updatedJSON, err := json.MarshalIndent(members, "", "  ")
+	require.NoError(t, err)
+
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	require.NoError(t, err)
+
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", "policy.json", "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/policy.json", dymFolderName), "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp1Addr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", "false")
+	fmt.Println(txHash)
+	require.NoError(t, err)
+
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp2Addr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", "true")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -600,7 +647,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Send a ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
-		Address: dymensionUserAddr2,
+		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
@@ -654,7 +701,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr2, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bridgingFee).Sub(eibcFee))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -1122,7 +1169,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1", "false")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
