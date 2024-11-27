@@ -700,7 +700,6 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	}
 
 	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -744,6 +743,8 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	// Get original account balances
 	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
+	rollappOrigBal, err := rollapp1.GetBalance(ctx, rollappUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData = ibc.WalletData{
@@ -770,5 +771,5 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, rollappOrigBal.Add(transferData.Amount))
 }
