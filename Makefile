@@ -212,6 +212,9 @@ e2e-test-rollapp-hardfork-evm: clean-e2e
 e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkRecoverIbcClient_EVM .
 
+e2e-test-rollapp-hardforkduetodrs-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_EVM .
+	
 e2e-test-rollapp-hardforkduetofraud-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToFraud_EVM .
 

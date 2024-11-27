@@ -3838,7 +3838,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	}
 
 	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.GetNode().SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	// Check IBC after switch
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
