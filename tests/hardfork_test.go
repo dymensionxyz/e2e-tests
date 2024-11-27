@@ -338,7 +338,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 60, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 60, dymension)
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
