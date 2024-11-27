@@ -591,7 +591,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 60)
 	require.Error(t, err)
 	require.False(t, isFinalized)
 
