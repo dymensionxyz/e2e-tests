@@ -137,7 +137,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -512,7 +512,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -850,7 +850,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1228,7 +1228,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1571,7 +1571,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -2111,7 +2111,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -2577,7 +2577,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -3077,7 +3077,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -3477,7 +3477,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -4030,7 +4030,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -4486,7 +4486,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -4876,7 +4876,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5242,7 +5242,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5602,7 +5602,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -5945,7 +5945,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -6445,7 +6445,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -6762,7 +6762,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

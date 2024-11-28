@@ -12,7 +12,7 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20241127050730-eec30b9b8e6a
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20241128151311-2c2569d907f6
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241016085626-2b8c8898058b
 )
 
@@ -22,7 +22,6 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.5.1
 	github.com/evmos/ethermint v0.22.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
-	github.com/ignite/cli v0.26.1
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.64.0
@@ -64,7 +63,7 @@ require (
 	golang.org/x/tools v0.26.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/sqlite v1.25.0 // indirect
 )
 
