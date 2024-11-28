@@ -611,6 +611,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Validation.FallbackLevel = "p2p"
 	config.Validation.WaitTime = 5 * time.Minute
 	config.Validation.Interval = 61 * time.Minute
+	config.Operator.AccountName = "client"
+	config.Operator.GroupID = 1
+	config.Operator.KeyringBackend = "test"
+	config.Operator.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
+	config.Operator.MinFeeShare = "0.1"
 	config.Rollapps = map[string]RollappConfig{
 		"rollappevm_1234-1": RollappConfig{
 			FullNodes:        []string{fmt.Sprintf("http://dymension_100-1-fn-0-%s:26657", t.Name())},
