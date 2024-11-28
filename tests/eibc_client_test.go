@@ -527,7 +527,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
 	require.NoError(t, err)
 
-	require.True(t, rollappErc20MaccBalance.Equal(transferAmount.Mul(math.NewInt(5))))
+	require.True(t, rollappErc20MaccBalance.Equal(transferData.Amount))
 	require.NoError(t, err)
 
 	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
@@ -547,8 +547,6 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
 	dymFolderName := dymHomeDir[len(dymHomeDir) - 1]
 
-	os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
-
 	membersData, err := os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
 	require.NoError(t, err)
 
@@ -567,19 +565,19 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.FormattedAddress(), "==A", dymension.GetNode().HomeDir() + "/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", fmt.Sprintf("/tmp/%s/policy.json", dymFolderName), "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", dymension.GetNode().HomeDir() + "/policy.json", "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp1Addr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", "false")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp1Addr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp2Addr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", "true")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp2Addr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", true)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -1169,7 +1167,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1", "false")
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), "policyAddr", "10000adym", "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000dym", "0.1", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
