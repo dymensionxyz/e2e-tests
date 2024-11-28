@@ -25,6 +25,7 @@ import (
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v3"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
@@ -34,7 +35,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type Member struct {
@@ -47,59 +47,63 @@ type MembersJSON struct {
 	Members []Member `json:"members"`
 }
 
+type ValidationLevel string
+
 type Config struct {
-	HomeDir      string             `yaml:"home_dir"`
-	NodeAddress  string             `yaml:"node_address"`
-	DBPath       string             `yaml:"db_path"`
-	Gas          GasConfig          `yaml:"gas"`
-	OrderPolling OrderPollingConfig `yaml:"order_polling"`
+	NodeAddress  string                   `mapstructure:"node_address"`
+	Gas          GasConfig                `mapstructure:"gas"`
+	OrderPolling OrderPollingConfig       `mapstructure:"order_polling"`
+	Rollapps     map[string]RollappConfig `mapstructure:"rollapps"`
 
-	Whale           whaleConfig     `yaml:"whale"`
-	Bots            botConfig       `yaml:"bots"`
-	FulfillCriteria fulfillCriteria `yaml:"fulfill_criteria"`
+	Operator   OperatorConfig   `mapstructure:"operator"`
+	Fulfillers FulfillerConfig  `mapstructure:"fulfillers"`
+	Validation ValidationConfig `mapstructure:"validation"`
+	Slack      SlackConfig      `mapstructure:"slack"`
 
-	LogLevel    string      `yaml:"log_level"`
-	SlackConfig slackConfig `yaml:"slack"`
-	SkipRefund  bool        `yaml:"skip_refund"`
+	LogLevel string `mapstructure:"log_level"`
 }
 
 type OrderPollingConfig struct {
-	IndexerURL string        `yaml:"indexer_url"`
-	Interval   time.Duration `yaml:"interval"`
-	Enabled    bool          `yaml:"enabled"`
+	IndexerURL string        `mapstructure:"indexer_url"`
+	Interval   time.Duration `mapstructure:"interval"`
+	Enabled    bool          `mapstructure:"enabled"`
 }
 
 type GasConfig struct {
-	Prices            string `yaml:"prices"`
-	Fees              string `yaml:"fees"`
-	MinimumGasBalance string `yaml:"minimum_gas_balance"`
+	Prices string `mapstructure:"prices"`
+	Fees   string `mapstructure:"fees"`
 }
 
-type botConfig struct {
-	NumberOfBots   int                          `yaml:"number_of_bots"`
-	KeyringBackend cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
-	KeyringDir     string                       `yaml:"keyring_dir"`
-	TopUpFactor    int                          `yaml:"top_up_factor"`
-	MaxOrdersPerTx int                          `yaml:"max_orders_per_tx"`
+type FulfillerConfig struct {
+	Scale           int                          `mapstructure:"scale"`
+	OperatorAddress string                       `mapstructure:"operator_address"`
+	PolicyAddress   string                       `mapstructure:"policy_address"`
+	KeyringBackend  cosmosaccount.KeyringBackend `mapstructure:"keyring_backend"`
+	KeyringDir      string                       `mapstructure:"keyring_dir"`
+	BatchSize       int                          `mapstructure:"batch_size"`
+	MaxOrdersPerTx  int                          `mapstructure:"max_orders_per_tx"`
 }
 
-type whaleConfig struct {
-	AccountName              string                       `yaml:"account_name"`
-	KeyringBackend           cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
-	KeyringDir               string                       `yaml:"keyring_dir"`
-	AllowedBalanceThresholds map[string]string            `yaml:"allowed_balance_thresholds"`
+type OperatorConfig struct {
+	AccountName    string                       `mapstructure:"account_name"`
+	KeyringBackend cosmosaccount.KeyringBackend `mapstructure:"keyring_backend"`
+	KeyringDir     string                       `mapstructure:"keyring_dir"`
+	GroupID        int                          `mapstructure:"group_id"`
+	MinFeeShare    string                       `mapstructure:"min_fee_share"`
 }
 
-type fulfillCriteria struct {
-	MinFeePercentage minFeePercentage `yaml:"min_fee_percentage"`
+type ValidationConfig struct {
+	FallbackLevel ValidationLevel `mapstructure:"fallback_level"`
+	WaitTime      time.Duration   `mapstructure:"wait_time"`
+	Interval      time.Duration   `mapstructure:"interval"`
 }
 
-type minFeePercentage struct {
-	Chain map[string]float32 `yaml:"chain"`
-	Asset map[string]float32 `yaml:"asset"`
+type RollappConfig struct {
+	FullNodes        []string `mapstructure:"full_nodes"`
+	MinConfirmations int      `mapstructure:"min_confirmations"`
 }
 
-type slackConfig struct {
+type SlackConfig struct {
 	Enabled   bool   `yaml:"enabled"`
 	BotToken  string `yaml:"bot_token"`
 	AppToken  string `yaml:"app_token"`
@@ -545,7 +549,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	StartDB(ctx, t, client, network)
 
 	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
-	dymFolderName := dymHomeDir[len(dymHomeDir) - 1]
+	dymFolderName := dymHomeDir[len(dymHomeDir)-1]
 
 	membersData, err := os.ReadFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName))
 	require.NoError(t, err)
@@ -565,11 +569,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.FormattedAddress(), "==A", dymension.GetNode().HomeDir() + "/members.json")
+	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.FormattedAddress(), "==A", dymension.GetNode().HomeDir()+"/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", dymension.GetNode().HomeDir() + "/policy.json", "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -595,25 +599,27 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	config.DBPath = "mongodb://mongodb-container:27017"
-	config.Gas.MinimumGasBalance = "100adym"
 	config.Gas.Fees = "100adym"
 	config.LogLevel = "debug"
-	config.HomeDir = "/root/.eibc-client"
 	config.OrderPolling.Interval = 30 * time.Second
 	config.OrderPolling.Enabled = false
-	config.Bots.KeyringBackend = "test"
-	config.Bots.KeyringDir = "/root/.eibc-client"
-	config.Bots.NumberOfBots = 10
-	config.Bots.MaxOrdersPerTx = 10
-	config.Bots.TopUpFactor = 5
-	config.Whale.AccountName = dymensionUser.KeyName()
-	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000", rollappIBCDenom: "1000"}
-	config.Whale.KeyringBackend = "test"
-	config.Whale.KeyringDir = dymension.HomeDir() + "/keyring-test"
-	config.FulfillCriteria.MinFeePercentage.Asset = map[string]float32{"adym": 0.1, rollappIBCDenom: 0.1}
-	config.FulfillCriteria.MinFeePercentage.Chain = map[string]float32{"rollappevm_1234-1": 0.1}
-	config.SkipRefund = true
+	config.Fulfillers.KeyringBackend = "test"
+	config.Fulfillers.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
+	config.Fulfillers.Scale = 30
+	config.Fulfillers.MaxOrdersPerTx = 10
+	config.Fulfillers.PolicyAddress = dymensionUserAddr
+	config.Validation.FallbackLevel = "p2p"
+	config.Validation.WaitTime = 5 * time.Minute
+	config.Validation.Interval = 61 * time.Minute
+	config.Rollapps = map[string]RollappConfig{
+		"rollappevm_1234-1": RollappConfig{
+			FullNodes:        []string{fmt.Sprintf("http://dymension_100-1-fn-0-%s:26657", t.Name())},
+			MinConfirmations: 1,
+		},
+	}
+	config.Slack.Enabled = false
+	config.Slack.AppToken = ""
+	config.Slack.ChannelID = ""
 
 	// Marshal the updated struct back to YAML
 	modifiedContent, err := yaml.Marshal(&config)
@@ -1180,30 +1186,32 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	err = yaml.Unmarshal(content, &config)
 	require.NoError(t, err)
 
-	dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
-	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
+	// dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
+	// dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	config.DBPath = "mongodb://mongodb-container:27017"
-	config.Gas.MinimumGasBalance = "100adym"
 	config.Gas.Fees = "100adym"
 	config.LogLevel = "debug"
-	config.HomeDir = "/root/.eibc-client"
 	config.OrderPolling.Interval = 30 * time.Second
 	config.OrderPolling.Enabled = false
-	config.Bots.KeyringBackend = "test"
-	config.Bots.KeyringDir = "/root/.eibc-client"
-	config.Bots.NumberOfBots = 10
-	config.Bots.MaxOrdersPerTx = 10
-	config.Bots.TopUpFactor = 5
-	config.Whale.AccountName = dymensionUser.KeyName()
-	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000", "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": "1000"}
-	config.Whale.KeyringBackend = "test"
-	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
-	config.FulfillCriteria.MinFeePercentage.Asset = map[string]float32{"adym": 0.1, "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": 0.1}
-	config.FulfillCriteria.MinFeePercentage.Chain = map[string]float32{"rollappevm_1234-1": 0.1}
-	config.SkipRefund = true
+	config.Fulfillers.KeyringBackend = "test"
+	config.Fulfillers.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
+	config.Fulfillers.Scale = 30
+	config.Fulfillers.MaxOrdersPerTx = 10
+	config.Fulfillers.PolicyAddress = dymensionUserAddr
+	config.Validation.FallbackLevel = "p2p"
+	config.Validation.WaitTime = 5 * time.Minute
+	config.Validation.Interval = 61 * time.Minute
+	config.Rollapps = map[string]RollappConfig{
+		"rollappevm_1234-1": RollappConfig{
+			FullNodes:        []string{fmt.Sprintf("http://dymension_100-1-fn-0-%s:26657", t.Name())},
+			MinConfirmations: 1,
+		},
+	}
+	config.Slack.Enabled = false
+	config.Slack.AppToken = ""
+	config.Slack.ChannelID = ""
 
 	// Marshal the updated struct back to YAML
 	modifiedContent, err := yaml.Marshal(&config)
