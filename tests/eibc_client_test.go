@@ -590,8 +590,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = yaml.Unmarshal(content, &config)
 	require.NoError(t, err)
 
-	dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
-	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
+	// dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
+	// dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -608,10 +608,10 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Bots.MaxOrdersPerTx = 10
 	config.Bots.TopUpFactor = 5
 	config.Whale.AccountName = dymensionUser.KeyName()
-	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000", "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": "1000"}
+	config.Whale.AllowedBalanceThresholds = map[string]string{"adym": "1000", rollappIBCDenom: "1000"}
 	config.Whale.KeyringBackend = "test"
-	config.Whale.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
-	config.FulfillCriteria.MinFeePercentage.Asset = map[string]float32{"adym": 0.1, "ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11": 0.1}
+	config.Whale.KeyringDir = dymension.HomeDir() + "/keyring-test"
+	config.FulfillCriteria.MinFeePercentage.Asset = map[string]float32{"adym": 0.1, rollappIBCDenom: 0.1}
 	config.FulfillCriteria.MinFeePercentage.Chain = map[string]float32{"rollappevm_1234-1": 0.1}
 	config.SkipRefund = true
 
