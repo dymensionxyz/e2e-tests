@@ -50,57 +50,57 @@ type MembersJSON struct {
 type ValidationLevel string
 
 type Config struct {
-	NodeAddress  string                   `mapstructure:"node_address"`
-	Gas          GasConfig                `mapstructure:"gas"`
-	OrderPolling OrderPollingConfig       `mapstructure:"order_polling"`
-	Rollapps     map[string]RollappConfig `mapstructure:"rollapps"`
+	NodeAddress  string                   `yaml:"node_address"`
+	Gas          GasConfig                `yaml:"gas"`
+	OrderPolling OrderPollingConfig       `yaml:"order_polling"`
+	Rollapps     map[string]RollappConfig `yaml:"rollapps"`
 
-	Operator   OperatorConfig   `mapstructure:"operator"`
-	Fulfillers FulfillerConfig  `mapstructure:"fulfillers"`
-	Validation ValidationConfig `mapstructure:"validation"`
-	Slack      SlackConfig      `mapstructure:"slack"`
+	Operator   OperatorConfig   `yaml:"operator"`
+	Fulfillers FulfillerConfig  `yaml:"fulfillers"`
+	Validation ValidationConfig `yaml:"validation"`
+	Slack      SlackConfig      `yaml:"slack"`
 
-	LogLevel string `mapstructure:"log_level"`
+	LogLevel string `yaml:"log_level"`
 }
 
 type OrderPollingConfig struct {
-	IndexerURL string        `mapstructure:"indexer_url"`
-	Interval   time.Duration `mapstructure:"interval"`
-	Enabled    bool          `mapstructure:"enabled"`
+	IndexerURL string        `yaml:"indexer_url"`
+	Interval   time.Duration `yaml:"interval"`
+	Enabled    bool          `yaml:"enabled"`
 }
 
 type GasConfig struct {
-	Prices string `mapstructure:"prices"`
-	Fees   string `mapstructure:"fees"`
+	Prices string `yaml:"prices"`
+	Fees   string `yaml:"fees"`
 }
 
 type FulfillerConfig struct {
-	Scale           int                          `mapstructure:"scale"`
-	OperatorAddress string                       `mapstructure:"operator_address"`
-	PolicyAddress   string                       `mapstructure:"policy_address"`
-	KeyringBackend  cosmosaccount.KeyringBackend `mapstructure:"keyring_backend"`
-	KeyringDir      string                       `mapstructure:"keyring_dir"`
-	BatchSize       int                          `mapstructure:"batch_size"`
-	MaxOrdersPerTx  int                          `mapstructure:"max_orders_per_tx"`
+	Scale           int                          `yaml:"scale"`
+	OperatorAddress string                       `yaml:"operator_address"`
+	PolicyAddress   string                       `yaml:"policy_address"`
+	KeyringBackend  cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
+	KeyringDir      string                       `yaml:"keyring_dir"`
+	BatchSize       int                          `yaml:"batch_size"`
+	MaxOrdersPerTx  int                          `yaml:"max_orders_per_tx"`
 }
 
 type OperatorConfig struct {
-	AccountName    string                       `mapstructure:"account_name"`
-	KeyringBackend cosmosaccount.KeyringBackend `mapstructure:"keyring_backend"`
-	KeyringDir     string                       `mapstructure:"keyring_dir"`
-	GroupID        int                          `mapstructure:"group_id"`
-	MinFeeShare    string                       `mapstructure:"min_fee_share"`
+	AccountName    string                       `yaml:"account_name"`
+	KeyringBackend cosmosaccount.KeyringBackend `yaml:"keyring_backend"`
+	KeyringDir     string                       `yaml:"keyring_dir"`
+	GroupID        int                          `yaml:"group_id"`
+	MinFeeShare    string                       `yaml:"min_fee_share"`
 }
 
 type ValidationConfig struct {
-	FallbackLevel ValidationLevel `mapstructure:"fallback_level"`
-	WaitTime      time.Duration   `mapstructure:"wait_time"`
-	Interval      time.Duration   `mapstructure:"interval"`
+	FallbackLevel ValidationLevel `yaml:"fallback_level"`
+	WaitTime      time.Duration   `yaml:"wait_time"`
+	Interval      time.Duration   `yaml:"interval"`
 }
 
 type RollappConfig struct {
-	FullNodes        []string `mapstructure:"full_nodes"`
-	MinConfirmations int      `mapstructure:"min_confirmations"`
+	FullNodes        []string `yaml:"full_nodes"`
+	MinConfirmations int      `yaml:"min_confirmations"`
 }
 
 type SlackConfig struct {
