@@ -33,7 +33,7 @@ import (
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
-	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix", types.ImagePullOptions{})
+	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
 
@@ -57,14 +57,14 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 		DNS:             []string{},
 		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 	}
-	time.Sleep(2 * time.Minute)
+	// time.Sleep(2 * time.Minute)
 	// Create the container
 	fmt.Println("Creating container ...")
 	resp, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
-			Tty:   true,                                          // Attach to a TTY
+			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", // Image to run
+			Tty:   true,                                              // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
@@ -164,7 +164,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
@@ -299,7 +299,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
@@ -446,7 +446,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -587,7 +587,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
@@ -721,7 +721,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -864,7 +864,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)

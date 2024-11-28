@@ -130,7 +130,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -575,7 +575,7 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -972,7 +972,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -1165,6 +1165,20 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	for _, n := range rollapp1.FullNodes {
 		n.Image.Version = "drs-2"
 		n.Image.Repository = "ghcr.io/decentrio/rollapp-evm"
+	}
+
+	for _, image := range rollapp1.Config().Images {
+		rc, err := client.ImagePull(
+			ctx,
+			image.Repository+":"+image.Version,
+			dockertypes.ImagePullOptions{},
+		)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			_, _ = io.Copy(io.Discard, rc)
+			_ = rc.Close()
+		}
 	}
 
 	err = rollapp1.StopAllNodes(ctx)
