@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"bytes"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -373,22 +374,6 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	addrDym, _ := r.GetWallet(dymension.GetChainID())
-	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
-		Address: addrDym.FormattedAddress(),
-		Amount:  math.NewInt(10_000_000_000_000),
-		Denom:   dymension.Config().Denom,
-	})
-	require.NoError(t, err)
-
-	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
-	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
-		Address: addrRA.FormattedAddress(),
-		Amount:  math.NewInt(10_000_000_000_000),
-		Denom:   rollapp1.Config().Denom,
-	})
-	require.NoError(t, err)
-
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -398,9 +383,36 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	dymensionUser, lp1, lp2, rollappUser := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	lp1Addr := lp1.FormattedAddress()
-	lp2Addr := lp2.FormattedAddress()
+	// lp1Addr := lp1.FormattedAddress()
+	// lp2Addr := lp2.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
+
+	// create operator
+	cmd := []string{"keys", "add", "operator",
+	"--coin-type", dymension.GetNode().Chain.Config().CoinType,
+	"--keyring-backend", "test",
+	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",}
+
+	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
+	require.NoError(t, err)
+
+	command := []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+		"--home", dymension.GetNode().HomeDir(),
+		"--keyring-backend", "test",
+		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+	}
+	stdout, _, err := dymension.GetNode().Exec(ctx, command, nil)
+	require.NoError(t, err)
+
+	operatorAddr := string(bytes.TrimSuffix(stdout, []byte("\n")))
+	println("Done for set up operator: ", operatorAddr)
+
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: operatorAddr,
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -569,19 +581,19 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, dymensionUser.FormattedAddress(), "==A", dymension.GetNode().HomeDir()+"/members.json")
+	txHash, err := dymension.GetNode().CreateGroup(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, dymensionUser.KeyName(), "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
+	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp1Addr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), operatorAddr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, dymensionUser.KeyName(), lp2Addr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", true)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp2.KeyName(), operatorAddr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", true)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -611,7 +623,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Validation.FallbackLevel = "p2p"
 	config.Validation.WaitTime = 5 * time.Minute
 	config.Validation.Interval = 61 * time.Minute
-	config.Operator.AccountName = "client"
+	config.Operator.AccountName = "operator"
 	config.Operator.GroupID = 1
 	config.Operator.KeyringBackend = "test"
 	config.Operator.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
