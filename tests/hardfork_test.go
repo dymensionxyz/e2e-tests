@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	dockertypes "github.com/docker/docker/api/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -128,7 +130,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -259,8 +261,26 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
+	options := ibc.TransferOptions{
+		Timeout: &ibc.IBCTimeout{
+			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+		},
+	}
+
+	transferData := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
 	fraud_height, err := rollapp1.Height(ctx)
 	require.NoError(t, err, "error fetching height")
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
+	require.NoError(t, err)
 
 	// Create fraud proposal message
 	msg := map[string]interface{}{
@@ -342,12 +362,12 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
+	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -392,6 +412,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	// Get original account balances
 	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
 	require.NoError(t, err)
+	require.Equal(t, walletAmount, dymensionOrigBal)
 
 	// Compose an IBC transfer and send from dymension -> rollapp
 	transferData = ibc.WalletData{
@@ -554,7 +575,7 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -951,7 +972,7 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -1122,6 +1143,20 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 		n.Image.Repository = "ghcr.io/decentrio/rollapp-evm"
 	}
 
+	for _, image := range rollapp1.Config().Images {
+		rc, err := client.ImagePull(
+			ctx,
+			image.Repository+":"+image.Version,
+			dockertypes.ImagePullOptions{},
+		)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			_, _ = io.Copy(io.Discard, rc)
+			_ = rc.Close()
+		}
+	}
+
 	err = rollapp1.StartAllNodes(ctx)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
@@ -1130,6 +1165,20 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	for _, n := range rollapp1.FullNodes {
 		n.Image.Version = "drs-2"
 		n.Image.Repository = "ghcr.io/decentrio/rollapp-evm"
+	}
+
+	for _, image := range rollapp1.Config().Images {
+		rc, err := client.ImagePull(
+			ctx,
+			image.Repository+":"+image.Version,
+			dockertypes.ImagePullOptions{},
+		)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			_, _ = io.Copy(io.Discard, rc)
+			_ = rc.Close()
+		}
 	}
 
 	err = rollapp1.StopAllNodes(ctx)
