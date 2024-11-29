@@ -589,11 +589,16 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), operatorAddr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
+	resp, err := dymension.GetNode().QueryGroupInfo(ctx, "1")
+	require.NoError(t, err)
+
+	policyAddr := resp.Info.Address
+
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp2.KeyName(), operatorAddr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", true)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp2.KeyName(), policyAddr, "10000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "10000"+rollappIBCDenom, "0.1", true)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -619,7 +624,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Fulfillers.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
 	config.Fulfillers.Scale = 30
 	config.Fulfillers.MaxOrdersPerTx = 10
-	config.Fulfillers.PolicyAddress = dymensionUserAddr
+	config.Fulfillers.PolicyAddress = policyAddr
 	config.Validation.FallbackLevel = "p2p"
 	config.Validation.WaitTime = 5 * time.Minute
 	config.Validation.Interval = 61 * time.Minute
@@ -908,10 +913,8 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
-	println("check token: ", celestia_token)
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
-	println("check namespace: ", celestia_namespace_id)
 	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
