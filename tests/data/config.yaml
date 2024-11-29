@@ -12,17 +12,17 @@ rollapps:
             - http://dymension_100-1-fn-0-Test_EIBC_Client_Success_EVM:26657
         min_confirmations: 1
 operator:
-    account_name: client
+    account_name: operator
     keyring_backend: test
-    keyring_dir: /var/cosmos-chain/dymension-hub-21e5e3d86be42f46ddda8b0409e15634d12896e2991f82a0a6bfa824a1a3d7949/keyring-test
+    keyring_dir: /var/cosmos-chain/dymension-hub-23385b5078c542980d59597ffc9f64802ef28a8d1db7778c5443ccff18589eb2d/keyring-test
     group_id: 1
     min_fee_share: "0.1"
 fulfillers:
     scale: 30
     operator_address: ""
-    policy_address: dym13wcezuwnzf35al26cglg2g6dn8p2zh7dusnf38
+    policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
     keyring_backend: test
-    keyring_dir: /var/cosmos-chain/dymension-hub-21e5e3d86be42f46ddda8b0409e15634d12896e2991f82a0a6bfa824a1a3d7949/keyring-test
+    keyring_dir: /var/cosmos-chain/dymension-hub-23385b5078c542980d59597ffc9f64802ef28a8d1db7778c5443ccff18589eb2d/keyring-test
     batch_size: 0
     max_orders_per_tx: 10
 validation:

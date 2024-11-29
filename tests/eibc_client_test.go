@@ -374,6 +374,22 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
+	addrDym, _ := r.GetWallet(dymension.GetChainID())
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrDym.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrRA.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   rollapp1.Config().Denom,
+	})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -391,7 +407,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	cmd := []string{"keys", "add", "operator",
 	"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 	"--keyring-backend", "test",
-	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",}
+	// "--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",}
+	}
 
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
@@ -399,7 +416,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	command := []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
-		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+		// "--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
 	}
 	stdout, _, err := dymension.GetNode().Exec(ctx, command, nil)
 	require.NoError(t, err)
@@ -589,10 +606,11 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	resp, err := dymension.GetNode().QueryGroupInfo(ctx, "1")
-	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, 5, dymension)
 
-	policyAddr := resp.Info.Address
+	policiesGroup, err := dymension.GetNode().QueryGroupPoliciesByAdmin(ctx, operatorAddr)
+	require.NoError(t, err)
+	policyAddr := policiesGroup.GroupPolicies[0].Address
 
 	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
 	fmt.Println(txHash)
