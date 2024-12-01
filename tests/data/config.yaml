@@ -14,7 +14,7 @@ rollapps:
 operator:
     account_name: operator
     keyring_backend: test
-    keyring_dir: /var/cosmos-chain/dymension-hub-23385b5078c542980d59597ffc9f64802ef28a8d1db7778c5443ccff18589eb2d/keyring-test
+    keyring_dir: /var/cosmos-chain/dymension-hub-282a4bcc118ef4e8e9e74e677d883bd8371b753475840ddbe82534e2b66d2093e/keyring-test
     group_id: 1
     min_fee_share: "0.1"
 fulfillers:
@@ -22,7 +22,7 @@ fulfillers:
     operator_address: ""
     policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
     keyring_backend: test
-    keyring_dir: /var/cosmos-chain/dymension-hub-23385b5078c542980d59597ffc9f64802ef28a8d1db7778c5443ccff18589eb2d/keyring-test
+    keyring_dir: /var/cosmos-chain/dymension-hub-282a4bcc118ef4e8e9e74e677d883bd8371b753475840ddbe82534e2b66d2093e/keyring-test
     batch_size: 0
     max_orders_per_tx: 10
 validation:

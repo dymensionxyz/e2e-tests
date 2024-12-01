@@ -407,18 +407,18 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	cmd := []string{"keys", "add", "operator",
 	"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 	"--keyring-backend", "test",
-	// "--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",}
+	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
 	}
 
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	command := []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
-		// "--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
 	}
-	stdout, _, err := dymension.GetNode().Exec(ctx, command, nil)
+	stdout, _, err := dymension.GetNode().Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
 	operatorAddr := string(bytes.TrimSuffix(stdout, []byte("\n")))
@@ -598,11 +598,20 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	txHash, err := dymension.GetNode().CreateGroup(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/members.json")
+	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir()+"/members.json",
+		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+	}
+	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
+	// txHash, err := dymension.GetNode().CreateGroup(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
+	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir()+"/policy.json",
+	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+	}
+	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
+	
+	// txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
