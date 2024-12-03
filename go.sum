@@ -742,8 +742,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869 h1:qWpUYGOsrSC+1Vmd2TjhbsSpntvvx9PsX3AoeMunFxc=
 github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869/go.mod h1:HZNYnPwmSxkwTPjSD5yolauc1Vx1ZzKL4FFMxTq4H5Y=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20241127050730-eec30b9b8e6a h1:Dl2xc9TVY/bTQfr93qPMpgbldZi0bqYKEBwNKFpW9V8=
-github.com/decentrio/rollup-e2e-testing v0.0.0-20241127050730-eec30b9b8e6a/go.mod h1:QmBrZgZplhtgHRWC0Z7LC7TDsKuC8sDyQvZyXXaqw/c=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20241128151311-2c2569d907f6 h1:Zgsao3LGmWjTt9snaA4DEq15d3lGTX/toJFQO1oB4lE=
+github.com/decentrio/rollup-e2e-testing v0.0.0-20241128151311-2c2569d907f6/go.mod h1:QmBrZgZplhtgHRWC0Z7LC7TDsKuC8sDyQvZyXXaqw/c=
 github.com/deckarep/golang-set/v2 v2.1.0 h1:g47V4Or+DUdzbs8FxCCmgb6VYd+ptPAngjM6dtGktsI=
 github.com/deckarep/golang-set/v2 v2.1.0/go.mod h1:VAky9rY/yGXJOLEDv3OMci+7wtDpOF4IN+y82NBOac4=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
@@ -1125,8 +1125,6 @@ github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845 h1:H+uM0Bv88eur3ZSsd2NGKg3YIiuXxwxtlN7HjE66UTU=
 github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845/go.mod h1:c1tRKs5Tx7E2+uHGSyyncziFjvGpgv4H2HrqXeUQ/Uk=
-github.com/ignite/cli v0.26.1 h1:T4qMjM9H38JOBsgCruilGcsfrlDGHO2K1V88gIe0ubs=
-github.com/ignite/cli v0.26.1/go.mod h1:0BQcJCseK0O5RG8HYP/lvVTFbZQjkw+AY8B+wDklj38=
 github.com/improbable-eng/grpc-web v0.15.0 h1:BN+7z6uNXZ1tQGcNAuaU1YjsLTApzkjt2tzCixLaUPQ=
 github.com/improbable-eng/grpc-web v0.15.0/go.mod h1:1sy9HKV4Jt9aEs9JSnkWlRJPuPtwNr0l57L4f878wP8=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
