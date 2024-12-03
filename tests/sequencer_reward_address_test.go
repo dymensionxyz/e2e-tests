@@ -142,7 +142,7 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 1179360)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -329,16 +329,16 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
-	fmt.Printf("Type of resp0.Sequencers: %T\n", resp0.Sequencers)
-	fmt.Println("sequenceraaa: ", resp0.Sequencers)
-	fmt.Printf("Sequencer details: %+v\n", resp0.Sequencers[0].RewardAddr)
-	rewardAddress0 := resp0.Sequencers[0].RewardAddr
-	sequencerAddr := resp0.Sequencers[0].Address
 
-	// Check Sequencer status before submitting fraud
-	sequencerStatus, err := dymension.GetNode().QuerySequencerStatus(ctx, sequencerAddr)
-	require.NotEmpty(t, sequencerStatus, "sequencers status is empty")
-	fmt.Printf("Sequencer2 details: %+v\n", sequencerStatus)
+	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
+	require.NoError(t, err)
+	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
+	operatorAddr := operatorAddress.Sequencers[0].OperatorAddress
+
+	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
+	require.NoError(t, err)
+	rewardAddrStr := rewardAddress.RewardAddr
+	fmt.Printf("Reward Address: %s\n", rewardAddrStr)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -408,8 +408,5 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
-	testutil.AssertBalance(t, ctx, rollapp1, rewardAddress0, rollappIBCDenom, transferData.Amount)
-	// resp2, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
-	// require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
+	testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollappIBCDenom, transferData.Amount)
 }
