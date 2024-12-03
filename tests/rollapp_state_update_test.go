@@ -36,9 +36,16 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
 	rollapp1_id := "rollappevm_1234-1"
 	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "10s"
+	maxIdleTime1 := "3s"
 	maxProofTime := "500ms"
-	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
+	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "20s", true)
+
+	// setup config for rollapp 2
+	settlement_layer_rollapp2 := "dymension"
+	rollapp2_id := "decentrio_12345-1"
+	gas_price_rollapp2 := "0adym"
+	maxIdleTime2 := "1s"
+	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "20s", true)
 
 	modifyRAGenesisKV := append(
 		rollappEVMGenesisKV,
@@ -49,18 +56,12 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 		},
 	)
 
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "decentrio_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "1s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
-	numRollAppFn := 0
 	numRollAppVals := 1
+	numRollAppFn := 1
+
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -79,7 +80,7 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
-				ConfigFileOverrides: configFileOverrides1,
+				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -100,7 +101,7 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
 				ConfigFileOverrides: configFileOverrides2,
 			},
 			NumValidators: &numRollAppVals,
@@ -127,7 +128,6 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 			},
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
-			ExtraFlags:    extraFlags,
 		},
 	})
 
@@ -175,9 +175,6 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
