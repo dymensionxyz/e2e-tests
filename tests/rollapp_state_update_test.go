@@ -252,44 +252,93 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// // send from rollapp to hub again and make sure new bridge fee is applied
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
+	// send from rollapp to hub again and make sure new bridge fee is applied
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
+	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
 
-	// // wait until the packet is finalized
-	// isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
+	// wait until the packet is finalized
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
-	// res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	// fmt.Println(res)
-	// require.NoError(t, err)
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
+	require.NoError(t, err)
 
-	// for _, packet := range res.RollappPackets {
+	for _, packet := range res.RollappPackets {
 
-	// 	proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-	// 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-	// 	require.NoError(t, err)
-	// 	require.True(t, isFinalized)
-	// 	txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-	// 	require.NoError(t, err)
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
 
-	// 	fmt.Println(txhash)
-	// }
+		fmt.Println(txhash)
+	}
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Add(transferAmount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount))
+	
+	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	// Access the index value
+	index := oldLatestIndex.StateIndex.Index
+	uintIndex, err := strconv.ParseUint(index, 10, 64)
+	require.NoError(t, err)
+
+	targetIndex := uintIndex + 1
+
+	// Loop until the latest index updates
+	for {
+		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
+		require.NoError(t, err)
+
+		index := oldLatestIndex.StateIndex.Index
+		uintIndex, err := strconv.ParseUint(index, 10, 64)
+
+		require.NoError(t, err)
+		if uintIndex >= targetIndex {
+			break
+		}
+	}
+
+	oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	// Access the height value
+	height := oldLatestHeight.Height
+	uintHeight, err := strconv.ParseUint(height, 10, 64)
+	require.NoError(t, err)
+
+	targetHeight := uintHeight + 1
+
+	// Loop until the latest height updates
+	for {
+		oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
+		require.NoError(t, err)
+
+		height := oldLatestHeight.Height
+		uintHeight, err := strconv.ParseUint(height, 10, 64)
+
+		require.NoError(t, err)
+		if uintHeight >= targetHeight {
+			break
+		}
+	}
+
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
