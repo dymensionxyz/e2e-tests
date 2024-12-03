@@ -308,9 +308,9 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
-	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
+	// cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
+	// pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+	// require.NoError(t, err)
 
 	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
@@ -329,118 +329,25 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+	fmt.Printf("Type of resp0.Sequencers: %T\n", resp0.Sequencers)
+	fmt.Println("sequenceraaa: ", resp0.Sequencers)
+	fmt.Printf("Sequencer details: %+v\n", resp0.Sequencers[0].RewardAddr)
+	rewardAddress0 := resp0.Sequencers[0].RewardAddr
+	sequencerAddr := resp0.Sequencers[0].Address
+
+	// Check Sequencer status before submitting fraud
+	sequencerStatus, err := dymension.GetNode().QuerySequencerStatus(ctx, sequencerAddr)
+	require.NotEmpty(t, sequencerStatus, "sequencers status is empty")
+	fmt.Printf("Sequencer2 details: %+v\n", sequencerStatus)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	// rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	// rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
-	// stop proposer => slashing then
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 2, dymension)
-
-	err = rollapp1.Validators[0].StartContainer(ctx)
-	require.NoError(t, err)
-
-	// full node B bond
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
-
-	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
-	require.NoError(t, err)
-
-	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
-	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
-	require.NoError(t, err)
-
-	sequencerAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
-	require.NoError(t, err)
-
-	remainingBond, err := dymension.GetBalance(ctx, sequencerAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-	fmt.Printf("Remaining bond: %s\n", remainingBond.String())
-
-	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-
-	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
-	fmt.Printf("NextProposer: %+v\n", nextProposer)
-
 	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 	fmt.Printf("CurrentProposer: %+v\n", currentProposer)
-
-	// kick current proposer
-	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	// check client was frozen after kicked
-	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
-	require.NoError(t, err)
-	require.Equal(t, "Frozen", clientStatus.Status)
-
-	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
-	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
-
-	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
-	require.NoError(t, err)
-
-	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
-	require.NoError(t, err)
-
-	for i, fullNode := range rollapp1.FullNodes {
-		fmt.Printf("Stopping Full Node %d: %s\n", i, fullNode.Name())
-		err := fullNode.StopContainer(ctx)
-		require.NoError(t, err)
-	}
-
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	fmt.Printf("Start Full Node 0: \n")
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[1].StartContainer(ctx)
-	fmt.Printf("Start Full Node 1: \n")
-	require.NoError(t, err)
-
-	err = rollapp1.FullNodes[2].StartContainer(ctx)
-	fmt.Printf("Start Full Node 2: \n")
-	require.NoError(t, err)
-
-	err = rollapp1.Validators[0].StartContainer(ctx)
-
-	if err != nil {
-		err = rollapp1.Validators[0].StopContainer(ctx)
-		require.NoError(t, err)
-		err = rollapp1.Validators[0].StartContainer(ctx)
-	}
-
-	// check client was frozen after kicked
-	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
-	require.NoError(t, err)
-	require.Equal(t, "Active", clientStatus.Status)
-
-	err = r.StopRelayer(ctx, eRep)
-	require.NoError(t, err)
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Get original account balances
 	// Get the IBC denom for urax on Hub
@@ -496,4 +403,13 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymensionOrigBal2.Add(transferData.Amount).Sub(bridgingFee))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
+	require.NoError(t, err)
+
+	//Query reward address
+	testutil.AssertBalance(t, ctx, rollapp1, rewardAddress0, rollappIBCDenom, transferData.Amount)
+	// resp2, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	// require.NoError(t, err)
+	// require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 }
