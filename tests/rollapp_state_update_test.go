@@ -23,7 +23,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
 
-// TestChangeBridgeFeeParam_EVM create a prop to change bridge fee and after prop passed, transfer from rollapp to hub should have the new bridge fee.
 func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
