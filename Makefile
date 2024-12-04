@@ -389,6 +389,9 @@ e2e-test-rollapp-state-update-success-evm: clean-e2e
 e2e-test-rollapp-state-update-fail-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_EVM .
 
+e2e-test-rollapp-state-update-fail-celes-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_Celes_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
