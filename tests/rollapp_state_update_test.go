@@ -677,8 +677,8 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "20s"
-	dymintTomlOverrides["max_skew_time"] = "5s"
+	dymintTomlOverrides["batch_submit_time"] = "10s"
+	dymintTomlOverrides["max_skew_time"] = "11s"
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// setup config for rollapp 2
@@ -690,8 +690,8 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_idle_time"] = "1s"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
-	dymintTomlOverrides2["batch_submit_time"] = "20s"
-	dymintTomlOverrides2["max_skew_time"] = "5s"
+	dymintTomlOverrides2["batch_submit_time"] = "10s"
+	dymintTomlOverrides2["max_skew_time"] = "11s"
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyRAGenesisKV := append(
