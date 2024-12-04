@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"testing"
+	// "time"
 
 	// "encoding/json"
 	"fmt"
@@ -668,8 +669,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	// setup config for rollapp 1
-	configFileOverrides := make(map[string]any)
+	// setup config for rollapp
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -677,8 +677,12 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "10s"
-	dymintTomlOverrides["max_skew_time"] = "11s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["max_skew_time"] = "51s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+
+	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	// setup config for rollapp 2
@@ -690,8 +694,11 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_idle_time"] = "1s"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
-	dymintTomlOverrides2["batch_submit_time"] = "10s"
-	dymintTomlOverrides2["max_skew_time"] = "11s"
+	dymintTomlOverrides2["batch_submit_time"] = "50s"
+	dymintTomlOverrides2["max_skew_time"] = "51s"
+	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyRAGenesisKV := append(
@@ -898,6 +905,11 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+
+	// err = dymension.StopAllNodes(ctx)
+	// require.NoError(t, err)
+
+	// time.Sleep()
 
 	// send from rollapp to hub again and make sure new bridge fee is applied
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
