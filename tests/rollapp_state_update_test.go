@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 	"testing"
-	// "time"
+	"time"
 
 	// "encoding/json"
 	"fmt"
@@ -906,10 +906,19 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// err = dymension.StopAllNodes(ctx)
-	// require.NoError(t, err)
+	err = dymension.StopAllNodes(ctx)
+	require.NoError(t, err)
 
-	// time.Sleep()
+	time.Sleep(51 * time.Second)
+
+	// rollapp unhealty now so can not send ibc transfer
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.Error(t, err)
+
+	err = dymension.StartAllNodes(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 15, dymension, rollapp1)
 
 	// send from rollapp to hub again and make sure new bridge fee is applied
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
@@ -922,7 +931,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount).Sub(transferData.Amount))
 
 	// wait until the packet is finalized
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -948,7 +957,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount).Add(transferAmount))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
