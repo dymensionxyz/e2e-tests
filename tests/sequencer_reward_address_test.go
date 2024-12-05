@@ -52,6 +52,14 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
+		cosmos.GenesisKV{
+			Key:   "app_state.distribution.params.base_proposer_reward",
+			Value: "0.9999999999999",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.distribution.params.bonus_proposer_reward",
+			Value: "0.999999999987",
+		},
 	)
 
 	// Create chain factory with dymension
@@ -348,7 +356,7 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
 	require.NoError(t, err)
 	rewardAddrStr := rewardAddress.RewardAddr
-	fmt.Printf("Reward Address: %s\n", rewardAddrStr)
+	fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -418,6 +426,7 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
+	fmt.Printf("RewardAddress3: %s\n", rewardAddrStr)
 	// balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, dymensionIBCDenom)
 	// require.NoError(t, err)
 	// require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
