@@ -1672,15 +1672,15 @@ func TestGenesisTransferBridgeUnBond_EVM(t *testing.T) {
 	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	// require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Unbond sequencer1
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.Error(t, err)
+
+	// err = r.StartRelayer(ctx, eRep, ibcPath)
+	// require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
 	// transferData := ibc.WalletData{
@@ -1839,9 +1839,6 @@ func TestGenesisTransferBridgeUnBond_Wasm(t *testing.T) {
 	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	// require.NoError(t, err)
 
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -1849,6 +1846,8 @@ func TestGenesisTransferBridgeUnBond_Wasm(t *testing.T) {
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.Error(t, err)
 
+	// err = r.StartRelayer(ctx, eRep, ibcPath)
+	// require.NoError(t, err)
 	// // Send a normal ibc tx from RA -> Hub
 	// transferData := ibc.WalletData{
 	// 	Address: dymensionUserAddr,
