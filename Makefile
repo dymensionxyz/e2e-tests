@@ -389,6 +389,9 @@ e2e-test-rollapp-state-update-success-evm: clean-e2e
 e2e-test-rollapp-state-update-fail-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_EVM .
 
+e2e-test-genesis-bridge-unbond-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -594,6 +597,9 @@ e2e-test-rollapp-state-update-success-wasm: clean-e2e
 
 e2e-test-rollapp-state-update-fail-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_Wasm .
+
+e2e-test-genesis-bridge-unbond-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \

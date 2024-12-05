@@ -292,18 +292,18 @@ var (
 			Key:   "consensus_params.block.max_gas",
 			Value: "400000000",
 		},
-		{
-			Key:   "app_state.feemarket.params.no_base_fee",
-			Value: true,
-		},
-		{
-			Key:   "app_state.feemarket.params.min_gas_price",
-			Value: "0.0",
-		},
-		{
-			Key:   "app_state.claims.params.claims_denom",
-			Value: "urax",
-		},
+		// {
+		// 	Key:   "app_state.feemarket.params.no_base_fee",
+		// 	Value: true,
+		// },
+		// {
+		// 	Key:   "app_state.feemarket.params.min_gas_price",
+		// 	Value: "0.0",
+		// },
+		// {
+		// 	Key:   "app_state.claims.params.claims_denom",
+		// 	Value: "urax",
+		// },
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
@@ -312,10 +312,10 @@ var (
 			Key:   "app_state.staking.params.bond_denom",
 			Value: "urax",
 		},
-		{
-			Key:   "app_state.evm.params.evm_denom",
-			Value: "urax",
-		},
+		// {
+		// 	Key:   "app_state.evm.params.evm_denom",
+		// 	Value: "urax",
+		// },
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
