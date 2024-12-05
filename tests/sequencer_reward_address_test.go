@@ -325,11 +325,21 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
+	
+	// resp, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	// require.NoError(t, err)
+	// proposerAddr := resp.ProposerAddr
+	// fmt.Println("proposerAddr: ", proposerAddr)
 
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+	fmt.Println("sequenceeeee: ", resp0)
 
+	// rewardAddress, err := dymension.GetNode().QuerySequencersRewardAddressByDymResponse(ctx)
+	// require.NoError(t, err)
+	// rewardAddrStr := rewardAddress.RewardAddr
+	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
 	require.NoError(t, err)
 	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
@@ -408,5 +418,8 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
+	// balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, dymensionIBCDenom)
+	// require.NoError(t, err)
+	// require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
 	testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollappIBCDenom, transferData.Amount)
 }
