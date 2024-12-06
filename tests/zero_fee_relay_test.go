@@ -469,6 +469,9 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
@@ -572,9 +575,6 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.True(t, afterBlock > lastBlock)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)

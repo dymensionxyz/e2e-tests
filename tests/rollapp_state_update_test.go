@@ -1480,7 +1480,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360, true)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
@@ -1624,7 +1624,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
@@ -1652,7 +1652,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
-
 
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1, rollapp2).
@@ -2147,7 +2146,6 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer2", network)
-
 
 	ic = test.NewSetup().
 		AddRollUp(dymension, rollapp1, rollapp2).
