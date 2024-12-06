@@ -54,11 +54,11 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.distribution.params.base_proposer_reward",
-			Value: "0.9999999999999",
+			Value: "0.9",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.distribution.params.bonus_proposer_reward",
-			Value: "0.999999999987",
+			Value: "1",
 		},
 	)
 
@@ -333,16 +333,11 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
-	
-	// resp, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	// require.NoError(t, err)
-	// proposerAddr := resp.ProposerAddr
-	// fmt.Println("proposerAddr: ", proposerAddr)
 
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
-	fmt.Println("sequenceeeee: ", resp0)
+	// fmt.Println("sequenceeeee: ", resp0)
 
 	// rewardAddress, err := dymension.GetNode().QuerySequencersRewardAddressByDymResponse(ctx)
 	// require.NoError(t, err)
@@ -350,13 +345,13 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
 	require.NoError(t, err)
-	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
+	// fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
 	operatorAddr := operatorAddress.Sequencers[0].OperatorAddress
 
 	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
 	require.NoError(t, err)
 	rewardAddrStr := rewardAddress.RewardAddr
-	fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
+	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -426,9 +421,27 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
-	fmt.Printf("RewardAddress3: %s\n", rewardAddrStr)
-	// balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, dymensionIBCDenom)
-	// require.NoError(t, err)
-	// require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
-	testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollappIBCDenom, transferData.Amount)
+	// fmt.Printf("RewardAddress3: %s\n", rewardAddrStr)
+	balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	// t.Logf("Balance retrieved: %s", balance.String())
+	require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
+
+	var baseProposerReward float64
+	for _, kv := range modifyRAGenesisKV {
+		if kv.Key == "app_state.distribution.params.base_proposer_reward" {
+			valueStr, ok := kv.Value.(string)
+			require.True(t, ok, "kv.Value should be a string")
+			value, err := strconv.ParseFloat(valueStr, 64)
+			require.NoError(t, err)
+			baseProposerReward = value
+			break
+		}
+	}
+	
+	feesCollected := float64(4000000000000000)
+	expectedAmount := int64(feesCollected * baseProposerReward)
+	expectedAmountInt := math.NewInt(expectedAmount)
+
+	testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollapp1.Config().Denom, expectedAmountInt)
 }
