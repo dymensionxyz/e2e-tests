@@ -393,7 +393,7 @@ e2e-test-genesis-bridge-unbond-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
 
 e2e-test-genesis-bridge-kick-proposer-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeKickProposer_EVM
+	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_EVM
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
@@ -603,6 +603,9 @@ e2e-test-rollapp-state-update-fail-wasm: clean-e2e
 
 e2e-test-genesis-bridge-unbond-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
+
+e2e-test-genesis-bridge-kick-proposer-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_Wasm
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
