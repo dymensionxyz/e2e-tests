@@ -121,13 +121,13 @@ var (
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
-		Version:    "latest",
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
 	rollappEVMImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/rollapp-evm",
-		Version:    "debug-m",
+		Repository: RollappEVMMainRepo,
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
