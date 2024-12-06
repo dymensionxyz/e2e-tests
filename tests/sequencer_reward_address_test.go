@@ -53,6 +53,14 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
+		cosmos.GenesisKV{
+			Key:   "app_state.distribution.params.base_proposer_reward",
+			Value: "0.9",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.distribution.params.bonus_proposer_reward",
+			Value: "1",
+		},
 	)
 
 	// Create chain factory with dymension
@@ -361,8 +369,9 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
-	// err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
-	// require.NoError(t, err)
+	// Unbond sequencer 1
+	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -378,8 +387,16 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
-	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+	require.Equal(t, resp0.Sequencers[1].Address, currentProposer.ProposerAddr)
 	fmt.Printf("CurrentProposer: %+v\n", currentProposer)
+
+	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
+	require.NoError(t, err)
+	operatorAddr := operatorAddress.Sequencers[1].OperatorAddress
+
+	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
+	require.NoError(t, err)
+	rewardAddrStr := rewardAddress.RewardAddr
 
 	// Get the container details
 	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
@@ -503,8 +520,25 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
-	// balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, dymensionIBCDenom)
-	// require.NoError(t, err)
-	// require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
-	// testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollappIBCDenom, transferData.Amount)
+	balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
+
+	var baseProposerReward float64
+	for _, kv := range modifyRAGenesisKV {
+		if kv.Key == "app_state.distribution.params.base_proposer_reward" {
+			valueStr, ok := kv.Value.(string)
+			require.True(t, ok, "kv.Value should be a string")
+			value, err := strconv.ParseFloat(valueStr, 64)
+			require.NoError(t, err)
+			baseProposerReward = value
+			break
+		}
+	}
+	
+	feesCollected := float64(4000000000000000)
+	expectedAmount := int64(feesCollected * baseProposerReward)
+	expectedAmountInt := math.NewInt(expectedAmount)
+
+	testutil.AssertBalance(t, ctx, rollapp1, rewardAddrStr, rollapp1.Config().Denom, expectedAmountInt)
 }
