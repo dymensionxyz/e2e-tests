@@ -213,10 +213,6 @@ var (
 			Value: "0.0",
 		},
 		{
-			Key:   "app_state.claims.params.claims_denom",
-			Value: "urax",
-		},
-		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
 		},
@@ -301,9 +297,6 @@ var (
 		// 	Value: "0.0",
 		// },
 		// {
-		// 	Key:   "app_state.claims.params.claims_denom",
-		// 	Value: "urax",
-		// },
 		{
 			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
