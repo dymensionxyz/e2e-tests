@@ -316,10 +316,6 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
-	// cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	// pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	// require.NoError(t, err)
-
 	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
 	require.NoError(t, err)
 
@@ -337,21 +333,14 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
-	// fmt.Println("sequenceeeee: ", resp0)
 
-	// rewardAddress, err := dymension.GetNode().QuerySequencersRewardAddressByDymResponse(ctx)
-	// require.NoError(t, err)
-	// rewardAddrStr := rewardAddress.RewardAddr
-	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
 	require.NoError(t, err)
-	// fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
 	operatorAddr := operatorAddress.Sequencers[0].OperatorAddress
 
 	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
 	require.NoError(t, err)
 	rewardAddrStr := rewardAddress.RewardAddr
-	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
 
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
@@ -421,10 +410,8 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Query reward address
-	// fmt.Printf("RewardAddress3: %s\n", rewardAddrStr)
 	balance, err := rollapp1.GetBalance(ctx, rewardAddrStr, rollapp1.Config().Denom)
 	require.NoError(t, err)
-	// t.Logf("Balance retrieved: %s", balance.String())
 	require.True(t, balance.Sign() > 0, fmt.Sprintf("Balance is not greater than 0. Actual balance: %s", balance.String()))
 
 	var baseProposerReward float64
