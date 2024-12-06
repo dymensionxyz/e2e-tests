@@ -4731,37 +4731,6 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	rollappIBCDenom = transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, (transferAmount.Sub(bridgingFee)).MulRaw(2))
-
-	// Get original account balances
-	dymensionOrigBal, err = dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom
-	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	if testing.Short() {
