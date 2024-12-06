@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -265,6 +266,11 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -326,16 +332,16 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	}
 	err = dymension.SendFunds(ctx, "faucet", fund)
 	require.NoError(t, err)
-	
-	// resp, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	// require.NoError(t, err)
-	// proposerAddr := resp.ProposerAddr
-	// fmt.Println("proposerAddr: ", proposerAddr)
 
 	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
-	//Bond
+	fmt.Printf("Sequencercheck1: %v\n", resp0.Sequencers)
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
 
@@ -345,34 +351,97 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-	fmt.Println("sequenceeeee: ", resp)
+	fmt.Printf("Sequencercheck2: %v\n", resp.Sequencers)
 
 	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
-	fmt.Printf("NextProposer: %+v\n", nextProposer)
 
 	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	// err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	// require.NoError(t, err)
+
+	lastBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(200 * time.Second)
+
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	_ = rollapp1.StartAllNodes(ctx)
+
+	containerID = fmt.Sprintf("ra-rollappevm_1234-1-fn-0-%s", t.Name())
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 	fmt.Printf("CurrentProposer: %+v\n", currentProposer)
 
-	// rewardAddress, err := dymension.GetNode().QuerySequencersRewardAddressByDymResponse(ctx)
-	// require.NoError(t, err)
-	// rewardAddrStr := rewardAddress.RewardAddr
-	// fmt.Printf("RewardAddress2: %s\n", rewardAddrStr)
-	// operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
-	// require.NoError(t, err)
-	// fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[0].OperatorAddress)
-	// operatorAddr := operatorAddress.Sequencers[0].OperatorAddress
+	// Get the container details
+	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
 
-	// rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
-	// require.NoError(t, err)
-	// rewardAddrStr := rewardAddress.RewardAddr
-	// fmt.Printf("Reward Address: %s\n", rewardAddrStr)
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
 
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	nodeId, err = rollapp1.FullNodes[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node = fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir = strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1FolderName = rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(120 * time.Second)
+
+	afterBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+	require.True(t, afterBlock > lastBlock)
+
+	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	// err = r.StartRelayer(ctx, eRep, ibcPath)
+	// require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get original account balances
