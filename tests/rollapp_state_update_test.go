@@ -1611,7 +1611,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 			Name: "rollapp2",
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
+				Name:                "rollapp-temp2",
 				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappEVMImage},
 				Bin:                 "rollappd",
