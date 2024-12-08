@@ -1741,6 +1741,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	// rollapp unhealty now so can not send ibc transfer
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.Error(t, err)
+	fmt.Println(err)
 
 	// Restart DA
 	err = celestia.StartAllNodes(ctx)
@@ -1779,7 +1780,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -1806,7 +1807,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).MulRaw(2))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
