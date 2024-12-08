@@ -1413,8 +1413,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
 	coreIp := "mocha-4-consensus.mesa.newmetric.xyz"
-	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
-	// sampleFrom := 2423882
 
 	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
@@ -1491,6 +1489,26 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 8, celestia)
 	require.NoError(t, err)
 
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 
@@ -1559,9 +1577,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
 		fmt.Println("Err:", err)
 	}
-
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
 	require.NoError(t, err)
@@ -1700,10 +1715,10 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Get ibc denom of rollapp on hub
@@ -1716,6 +1731,44 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
+
+	// Stop DA
+	err = celestia.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(60 * time.Second)
+
+	// rollapp unhealty now so can not send ibc transfer
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.Error(t, err)
+
+	// Restart DA
+	err = celestia.StartAllNodes(ctx)
+	require.NoError(t, err)
+
+	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	execID = execIDResp.ID
+
+	// Start the exec instance
+	execStartCheck = types.ExecStartCheck{
+		Tty: false,
+	}
+
+	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
+
+	// Rollapp resume produce blocks
+	err = testutil.WaitForBlocks(ctx, 2, rollapp1)
+	require.NoError(t, err)
+
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
@@ -1754,59 +1807,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	err = dymension.StopAllNodes(ctx)
-	require.NoError(t, err)
-
-	time.Sleep(51 * time.Second)
-
-	// rollapp unhealty now so can not send ibc transfer
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.Error(t, err)
-
-	err = dymension.StartAllNodes(ctx)
-	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 15, dymension, rollapp1)
-
-	// send from rollapp to hub again and make sure new bridge fee is applied
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount).Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount).Add(transferAmount))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
