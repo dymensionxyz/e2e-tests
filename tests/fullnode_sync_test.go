@@ -33,7 +33,7 @@ import (
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
-	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", types.ImagePullOptions{})
+	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
 
@@ -63,8 +63,8 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 	resp, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix-arm", // Image to run
-			Tty:   true,                                              // Attach to a TTY
+			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
+			Tty:   true,                                          // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
