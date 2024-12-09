@@ -22,6 +22,7 @@ require (
 	github.com/cosmos/ibc-go/v7 v7.5.1
 	github.com/evmos/ethermint v0.22.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
+	github.com/ignite/cli v0.27.2
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.64.0
@@ -63,7 +64,7 @@ require (
 	golang.org/x/tools v0.26.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.25.0 // indirect
 )
 
@@ -172,7 +173,7 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.10.7 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/linxGnu/grocksdb v1.8.12 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -188,7 +189,6 @@ require (
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/petermattis/goid v0.0.0-20230518223814-80aa455d8761 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
