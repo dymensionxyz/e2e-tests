@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"bytes"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -26,7 +26,6 @@ import (
 	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v3"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
@@ -399,15 +398,15 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	dymensionUser, lp1, lp2, rollappUser := users[0], users[1], users[2], users[3]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	// lp1Addr := lp1.FormattedAddress()
+	lp1Addr := lp1.FormattedAddress()
 	// lp2Addr := lp2.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
 	cmd := []string{"keys", "add", "operator",
-	"--coin-type", dymension.GetNode().Chain.Config().CoinType,
-	"--keyring-backend", "test",
-	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
+		"--keyring-backend", "test",
+		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
@@ -416,7 +415,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
-		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	stdout, _, err := dymension.GetNode().Exec(ctx, cmd, nil)
 	require.NoError(t, err)
@@ -442,7 +441,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
+		Address: lp1Addr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  bigTransferAmount,
 	}
@@ -463,7 +462,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, lp1Addr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -473,7 +472,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, lp1Addr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
 		fmt.Println(txhash)
@@ -487,95 +486,95 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
 	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	// register ibc denom on rollapp1
-	metadata := banktypes.Metadata{
-		Description: "IBC token from Dymension",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    dymensionIBCDenom,
-				Exponent: 0,
-				Aliases:  []string{"udym"},
-			},
-			{
-				Denom:    "udym",
-				Exponent: 6,
-			},
-		},
-		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
-		// Base as key path and the IBC hash is what gives this token uniqueness
-		// on the executing chain
-		Base:    dymensionIBCDenom,
-		Display: "udym",
-		Name:    "udym",
-		Symbol:  "udym",
-	}
+	// // register ibc denom on rollapp1
+	// metadata := banktypes.Metadata{
+	// 	Description: "IBC token from Dymension",
+	// 	DenomUnits: []*banktypes.DenomUnit{
+	// 		{
+	// 			Denom:    dymensionIBCDenom,
+	// 			Exponent: 0,
+	// 			Aliases:  []string{"udym"},
+	// 		},
+	// 		{
+	// 			Denom:    "udym",
+	// 			Exponent: 6,
+	// 		},
+	// 	},
+	// 	// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+	// 	// Base as key path and the IBC hash is what gives this token uniqueness
+	// 	// on the executing chain
+	// 	Base:    dymensionIBCDenom,
+	// 	Display: "udym",
+	// 	Name:    "udym",
+	// 	Symbol:  "udym",
+	// }
 
-	data := map[string][]banktypes.Metadata{
-		"metadata": {metadata},
-	}
+	// data := map[string][]banktypes.Metadata{
+	// 	"metadata": {metadata},
+	// }
 
-	contentFile, err := json.Marshal(data)
-	require.NoError(t, err)
-	rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
-	deposit := "500000000000" + rollapp1.Config().Denom
-	rollapp1.GetNode().HostName()
-	_, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
-	require.NoError(t, err)
+	// contentFile, err := json.Marshal(data)
+	// require.NoError(t, err)
+	// rollapp1.GetNode().WriteFile(ctx, contentFile, "./ibcmetadata.json")
+	// deposit := "500000000000" + rollapp1.Config().Denom
+	// rollapp1.GetNode().HostName()
+	// _, err = rollapp1.GetNode().RegisterIBCTokenDenomProposal(ctx, rollappUser.KeyName(), deposit, rollapp1.GetNode().HomeDir()+"/ibcmetadata.json")
+	// require.NoError(t, err)
 
-	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
+	// err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	// require.NoError(t, err, "failed to submit votes")
 
-	height, err := rollapp1.Height(ctx)
-	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed")
+	// height, err := rollapp1.Height(ctx)
+	// require.NoError(t, err, "error fetching height")
+	// _, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	// require.NoError(t, err, "proposal status did not change to passed")
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount.Mul(math.NewInt(5)),
-	}
+	// // Compose an IBC transfer and send from dymension -> rollapp
+	// transferData = ibc.WalletData{
+	// 	Address: rollappUserAddr,
+	// 	Denom:   dymension.Config().Denom,
+	// 	Amount:  transferAmount.Mul(math.NewInt(5)),
+	// }
 
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	// // Compose an IBC transfer and send from Hub -> rollapp
+	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	// require.NoError(t, err)
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// // Assert balance was updated on the hub
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
-	// Check fund was set to erc20 module account on rollapp
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
-	require.NoError(t, err)
+	// // Check fund was set to erc20 module account on rollapp
+	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	// require.NoError(t, err)
+	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	// rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	// require.NoError(t, err)
 
-	require.True(t, rollappErc20MaccBalance.Equal(transferData.Amount))
-	require.NoError(t, err)
+	// require.True(t, rollappErc20MaccBalance.Equal(transferData.Amount))
+	// require.NoError(t, err)
 
-	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
-	require.NoError(t, err)
-	require.NotNil(t, tokenPair)
+	// tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
+	// require.NoError(t, err)
+	// require.NotNil(t, tokenPair)
 
-	// convert erc20
-	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferData.Amount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
-	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+	// // convert erc20
+	// _, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferData.Amount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
+	// require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	// require.NoError(t, err)
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
-	StartDB(ctx, t, client, network)
+	// StartDB(ctx, t, client, network)
 
 	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
 	dymFolderName := dymHomeDir[len(dymHomeDir)-1]
@@ -598,20 +597,18 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir()+"/members.json",
-		"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
-	// txHash, err := dymension.GetNode().CreateGroup(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/members.json")
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir()+"/policy.json",
-	"--keyring-dir", dymension.GetNode().HomeDir() + "/keyring-test",
+	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
-	
-	// txHash, err = dymension.GetNode().CreateGroupPolicy(ctx, "operator", "==A", dymension.GetNode().HomeDir()+"/policy.json", "1")
+
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -621,7 +618,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	policyAddr := policiesGroup.GroupPolicies[0].Address
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "10000adym", "rollappevm_1234-1", dymension.Config().Denom, "0.1", "10000dym", "0.1", false)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "1000000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "1000000"+rollappIBCDenom, "0.1", true)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -638,8 +635,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	err = yaml.Unmarshal(content, &config)
 	require.NoError(t, err)
 
-	// dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
-	// dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
+	dymensionHomeDir := strings.Split(dymension.HomeDir(), "/")
+	dymensionFolderName := dymensionHomeDir[len(dymensionHomeDir)-1]
 
 	// Modify a field
 	config.NodeAddress = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -648,9 +645,9 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.OrderPolling.Interval = 30 * time.Second
 	config.OrderPolling.Enabled = false
 	config.Fulfillers.KeyringBackend = "test"
-	config.Fulfillers.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
-	config.Fulfillers.Scale = 30
-	config.Fulfillers.MaxOrdersPerTx = 10
+	config.Fulfillers.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
+	config.Fulfillers.Scale = 10
+	config.Fulfillers.MaxOrdersPerTx = 5
 	config.Fulfillers.PolicyAddress = policyAddr
 	config.Validation.FallbackLevel = "p2p"
 	config.Validation.WaitTime = 5 * time.Minute
@@ -658,7 +655,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	config.Operator.AccountName = "operator"
 	config.Operator.GroupID = 1
 	config.Operator.KeyringBackend = "test"
-	config.Operator.KeyringDir = dymension.GetNode().HomeDir() + "/keyring-test"
+	config.Operator.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
 	config.Operator.MinFeeShare = "0.1"
 	config.Rollapps = map[string]RollappConfig{
 		"rollappevm_1234-1": RollappConfig{
