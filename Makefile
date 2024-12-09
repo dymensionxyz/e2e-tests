@@ -355,6 +355,12 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
 
 e2e-test-sequencer-rotation-forced-da-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Forced_DA_EVM .
+
+e2e-test-sequencer-rewardsaddress-update-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Update_EVM .
+
+e2e-test-sequencer-rewardsaddress-register-evm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Register_EVM .
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Success_EVM .
@@ -382,6 +388,21 @@ e2e-test-zero-fee-relay-evm: clean-e2e
 
 e2e-test-hardfork-kick-proposer-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_HardFork_KickProposer_EVM .
+
+e2e-test-rollapp-state-update-success-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateSuccess_EVM .
+
+e2e-test-rollapp-state-update-fail-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_EVM .
+
+e2e-test-rollapp-state-update-fail-celes-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_Celes_EVM .
+
+e2e-test-genesis-bridge-unbond-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
+
+e2e-test-genesis-bridge-kick-proposer-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_EVM
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
@@ -582,7 +603,22 @@ e2e-test-zero-fee-relay-wasm: clean-e2e
 
 e2e-test-without-genesis-account-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeWithoutGenesisAcc_EVM .
-	
+
+e2e-test-rollapp-state-update-success-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateSuccess_Wasm .
+
+e2e-test-rollapp-state-update-fail-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_Wasm .
+
+e2e-test-rollapp-state-update-fail-celes-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateFail_Celes_Wasm .
+
+e2e-test-genesis-bridge-unbond-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
+
+e2e-test-genesis-bridge-kick-proposer-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_Wasm
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
