@@ -118,7 +118,6 @@ func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -319,7 +318,6 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -598,7 +596,6 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -883,7 +880,6 @@ func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1084,7 +1080,6 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1360,7 +1355,6 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1670,7 +1664,6 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1901,7 +1894,6 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers

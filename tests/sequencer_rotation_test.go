@@ -144,7 +144,6 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -868,7 +867,6 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1669,7 +1667,6 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -2220,7 +2217,6 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -2697,7 +2693,6 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -3208,7 +3203,6 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -3652,7 +3646,6 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -4570,7 +4563,6 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -5306,7 +5298,6 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -6089,7 +6080,6 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -6600,7 +6590,6 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers

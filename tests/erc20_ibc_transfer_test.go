@@ -135,7 +135,6 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -388,7 +387,6 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers

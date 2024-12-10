@@ -206,7 +206,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -593,7 +592,6 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -1070,7 +1068,6 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers

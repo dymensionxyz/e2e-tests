@@ -191,7 +191,6 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -200,6 +199,9 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -531,7 +533,6 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -540,6 +541,9 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -887,7 +891,6 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -896,6 +899,9 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -1257,7 +1263,6 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -1266,6 +1271,9 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -1787,7 +1795,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -1796,6 +1803,9 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -2288,7 +2298,6 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
@@ -2297,6 +2306,9 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})

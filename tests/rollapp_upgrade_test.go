@@ -119,7 +119,6 @@ func TestRollappUpgradeNonStateBreaking_EVM(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -380,7 +379,6 @@ func TestRollappUpgradeNonStateBreaking_Wasm(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -651,7 +649,6 @@ func TestRollapp_EVM_Upgrade(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
@@ -939,7 +936,6 @@ func TestRollapp_Wasm_Upgrade(t *testing.T) {
 	require.True(t, found)
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
 	//Update white listed relayers
