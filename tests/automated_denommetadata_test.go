@@ -184,15 +184,19 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
 	require.True(t, found)
 
-	wallet3, found := r3.GetWallet(gaia.Config().ChainID)
-	require.True(t, found)
-
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress(), wallet2.FormattedAddress(), wallet3.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -494,7 +498,7 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
-	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
 	wallet2, found := r3.GetWallet(gaia.Config().ChainID)
@@ -504,8 +508,15 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -825,15 +836,19 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
 	require.True(t, found)
 
-	wallet3, found := r3.GetWallet(gaia.Config().ChainID)
-	require.True(t, found)
-
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress(), wallet2.FormattedAddress(), wallet3.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1181,15 +1196,19 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
 	require.True(t, found)
 
-	wallet3, found := r3.GetWallet(gaia.Config().ChainID)
-	require.True(t, found)
-
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath := keyDir + "/sequencer_keys"
 
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress(), wallet2.FormattedAddress(), wallet3.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
