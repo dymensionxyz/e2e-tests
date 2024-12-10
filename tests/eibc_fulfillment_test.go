@@ -172,6 +172,20 @@ func TestEIBCFulfillOnOneRollApp_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
@@ -623,6 +637,20 @@ func TestEIBCFulfillOnOneRollApp_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1105,6 +1133,20 @@ func TestEIBCFulfillment_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
@@ -1427,6 +1469,20 @@ func TestEIBCFulfillment_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1762,6 +1818,20 @@ func TestEIBCFulfillment_two_rollapps_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2190,6 +2260,20 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2644,6 +2728,20 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
@@ -3070,6 +3168,20 @@ func TestEIBCFulfillment_ignore_hub_to_RA_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 
@@ -3340,6 +3452,20 @@ func TestEIBCFulfillment_ignore_hub_to_RA_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)

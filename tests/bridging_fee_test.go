@@ -311,6 +311,20 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
 

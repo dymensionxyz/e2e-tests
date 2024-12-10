@@ -387,6 +387,17 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -956,6 +967,17 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 		Amount:  math.NewInt(10_000_000_000_000),
 		Denom:   rollapp1.Config().Denom,
 	})
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
