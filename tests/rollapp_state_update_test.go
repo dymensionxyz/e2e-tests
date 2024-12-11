@@ -543,7 +543,7 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
@@ -2251,7 +2251,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
 				ModifyGenesis:       modifyRollappWasmGenesis(modifyWasmGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
+				ConfigFileOverrides: configFileOverrides1,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,

@@ -111,7 +111,7 @@ var (
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	RelayerMainRepo = "ghcr.io/decentrio/relayer"
+	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion = GetDockerImageVersion()
 
@@ -479,7 +479,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
-		relayerVersion = "latest"
+		relayerVersion = "main-dym"
 	}
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }

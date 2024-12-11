@@ -1900,10 +1900,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-		require.NoError(t, err)
-		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
 		//
 		// prop to disable ibc transfer on rollapp
@@ -1979,14 +1976,14 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 		// Make sure that the ack contains error
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
-		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
 		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of rollappUserAddr right before sending eIBC transfer (that fulfilled):", balance)
-		balance, err = rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
 		require.NoError(t, err)
 		fmt.Println("Balance of moduleAccAddr right before sending eIBC transfer (that fulfilled):", balance)
 
@@ -2064,7 +2061,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 
 		// wait for a few blocks and check if the fund returns to rollapp
 		testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 	})
 
 	t.Cleanup(
