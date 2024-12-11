@@ -587,7 +587,7 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
-func TestERC20RollAppToHubWithNewRegister_EVM(t *testing.T) {
+func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
