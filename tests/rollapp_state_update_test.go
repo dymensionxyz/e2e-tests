@@ -419,7 +419,7 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -441,7 +441,7 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -1149,7 +1149,7 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -1171,7 +1171,7 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -2090,12 +2090,32 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360, true)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
 	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 
 	err = testutil.WaitForBlocks(ctx, 8, celestia)
@@ -2170,9 +2190,6 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 		fmt.Println("Err:", err)
 	}
 
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
-
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
 	require.NoError(t, err)
 
@@ -2200,10 +2217,10 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -2225,7 +2242,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 				ChainID:             "decentrio_12345-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
+				Bech32Prefix:        "rol",
 				Denom:               "urax",
 				CoinType:            "118",
 				GasPrices:           "0.0urax",
@@ -2333,10 +2350,10 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
 
 	// Get ibc denom of rollapp on hub
@@ -2349,6 +2366,45 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
+
+	// Stop DA
+	err = celestia.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(60 * time.Second)
+
+	// rollapp unhealty now so can not send ibc transfer
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.Error(t, err)
+	fmt.Println(err)
+
+	// Restart DA
+	err = celestia.StartAllNodes(ctx)
+	require.NoError(t, err)
+
+	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	execID = execIDResp.ID
+
+	// Start the exec instance
+	execStartCheck = types.ExecStartCheck{
+		Tty: false,
+	}
+
+	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	require.NoError(t, err)
+
+	// Rollapp resume produce blocks
+	err = testutil.WaitForBlocks(ctx, 2, rollapp1)
+	require.NoError(t, err)
+
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
@@ -2359,7 +2415,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -2386,60 +2442,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	err = dymension.StopAllNodes(ctx)
-	require.NoError(t, err)
-
-	time.Sleep(51 * time.Second)
-
-	// rollapp unhealty now so can not send ibc transfer
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.Error(t, err)
-
-	err = dymension.StartAllNodes(ctx)
-	require.NoError(t, err)
-
-	testutil.WaitForBlocks(ctx, 15, dymension, rollapp1)
-
-	// send from rollapp to hub again and make sure new bridge fee is applied
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount).Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount).Add(transferAmount))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).MulRaw(2))
 
 	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)

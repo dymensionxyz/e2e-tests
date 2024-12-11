@@ -146,6 +146,9 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -868,6 +871,9 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1669,6 +1675,9 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -2219,6 +2228,9 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -2694,6 +2706,9 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -3205,6 +3220,9 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -3647,6 +3665,9 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -4565,6 +4586,9 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -5299,6 +5323,9 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -6082,6 +6109,9 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -6591,6 +6621,9 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})

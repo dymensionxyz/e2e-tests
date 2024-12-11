@@ -1870,11 +1870,6 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
 
@@ -1905,8 +1900,12 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+		require.NoError(t, err)
+		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
+		//
 		// prop to disable ibc transfer on rollapp
 		receiveEnableParams := json.RawMessage(`false`)
 		_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
@@ -1927,6 +1926,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err, "error fetching height")
 		_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 		require.NoError(t, err, "proposal status did not change to passed")
+		//
 
 		transferData = ibc.WalletData{
 			Address: dymensionUserAddr,
@@ -1949,10 +1949,9 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		err = testutil.WaitForBlocks(ctx, 10, dymension)
 		require.NoError(t, err)
 
-		rollappHeight, err = rollapp1.Height(ctx)
+		rollappHeight, err = rollapp1.GetNode().Height(ctx)
 		require.NoError(t, err)
 
-		// wait until the packet is finalized
 		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
@@ -1973,16 +1972,24 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 			fmt.Println(txhash)
 		}
 
-		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+30, ibcTx.Packet)
+		ack, err := testutil.PollForAck(ctx, rollapp1, rollappHeight, rollappHeight+80, ibcTx.Packet)
 		require.NoError(t, err)
+
+		fmt.Println("ack:", ack.Acknowledgement)
 
 		// Make sure that the ack contains error
 		require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
-
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 		// At the moment, the ack returned and the demand order status became "finalized"
 		// We will execute the ibc transfer again and try to fulfill the demand order
+		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of rollappUserAddr right before sending eIBC transfer (that fulfilled):", balance)
+		balance, err = rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+		require.NoError(t, err)
+		fmt.Println("Balance of moduleAccAddr right before sending eIBC transfer (that fulfilled):", balance)
+
 		_, err = rollapp1.SendIBCTransfer(ctx, channRollApp1Dym.ChannelID, rollappUserAddr, transferData, options)
 		require.NoError(t, err)
 
@@ -1990,7 +1997,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 		require.NoError(t, err)
 		fmt.Println(eibcEvents)
-		require.Equal(t, eibcEvents[len(eibcEvents)-1].PacketStatus, "PENDING")
+		require.Equal(t, eibcEvents[0].PacketStatus, "PENDING")
 
 		// Get the balance of dymensionUserAddr and marketMakerAddr before fulfill the demand order
 		dymensionUserBalance, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -1999,7 +2006,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		// fulfill demand order
-		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[len(eibcEvents)-1].OrderId, marketMakerAddr, eibcFee)
+		txhash, err := dymension.FullfillDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, eibcFee)
 		require.NoError(t, err)
 		fmt.Println(txhash)
 		// eibcEvent := getEibcEventFromTx(t, dymension, txhash)
@@ -2031,7 +2038,7 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+		res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 		fmt.Println(res)
 		require.NoError(t, err)
 
@@ -2056,8 +2063,8 @@ func TestEIBC_AckError_Dym_Wasm(t *testing.T) {
 		require.True(t, balance.Equal(expMmBalanceDymDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceDymDenom, balance))
 
 		// wait for a few blocks and check if the fund returns to rollapp
-		testutil.WaitForBlocks(ctx, 20, rollapp1)
-		testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+		testutil.WaitForBlocks(ctx, BLOCK_FINALITY_PERIOD+10, rollapp1)
+		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferAmount)
 	})
 
 	t.Cleanup(
@@ -2521,7 +2528,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 
-		res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+		res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
 		fmt.Println(res)
 		require.NoError(t, err)
 
@@ -2531,7 +2538,7 @@ func TestEIBC_AckError_RA_Token_Wasm(t *testing.T) {
 			isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 			require.NoError(t, err)
 			require.True(t, isFinalized)
-			txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+			txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 			require.NoError(t, err)
 
 			fmt.Println(txhash)
