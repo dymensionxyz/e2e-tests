@@ -241,19 +241,26 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	upgradeTime := blockTime.Add(90 * time.Second).Format(time.RFC3339)
 	fmt.Println("Upgrade Time:", upgradeTime)
+	// msg := map[string]interface{}{
+	// 	"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
+	// 	"original_upgrade": map[string]interface{}{
+	// 		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+	// 		"plan": map[string]interface{}{
+	// 			"name":                  "v0.2.1",
+	// 			"time":                  "0001-01-01T00:00:00Z",
+	// 			"height":                haltHeight,
+	// 			"info":                  "{}",
+	// 			"upgraded_client_state": nil,
+	// 		},
+	// 	},
+	// 	"upgrade_time": upgradeTime,
+	// }
+
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"original_upgrade": map[string]interface{}{
-			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-			"plan": map[string]interface{}{
-				"name":                  "v0.2.1",
-				"time":                  "0001-01-01T00:00:00Z",
-				"height":                haltHeight,
-				"info":                  "{}",
-				"upgraded_client_state": nil,
-			},
-		},
-		"upgrade_time": upgradeTime,
+		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":       2, 
+		"upgrade_time": upgradeTime, 
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -261,11 +268,14 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 		fmt.Println("Err:", err)
 	}
 
+	fmt.Println("Denom: ", rollapp1.Config().Denom)
+	fmt.Println("Denom: ", dymension.Config().Denom)
+
 	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "rollapp Upgrade 1",
-		Summary:     "test",
-		Description: "First software upgrade",
+		Deposit:     "500" + rollapp1.Config().Denom,
+		Title:       "Update Dymension to DRS-2",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 2, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS-2 version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}

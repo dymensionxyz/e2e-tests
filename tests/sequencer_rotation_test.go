@@ -6314,12 +6314,16 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 				"amount": "99999999999999999999",
 			},
 		},
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_blocks",
+		// 	Value: "1",
+		// },
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_interval",
+		// 	Value: "1",
+		// },
 		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_blocks",
-			Value: "1",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_interval",
+			Key:   "app_state.rollapp.params.dishonor_kick_threshold",
 			Value: "1",
 		},
 	)
