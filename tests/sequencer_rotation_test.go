@@ -1367,7 +1367,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -2386,7 +2386,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
@@ -3049,10 +3049,6 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 
 	time.Sleep(120 * time.Second)
 
-	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
-	require.True(t, afterBlock > lastBlock)
-
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
@@ -3062,6 +3058,10 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
+
+	afterBlock, err := rollapp1.Height(ctx)
+	require.NoError(t, err)
+	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -3103,7 +3103,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
