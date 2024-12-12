@@ -426,6 +426,14 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 8, celestia)
 	require.NoError(t, err)
 
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
 

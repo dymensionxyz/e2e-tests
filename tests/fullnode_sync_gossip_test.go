@@ -654,9 +654,8 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	_ = rollapp1.FullNodes[0].StartContainer(ctx)
-
-	time.Sleep(30 * time.Second)
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -668,7 +667,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
