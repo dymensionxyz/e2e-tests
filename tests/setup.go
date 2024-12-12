@@ -479,7 +479,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
-		relayerVersion = "main-dym"
+		relayerVersion = "v0.3.4-v2.5.2-relayer-canon-6"
 	}
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
