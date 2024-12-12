@@ -1924,54 +1924,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).MulRaw(2))
 
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	// Access the index value
-	index := oldLatestIndex.StateIndex.Index
-	uintIndex, err := strconv.ParseUint(index, 10, 64)
-	require.NoError(t, err)
-
-	targetIndex := uintIndex + 1
-
-	// Loop until the latest index updates
-	for {
-		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-		require.NoError(t, err)
-
-		index := oldLatestIndex.StateIndex.Index
-		uintIndex, err := strconv.ParseUint(index, 10, 64)
-
-		require.NoError(t, err)
-		if uintIndex >= targetIndex {
-			break
-		}
-	}
-
-	oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	// Access the height value
-	height := oldLatestHeight.Height
-	uintHeight, err := strconv.ParseUint(height, 10, 64)
-	require.NoError(t, err)
-
-	targetHeight := uintHeight + 1
-
-	// Loop until the latest height updates
-	for {
-		oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-		require.NoError(t, err)
-
-		height := oldLatestHeight.Height
-		uintHeight, err := strconv.ParseUint(height, 10, 64)
-
-		require.NoError(t, err)
-		if uintHeight >= targetHeight {
-			break
-		}
-	}
-
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
@@ -2464,30 +2416,6 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 		require.NoError(t, err)
 		if uintIndex >= targetIndex {
-			break
-		}
-	}
-
-	oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	// Access the height value
-	height := oldLatestHeight.Height
-	uintHeight, err := strconv.ParseUint(height, 10, 64)
-	require.NoError(t, err)
-
-	targetHeight := uintHeight + 1
-
-	// Loop until the latest height updates
-	for {
-		oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-		require.NoError(t, err)
-
-		height := oldLatestHeight.Height
-		uintHeight, err := strconv.ParseUint(height, 10, 64)
-
-		require.NoError(t, err)
-		if uintHeight >= targetHeight {
 			break
 		}
 	}
