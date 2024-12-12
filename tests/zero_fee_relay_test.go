@@ -531,7 +531,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -589,6 +589,21 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	time.Sleep(120 * time.Second)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	time.Sleep(60 * time.Second)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)

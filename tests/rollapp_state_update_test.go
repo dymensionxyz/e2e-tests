@@ -1805,7 +1805,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})

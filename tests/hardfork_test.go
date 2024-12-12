@@ -362,6 +362,16 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
 

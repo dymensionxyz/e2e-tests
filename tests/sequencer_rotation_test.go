@@ -330,6 +330,16 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -409,7 +419,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
@@ -715,6 +725,16 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -791,7 +811,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
@@ -1109,6 +1129,16 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -1182,7 +1212,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
@@ -1497,6 +1527,16 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -1567,7 +1607,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
@@ -1894,6 +1934,10 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
+
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), lastBlock, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
 
 	time.Sleep(200 * time.Second)
 
@@ -2418,16 +2462,6 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
-
 	// Get the IBC denom for the token on RollApp
 	var dymensionTokenDenom, dymensionIBCDenom string
 	dymensionTokenDenom = transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -2510,6 +2544,16 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	_ = rollapp1.StartAllNodes(ctx)
 
 	time.Sleep(30 * time.Second)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -2598,7 +2642,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
 	// Query the balance of rollappUserAddr on RollApp
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 
 }
 
@@ -3033,6 +3077,16 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -3539,6 +3593,16 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	time.Sleep(120 * time.Second)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -4100,6 +4164,16 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, sequencer, currentProposer.ProposerAddr)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -4664,6 +4738,16 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, sequencer, currentProposer.ProposerAddr)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -5068,6 +5152,16 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -5437,6 +5531,16 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -5778,6 +5882,16 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -5858,7 +5972,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	erc20MAcc, err = rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
 	require.NoError(t, err)
 	erc20MAccAddr = erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
@@ -6148,6 +6262,16 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 
 	time.Sleep(100 * time.Second)
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 	require.True(t, afterBlock > lastBlock)
@@ -6225,7 +6349,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	dymensionIBCDenom = transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount.MulRaw(2))
 }
 
 func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
@@ -6637,6 +6761,16 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Second)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
@@ -7162,6 +7296,16 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
 
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
