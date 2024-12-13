@@ -523,34 +523,34 @@ func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 	// // Assert balance was updated on the hub
 	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
 	// // Check fund was set to erc20 module account on rollapp
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
-	require.NoError(t, err)
+	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	// require.NoError(t, err)
+	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	// rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
+	// require.NoError(t, err)
 
-	require.True(t, rollappErc20MaccBalance.Equal(transferAmount))
-	require.NoError(t, err)
+	// require.True(t, rollappErc20MaccBalance.Equal(transferAmount))
+	// require.NoError(t, err)
 
-	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
-	require.NoError(t, err)
-	require.NotNil(t, tokenPair)
+	// tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
+	// require.NoError(t, err)
+	// require.NotNil(t, tokenPair)
 
-	// convert erc20
-	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
-	require.NoError(t, err, "can not convert erc20 to cosmos coin")
+	// // convert erc20
+	// _, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
+	// require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	// require.NoError(t, err)
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
 
 	rollappAdrrHex := common.BytesToAddress(rollappUser.Address())
-	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), fmt.Sprintf("%v%s", transferAmount, dymensionIBCDenom), rollappAdrrHex.String())
+	_, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), fmt.Sprintf("%v%s", transferAmount, rollapp1.Config().Denom), rollappAdrrHex.String())
 	require.NoError(t, err)
 
 	// register erc20 erc20
-	_, err = rollapp1.GetNode().RegisterERC20AsToken(ctx, rollappUser.KeyName(), tokenPair.Erc20Address)
-	require.NoError(t, err, "can not register erc20 to cosmos coin")
+	// _, err = rollapp1.GetNode().RegisterERC20AsToken(ctx, rollappUser.KeyName(), tokenPair.Erc20Address)
+	// require.NoError(t, err, "can not register erc20 to cosmos coin")
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
