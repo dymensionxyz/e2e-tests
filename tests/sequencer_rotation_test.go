@@ -6802,21 +6802,29 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key: "app_state.sequencer.params.kick_threshold",
+		// 	Value: map[string]interface{}{
+		// 		"denom":  "adym",
+		// 		"amount": "99999999999999999999",
+		// 	},
+		// },
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_blocks",
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
 			Value: "1",
 		},
-		cosmos.GenesisKV{
-			Key:   "app_state.rollapp.params.liveness_slash_interval",
-			Value: "1",
-		},
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_blocks",
+		// 	Value: "1",
+		// },
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.liveness_slash_interval",
+		// 	Value: "1",
+		// },
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollapp.params.dishonor_kick_threshold",
+		// 	Value: "1",
+		// },
 	)
 
 	modifyRAGenesisKV := append(
