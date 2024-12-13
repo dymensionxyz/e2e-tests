@@ -6813,18 +6813,14 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
 			Value: "1",
 		},
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.liveness_slash_blocks",
-		// 	Value: "1",
-		// },
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.liveness_slash_interval",
-		// 	Value: "1",
-		// },
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollapp.params.dishonor_kick_threshold",
-		// 	Value: "1",
-		// },
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_blocks",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_interval",
+			Value: "1",
+		},
 	)
 
 	modifyRAGenesisKV := append(
@@ -7224,7 +7220,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	//Update white listed relayers

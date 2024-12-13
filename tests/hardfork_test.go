@@ -486,11 +486,8 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.liveness_slash_blocks",
