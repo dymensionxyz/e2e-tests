@@ -202,6 +202,19 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -352,6 +365,16 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	err = r.StopRelayer(ctx, eRep)
 	require.NoError(t, err)
 
@@ -463,11 +486,8 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.liveness_slash_blocks",
@@ -576,6 +596,22 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 		NetworkID:        network,
 		SkipPathCreation: true,
 	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
@@ -1042,6 +1078,19 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 		Amount:  math.NewInt(10_000_000_000_000),
 		Denom:   rollapp1.Config().Denom,
 	})
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	// Check IBC Transfer before switch

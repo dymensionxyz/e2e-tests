@@ -198,6 +198,19 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -243,17 +256,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"original_upgrade": map[string]interface{}{
-			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-			"plan": map[string]interface{}{
-				"name":                  "v0.2.1",
-				"time":                  "0001-01-01T00:00:00Z",
-				"height":                haltHeight,
-				"info":                  "{}",
-				"upgraded_client_state": nil,
-			},
-		},
-		"upgrade_time": upgradeTime,
+		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":       2, 
+		"upgrade_time": upgradeTime, 
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -263,9 +268,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "rollapp Upgrade 1",
-		Summary:     "test",
-		Description: "First software upgrade",
+		Title:       "Update Dymension to DRS-2",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 2, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS-2 version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
@@ -524,6 +529,19 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -571,17 +589,9 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"original_upgrade": map[string]interface{}{
-			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-			"plan": map[string]interface{}{
-				"name":                  "v0.2.1",
-				"time":                  "0001-01-01T00:00:00Z",
-				"height":                "1800",
-				"info":                  "{}",
-				"upgraded_client_state": nil,
-			},
-		},
-		"upgrade_time": upgradeTime,
+		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":       2, 
+		"upgrade_time": upgradeTime, 
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -591,9 +601,9 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "rollapp Upgrade 1",
-		Summary:     "test",
-		Description: "First software upgrade",
+		Title:       "Update Dymension to DRS-2",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 2, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS-2 version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
