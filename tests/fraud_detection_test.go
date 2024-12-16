@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
-
+	"encoding/json"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -24,7 +24,7 @@ import (
 
 func blockValidation(fullnodeAddr, blockHeight string) string {
 	// Construct the full URL
-	url := fmt.Sprintf("http://%s:/block_validated?height=%s", fullnodeAddr, blockHeight)
+	url := fmt.Sprintf("http://%s:26657/block_validated?height=%s", fullnodeAddr, blockHeight)
 
 	// Perform the GET request
 	response, err := http.Get(url)
@@ -40,7 +40,22 @@ func blockValidation(fullnodeAddr, blockHeight string) string {
 	}
 
 	return string(body)
-}                      
+}           
+
+// Define a struct that matches the JSON structure
+type Result struct {
+	ChainID string `json:"ChainID"` // Maps to the "ChainID" field in the JSON
+	Result  string `json:"Result"`  // Maps to the "Result" field in the JSON
+}
+
+type BlockValidatedResponse struct {
+	JSONRPC string `json:"jsonrpc"` // Maps to the "jsonrpc" field
+	Result  Result `json:"result"`  // Maps the nested "result" object
+	ID      int    `json:"id"`      // Maps to the "id" field
+}
+
+// curl -X GET http://localhost:26657/block_validated?height=100
+// {"jsonrpc":"2.0","result":{"ChainID":"rollappevm_1234-1","Result":"2"},"id":-1}
 
 func TestFraudDetection_EVM(t *testing.T) {
 	if testing.Short() {
@@ -155,8 +170,15 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
-	resp := blockValidation(rollapp1.FullNodes[0].Name(), fmt.Sprint(fullnodeHeight))
-	require.Equal(t, resp, "0")
+
+	cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), fullnodeHeight)}
+	sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	var resp BlockValidatedResponse
+	err = json.Unmarshal([]byte(sdtout), &resp)
+	require.NoError(t, err)
+	require.Equal(t, "2", resp.Result.Result)
 
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
@@ -179,6 +201,10 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	fullnodeHeight, err = rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
-	resp = blockValidation(rollapp1.FullNodes[0].Name(), fmt.Sprint(fullnodeHeight))
-	require.Equal(t, resp, "2")
+	cmd = []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), fullnodeHeight)}
+	sdtout, _, err = rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+	err = json.Unmarshal([]byte(sdtout), &resp)
+	require.NoError(t, err)
+	require.Equal(t, "2", resp.Result.Result)
 }
