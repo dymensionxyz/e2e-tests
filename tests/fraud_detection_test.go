@@ -168,10 +168,7 @@ func TestFraudDetection_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-
-	cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), fullnodeHeight)}
+	cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight)}
 	sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
@@ -199,9 +196,9 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	require.NoError(t, err)
 
-	fullnodeHeight, err = rollapp1.FullNodes[0].Height(ctx)
+	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	cmd = []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), fullnodeHeight)}
+	cmd = []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight)}
 	sdtout, _, err = rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 	err = json.Unmarshal([]byte(sdtout), &resp)
