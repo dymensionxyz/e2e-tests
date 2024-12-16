@@ -123,6 +123,9 @@ func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -286,6 +289,9 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -448,6 +454,9 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -642,6 +651,9 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1054,6 +1066,9 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -1206,6 +1221,9 @@ func TestGenesisBridgeNoRelayAck_Wasm(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1387,6 +1405,9 @@ func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1587,6 +1608,9 @@ func TestGenesisBridgeWithoutGenesisAcc_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -1745,6 +1769,9 @@ func TestGenesisTransferBridgeUnBond_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1923,6 +1950,9 @@ func TestGenesisTransferBridgeUnBond_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
@@ -2018,12 +2048,16 @@ func TestGenTransferBridgeKickProposer_EVM(t *testing.T) {
 
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key: "app_state.sequencer.params.kick_threshold",
+		// 	Value: map[string]interface{}{
+		// 		"denom":  "adym",
+		// 		"amount": "99999999999999999999",
+		// 	},
+		// },
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.liveness_slash_blocks",
@@ -2235,11 +2269,8 @@ func TestGenTransferBridgeKickProposer_Wasm(t *testing.T) {
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.liveness_slash_blocks",

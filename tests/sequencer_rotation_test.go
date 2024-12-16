@@ -2460,7 +2460,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	containerID = fmt.Sprintf("ra-rollappevm_1234-1-fn-0-%s", t.Name())
+	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-fn-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
@@ -2986,7 +2986,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(250 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -3506,7 +3506,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(250 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -6802,12 +6802,16 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key: "app_state.sequencer.params.kick_threshold",
+		// 	Value: map[string]interface{}{
+		// 		"denom":  "adym",
+		// 		"amount": "99999999999999999999",
+		// 	},
+		// },
 		cosmos.GenesisKV{
-			Key: "app_state.sequencer.params.kick_threshold",
-			Value: map[string]interface{}{
-				"denom":  "adym",
-				"amount": "99999999999999999999",
-			},
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.rollapp.params.liveness_slash_blocks",
@@ -7216,7 +7220,7 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	//Update white listed relayers

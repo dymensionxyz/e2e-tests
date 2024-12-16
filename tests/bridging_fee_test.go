@@ -324,6 +324,9 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
 	require.NoError(t, err)
