@@ -229,6 +229,10 @@ var (
 			Value: "urax",
 		},
 		{
+			Key:   "app_state.evm.params.gas_denom",
+			Value: "urax",
+		},
+		{
 			Key:   "consensus_params.block.max_gas",
 			Value: "40000000",
 		},
@@ -487,7 +491,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
-		relayerVersion = "v0.3.4-v2.5.2-relayer-canon-6"
+		relayerVersion = "main-dym"
 	}
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
