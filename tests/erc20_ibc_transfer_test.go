@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -127,7 +128,20 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -188,8 +202,21 @@ func TestERC20HubToRollAppWithoutRegister_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	transferData = ibc.WalletData{
 		Address: rollappUserAddr,
@@ -356,7 +383,20 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -405,8 +445,21 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -524,8 +577,21 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)

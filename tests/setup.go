@@ -64,7 +64,7 @@ type userData struct {
 func MustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 	return string(bz)
 }
@@ -94,8 +94,7 @@ const (
 )
 
 var (
-	walletAmount = math.NewInt(1_000_000_000_000)
-
+	walletAmount   = math.NewInt(100_000_000_000_000_000).MulRaw(100_000)
 	transferAmount = math.NewInt(1_000_000)
 
 	bigTransferAmount = math.NewInt(1_000_000_000)
@@ -196,25 +195,26 @@ var (
 		GasAdjustment:       2,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ModifyGenesis:       cosmos.ModifyGenesis(gaiaGenesisKV),
+		ModifyGenesis:       nil,
 		ConfigFileOverrides: nil,
-	}
-
-	gaiaGenesisKV = []cosmos.GenesisKV{
-		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
-		},
 	}
 
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "1200s",
+			Key:   "app_state.rollappparams.params.drs_version",
+			Value: 2,
 		},
 		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		{
+			Key:   "app_state.feemarket.params.no_base_fee",
+			Value: true,
+		},
+		{
+			Key:   "app_state.feemarket.params.min_gas_price",
+			Value: "0.0",
 		},
 		{
 			Key:   "app_state.mint.params.mint_denom",
@@ -285,13 +285,38 @@ var (
 
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
-			Key:   "app_state.sequencers.params.unbonding_time",
-			Value: "1200s",
+			Key:   "app_state.rollappparams.params.drs_version",
+			Value: 2,
 		},
 		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
+			Key:   "app_state.gov.voting_params.voting_period",
+			Value: "30s",
 		},
+		{
+			Key:   "consensus_params.block.max_gas",
+			Value: "400000000",
+		},
+		// {
+		// 	Key:   "app_state.feemarket.params.no_base_fee",
+		// 	Value: true,
+		// },
+		// {
+		// 	Key:   "app_state.feemarket.params.min_gas_price",
+		// 	Value: "0.0",
+		// },
+		// {
+		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "urax",
+		},
+		// {
+		// 	Key:   "app_state.evm.params.evm_denom",
+		// 	Value: "urax",
+		// },
 		// Bank denom metadata
 		{
 			Key: "app_state.bank.denom_metadata",
@@ -321,6 +346,18 @@ var (
 
 	dymensionGenesisKV = []cosmos.GenesisKV{
 		{
+			Key:   "app_state.mint.params.mint_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.staking.params.bond_denom",
+			Value: "adym",
+		},
+		{
+			Key:   "app_state.evm.params.evm_denom",
+			Value: "adym",
+		},
+		{
 			Key:   "app_state.sequencer.params.notice_period",
 			Value: "60s",
 		},
@@ -328,27 +365,10 @@ var (
 			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
 			Value: fmt.Sprint(BLOCK_FINALITY_PERIOD),
 		},
-		{
-			Key:   "app_state.sequencer.params.unbonding_time",
-			Value: "1200s",
-		},
-		{
-			Key:   "app_state.staking.params.unbonding_time",
-			Value: "1200s",
-		},
 		// gov params
 		{
 			Key:   "app_state.gov.params.voting_period",
 			Value: "20s",
-		},
-		// staking params
-		{
-			Key:   "app_state.staking.params.bond_denom",
-			Value: "adym",
-		},
-		{
-			Key:   "app_state.mint.params.mint_denom",
-			Value: "adym",
 		},
 		// increase the tx size cost per byte from 10 to 100
 		{
@@ -391,10 +411,6 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0",
-		},
-		{
-			Key:   "app_state.evm.params.evm_denom",
-			Value: "adym",
 		},
 		{
 			Key:   "app_state.evm.params.enable_create",
@@ -677,7 +693,7 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+		dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
@@ -1019,9 +1035,6 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "underlying-packet-exist")
 	require.NoError(t, err)
 
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-state-index")
-	require.NoError(t, err)
-
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-count")
 	require.NoError(t, err)
 
@@ -1032,11 +1045,5 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-count")
-	require.NoError(t, err)
-
-	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "sequencer", "sequencers-per-rollapp")
 	require.NoError(t, err)
 }

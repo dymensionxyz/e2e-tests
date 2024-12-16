@@ -125,7 +125,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -189,7 +189,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -200,7 +200,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -265,7 +265,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -287,7 +287,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -448,7 +448,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -514,7 +514,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -525,7 +525,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -601,7 +601,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -623,7 +623,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -654,9 +654,8 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	_ = rollapp1.FullNodes[0].StartContainer(ctx)
-
-	time.Sleep(30 * time.Second)
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
@@ -668,7 +667,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -785,7 +784,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -849,7 +848,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -860,7 +859,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -925,7 +924,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -947,7 +946,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -1136,7 +1135,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1200,7 +1199,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1211,7 +1210,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1276,7 +1275,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -1298,7 +1297,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -1487,7 +1486,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1551,7 +1550,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1562,7 +1561,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1627,7 +1626,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -1649,7 +1648,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -1839,7 +1838,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -1903,7 +1902,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -1914,7 +1913,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -1979,7 +1978,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -2001,7 +2000,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))

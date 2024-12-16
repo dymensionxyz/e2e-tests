@@ -10,7 +10,11 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -23,42 +27,54 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 
-	"flag"
-	"log"
-	"net"
 	"strconv"
-
-	grpcda "github.com/dymensionxyz/dymint/da/grpc"
-	"github.com/dymensionxyz/dymint/da/grpc/mockserv"
-	"github.com/dymensionxyz/dymint/store"
 )
 
 // StartDA start grpc DALC server
-func StartDA() {
-	conf := grpcda.DefaultConfig
+func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
+	fmt.Println("Starting pull image ...")
+	out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:srene-hardfork-fix", types.ImagePullOptions{})
+	require.NoError(t, err)
+	defer out.Close()
 
-	flag.IntVar(&conf.Port, "port", conf.Port, "listening port")
-	flag.StringVar(&conf.Host, "host", "0.0.0.0", "listening address")
-	flag.Parse()
-
-	kv := store.NewDefaultKVStore(".", "db", "dymint")
-	lis, err := net.Listen("tcp", conf.Host+":"+strconv.Itoa(conf.Port))
-	if err != nil {
-		log.Panic(err)
+	networkConfig := &network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{
+			net: {},
+		},
 	}
-	log.Println("DA grpc listening on:", lis.Addr())
-	srv := mockserv.GetServer(kv, conf, nil)
-	if err := srv.Serve(lis); err != nil {
-		log.Println("error while serving:", err)
+	portBindings := nat.PortMap{
+		"7980/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0", // Host IP address (use 0.0.0.0 for all interfaces)
+				HostPort: "7980",    // Host port to bind to
+			},
+		},
 	}
-}
+	hostConfig := &container.HostConfig{
+		PortBindings:    portBindings,
+		PublishAllPorts: true,
+		AutoRemove:      false,
+		DNS:             []string{},
+		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
+	}
+	time.Sleep(2 * time.Minute)
+	// Create the container
+	fmt.Println("Creating container ...")
+	resp, err := client.ContainerCreate(
+		ctx,
+		&container.Config{
+			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
+			Tty:   true,                                          // Attach to a TTY
+		},
+		hostConfig, networkConfig, nil, "grpc-da-container",
+	)
+	require.NoError(t, err)
 
-func StopDA() {
-	conf := grpcda.DefaultConfig
-	kv := store.NewDefaultKVStore(".", "db", "dymint")
-	srv := mockserv.GetServer(kv, conf, nil)
-	log.Println("Stopping DA...")
-	srv.Stop()
+	fmt.Println("Starting container ...")
+
+	// Start the container
+	err = client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	require.NoError(t, err)
 }
 
 func TestFullnodeSync_EVM(t *testing.T) {
@@ -67,8 +83,6 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
-
-	go StartDA()
 
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
@@ -134,6 +148,8 @@ func TestFullnodeSync_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
+	StartDA(ctx, t, client, network)
+
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
@@ -148,7 +164,7 @@ func TestFullnodeSync_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
@@ -199,9 +215,6 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 
 	ctx := context.Background()
 
-	// start grpc DA
-	go StartDA()
-
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -211,7 +224,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"host.docker.internal\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -270,6 +283,8 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 
+	StartDA(ctx, t, client, network)
+
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1)
 
@@ -284,7 +299,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized
@@ -431,7 +446,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -494,7 +509,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -505,7 +520,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	time.Sleep(30 * time.Second)
@@ -572,7 +587,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
@@ -706,7 +721,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
@@ -770,7 +785,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -781,7 +796,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	err = testutil.WaitForBlocks(ctx, 10, celestia)
@@ -849,7 +864,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.Validators[0].Height(ctx)

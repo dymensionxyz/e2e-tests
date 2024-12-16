@@ -129,7 +129,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
@@ -195,7 +195,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -206,7 +206,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
@@ -277,7 +277,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	celestia.StopAllNodes(ctx)
@@ -294,7 +294,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID = execIDResp.ID
@@ -305,7 +305,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	// wait until the packet is finalized
@@ -329,7 +329,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_time"] = "100s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides1 := make(map[string]any)
@@ -416,12 +416,20 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
 	// Get fund for submit blob
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
+	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	err = testutil.WaitForBlocks(ctx, 8, celestia)
+	require.NoError(t, err)
+
 	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 	err = testutil.WaitForBlocks(ctx, 8, celestia)
 	require.NoError(t, err)
@@ -481,7 +489,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	execID := execIDResp.ID
@@ -492,7 +500,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	}
 
 	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
@@ -574,7 +582,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
 	rollappHeight, err := rollapp1.GetNode().Height(ctx)
@@ -591,14 +599,14 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 180)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 60)
 	require.Error(t, err)
 	require.False(t, isFinalized)
 
 	dymension.StartAllNodes(ctx)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 }

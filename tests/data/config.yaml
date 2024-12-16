@@ -1,39 +1,37 @@
-home_dir: /root/.eibc-client
-node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Acknowledgement_EVM:26657
-db_path: mongodb://mongodb-container:27017
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
 gas:
     prices: ""
     fees: 100adym
-    minimum_gas_balance: 100adym
 order_polling:
     indexer_url: ""
     interval: 30s
     enabled: false
-whale:
-    account_name: Test_EIBC_Client_Acknowledgement_EVM-dymension_100-1-mhd
+rollapps:
+    rollappevm_1234-1:
+        full_nodes:
+            - http://ra-rollappevm_1234-1-fn-0-Test_EIBC_Client_Success_EVM:26657
+        min_confirmations: 1
+operator:
+    account_name: operator
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-260e03fb1e9ee4945341af207b9ed79ea13c4a0900b8ebcba886eac2cf9103dd2
-    allowed_balance_thresholds:
-        adym: "1000"
-        ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: "1000"
-bots:
-    number_of_bots: 3
+    keyring_dir: /root/dymension-hub-2f33fad87cfda9a25dcc73a51d58fd07fe17be51a4503c84976b14a9d7634c43e
+    group_id: 1
+    min_fee_share: "0.1"
+fulfillers:
+    scale: 10
+    operator_address: ""
+    policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
     keyring_backend: test
-    keyring_dir: /root/.eibc-client
-    top_up_factor: 5
-    max_orders_per_tx: 10
-fulfill_criteria:
-    min_fee_percentage:
-        chain:
-            dymension_100-1: 0.1
-            rollappevm_1234-1: 0.1
-        asset:
-            adym: 0.1
-            ibc/278D6FE92E9722572773C899D688907EB9276DEBB40552278B96C17C41C59A11: 0.1
-log_level: debug
+    keyring_dir: /root/dymension-hub-2f33fad87cfda9a25dcc73a51d58fd07fe17be51a4503c84976b14a9d7634c43e
+    batch_size: 0
+    max_orders_per_tx: 5
+validation:
+    fallback_level: p2p
+    wait_time: 5m0s
+    interval: 10s
 slack:
     enabled: false
     bot_token: ""
     app_token: ""
     channel_id: ""
-skip_refund: true
+log_level: debug

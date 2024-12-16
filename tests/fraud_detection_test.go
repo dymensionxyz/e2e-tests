@@ -49,8 +49,6 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	go StartDA()
-
 	// setup config for rollapp 1
 	settlement_layer_rollapp1 := "dymension"
 	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -114,6 +112,7 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+	StartDA(ctx, t, client, network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1)
@@ -129,7 +128,7 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	// Wait for rollapp finalized

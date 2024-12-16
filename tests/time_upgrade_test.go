@@ -41,6 +41,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -48,6 +49,14 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -66,7 +75,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -89,6 +98,8 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -115,7 +126,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -137,7 +148,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -187,6 +198,19 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -222,46 +246,36 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	haltHeight := height + haltHeightDelta
 	check, _ := rollapp1.GetNode().CliContext().GetNode()
 	blockInfo, _ := check.Block(ctx, &height)
-	// println("check data blocktime: ",blockInfo.Block.String())
-	// blockTime, err := rollapp1.GetLatestBlockTime(ctx)
 	blockTime := blockInfo.Block.Header.Time
 	fmt.Println("blockTime:", blockTime.Format(time.RFC3339))
 	if err != nil {
 		panic(fmt.Errorf("failed to get latest block time: %w", err))
 	}
 
-	upgradeTime := blockTime.Add(40 * time.Second).Format(time.RFC3339)
+	upgradeTime := blockTime.Add(90 * time.Second).Format(time.RFC3339)
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"original_upgrade": map[string]interface{}{
-			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-			"plan": map[string]interface{}{
-				"name":                  "v0.2.1",
-				"time":                  "0001-01-01T00:00:00Z",
-				"height":                haltHeight,
-				"info":                  "{}",
-				"upgraded_client_state": nil,
-			},
-		},
-		"upgrade_time": upgradeTime,
+		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":       2, 
+		"upgrade_time": upgradeTime, 
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "rollapp Upgrade 1",
-		Summary:     "test",
-		Description: "First software upgrade",
+		Title:       "Update Dymension to DRS-2",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 2, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS-2 version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
 
-	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")
@@ -272,39 +286,41 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err)
-	prop, _ := rollapp1.QueryProposal(ctx, "1")
+
+	prop, err := rollapp1.QueryProposal(ctx, "1")
+	require.NoError(t, err)
+
 	fmt.Println("prop: ", prop)
+
 	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*90)
 	defer timeoutCtxCancel()
 
 	height, err = rollapp1.Height(ctx)
 	require.NoError(t, err, "error fetching height before upgrade")
 
-	// // this should timeout due to chain halt at upgrade height.
-	// _ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height)+1, rollapp1)
-
 	// bring down nodes to prepare for upgrade
 	check2, _ := rollapp1.GetNode().CliContext().GetNode()
 	blockInfo2, _ := check2.Block(ctx, &height)
 	blockTime2 := blockInfo2.Block.Header.Time
-	fmt.Println("blockTime:", blockTime2.Format(time.RFC3339))
+	fmt.Println("blockTime2:", blockTime2.Format(time.RFC3339))
 	parsedUpgradeTime, err := time.Parse(time.RFC3339, upgradeTime)
+	fmt.Println("parsedUpgradeTime:", parsedUpgradeTime)
 	if err != nil {
 		panic(fmt.Errorf("failed to parse upgrade time: %w", err))
-	}
-
-	err = testutil.WaitForTime(timeoutCtx, blockTime2, parsedUpgradeTime)
-	if err != nil {
-		fmt.Errorf("failed to wait for upgrade time: %w", err)
 	}
 
 	if blockTime2.After(parsedUpgradeTime) {
 		err = rollapp1.StopAllNodes(ctx)
 	} else {
-		fmt.Println("blockTime2 is before upgradeTime")
+		// fmt.Println("blockTime2 is before upgradeTime")
+		err = testutil.WaitForTime(timeoutCtx, blockTime2, parsedUpgradeTime)
+		if err != nil {
+			fmt.Errorf("failed to wait for upgrade time: %w", err)
+		}
+		err = rollapp1.StopAllNodes(ctx)
 	}
 	require.NoError(t, err, "error stopping node(s)")
 
@@ -356,6 +372,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -363,6 +380,14 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	numHubFullNodes := 1
 	numRollAppFn := 1
 	numRollAppVals := 1
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -381,7 +406,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
@@ -404,6 +429,8 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -430,7 +457,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, true, 780)
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -452,7 +479,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	nodeId = strings.TrimRight(nodeId, "\n")
 	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
 
-	rollapp1HomeDir := strings.Split(rollapp1.HomeDir(), "/")
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
 	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
@@ -502,6 +529,19 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	require.NoError(t, err)
+
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
 	// Create some user accounts on both chains
@@ -549,34 +589,26 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
 		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"original_upgrade": map[string]interface{}{
-			"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-			"plan": map[string]interface{}{
-				"name":                  "v0.2.1",
-				"time":                  "0001-01-01T00:00:00Z",
-				"height":                "1800",
-				"info":                  "{}",
-				"upgraded_client_state": nil,
-			},
-		},
-		"upgrade_time": upgradeTime,
+		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":       2, 
+		"upgrade_time": upgradeTime, 
 	}
 
 	rawMsg, err := json.Marshal(msg)
 	if err != nil {
-		panic(err)
+		fmt.Println("Err:", err)
 	}
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "rollapp Upgrade 1",
-		Summary:     "test",
-		Description: "First software upgrade",
+		Title:       "Update Dymension to DRS-2",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 2, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS-2 version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
 
-	_, err = rollapp1.FullNodes[0].SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "failed to submit proposal")
 
 	txProposal, err := rollapp1.GovDeposit(ctx, rollappUser.KeyName(), "1", "500000000000urax")

@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -163,7 +164,33 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -223,8 +250,21 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -298,8 +338,21 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	// verify funds were deducted from market maker's wallet address
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
@@ -465,7 +518,33 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -535,8 +614,21 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -613,8 +705,21 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -781,7 +886,33 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -843,8 +974,21 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -915,8 +1059,21 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -1081,7 +1238,33 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
+	require.NoError(t, err)
+	keyPath2 := keyDir2 + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension)
+	require.NoError(t, err)
+
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1152,8 +1335,21 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1223,8 +1419,21 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	balance, err = dymension.GetBalance(ctx, marketMakerAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -1349,7 +1558,20 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1402,8 +1624,21 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1606,7 +1841,20 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1659,8 +1907,21 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1743,8 +2004,21 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, marketMakerAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1872,7 +2146,20 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1925,8 +2212,21 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
@@ -1976,12 +2276,8 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
-	require.NoError(t, err)
-
-	res, err := dymension.GetTransaction(txhash)
-	require.NoError(t, err)
-	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	require.Error(t, err)
 
 	t.Cleanup(
 		func() {
@@ -2103,7 +2399,20 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 780)
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2156,10 +2465,23 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	_, err = dymension.GetNode().FinalizePacketsUntilHeight(ctx, dymensionUserAddr, rollapp1.GetChainID(), fmt.Sprint(rollappHeight))
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	for _, packet := range res.RollappPackets {
+
+		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		require.NoError(t, err)
+		require.True(t, isFinalized)
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Compose an IBC transfer and send from hub to rollapp
@@ -2200,19 +2522,15 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// get eibc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 80, false)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, false)
 	require.NoError(t, err)
 	fmt.Println("Event:", eibcEvents)
 	require.Equal(t, eibcEvents[0].Price, fmt.Sprintf("%s%s", transferAmountWithoutFee, dymension.Config().Denom))
 	require.Equal(t, eibcEvents[0].Fee, fmt.Sprintf("%s%s", globalEIbcFee, dymension.Config().Denom))
 
 	// modify demand order with new fee
-	txhash, err := dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
-	require.NoError(t, err)
-
-	res, err := dymension.GetTransaction(txhash)
-	require.NoError(t, err)
-	require.True(t, (res.Code == uint32(4)) || (res.Code == uint32(5)))
+	_, err = dymension.UpdateDemandOrder(ctx, eibcEvents[0].OrderId, marketMakerAddr, globalEIbcFee.Mul(math.NewInt(2)))
+	require.Error(t, err)
 
 	t.Cleanup(
 		func() {
