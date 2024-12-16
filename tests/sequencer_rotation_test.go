@@ -2460,7 +2460,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	containerID = fmt.Sprintf("ra-rollappevm_1234-1-fn-0-%s", t.Name())
+	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-fn-0-%s", t.Name())
 
 	// Get the container details
 	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
