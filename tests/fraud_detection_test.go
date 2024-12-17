@@ -189,8 +189,6 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 
 	ctx := context.Background()
 
-	// setup config for rollapp 1
-	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -200,14 +198,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
+	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-	// Create chain factory with dymension
-	numHubVals := 1
-	numHubFullNodes := 1
-	numRollAppVals := 1
-	numRollAppFn := 1
 
+	// Create chain factory with dymension
 	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
@@ -215,6 +211,11 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 			Value: "grpc",
 		},
 	)
+
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 1
+	numRollAppVals := 1
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -256,7 +257,7 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-	// StartDA(ctx, t, client, network)
+	StartDA(ctx, t, client, network)
 
 	ic := test.NewSetup().
 		AddRollUp(dymension, rollapp1)
@@ -321,19 +322,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// // Wait for rollapp finalized
-	// rollapp1Height, err := rollapp1.Validators[0].Height(ctx)
-	// require.NoError(t, err)
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollapp1Height, 300)
-	// require.True(t, isFinalized)
-	// require.NoError(t, err)
-
 	// Stop the full node
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
 	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
+	err = testutil.WaitForBlocks(ctx, 40, dymension)
 	require.NoError(t, err)
 
 	// Start full node again
@@ -343,14 +337,33 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight)}
-	sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
+	for i := 0; i<10; i++{
+		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+		require.NoError(t, err)
+	
+		var resp BlockValidatedResponse
+		err = json.Unmarshal([]byte(sdtout), &resp)
+		require.NoError(t, err)
+		if resp.Result.Result == "0" {
+			break
+		}
+	}
 
-	var resp BlockValidatedResponse
-	err = json.Unmarshal([]byte(sdtout), &resp)
-	require.NoError(t, err)
-	require.Equal(t, "0", resp.Result.Result)
+	for i := 0; i<10; i++{
+		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+		require.NoError(t, err)
+	
+		var resp BlockValidatedResponse
+		err = json.Unmarshal([]byte(sdtout), &resp)
+		require.NoError(t, err)
+		if resp.Result.Result == "1" {
+			break
+		}
+	}
 
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
@@ -373,12 +386,17 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	cmd = []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight)}
-	sdtout, _, err = rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-	err = json.Unmarshal([]byte(sdtout), &resp)
-	require.NoError(t, err)
-	require.Equal(t, "1", resp.Result.Result)
-
-	StartDA(ctx, t, client, network)
+	for i := 0; i<10; i++{
+		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+		require.NoError(t, err)
+	
+		var resp BlockValidatedResponse
+		err = json.Unmarshal([]byte(sdtout), &resp)
+		require.NoError(t, err)
+		if resp.Result.Result == "2" {
+			break
+		}
+	}
 }
