@@ -76,6 +76,7 @@ body:
         - "eibc client"
         - "time based upgrade"
         - "Sequencer reward address"
+        - "tokenless"
     validations:
       required: true
 
