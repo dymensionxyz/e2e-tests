@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -441,19 +442,20 @@ func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser, rollappUser2 := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
+	rollappUserAddr2 := rollappUser2.FormattedAddress()
 
 	// Assert the accounts were funded
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	// channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	// require.NoError(t, err)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
@@ -464,45 +466,90 @@ func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 
 	privateKey := rollapp1.Validators[0].UnsafeExportETHKey(ctx, rollappUser.KeyName())
 
-	command := []string{"devd", "tx", "deploy-contract", "erc20", "--secret-key", privateKey, "--rpc", "http://localhost:8545"}
+	command := []string{"devd", "tx", "deploy-contract", "erc20", "--secret-key", privateKey, "--rpc", "http://ra-rollappevm_1234-1-val-0-TestERC20RollAppToHubNewRegister_EVM:8545"}
 
-	contractAddress, _, err := rollapp1.Validators[0].Exec(ctx, command, nil)
+	stdout, _, err := rollapp1.Validators[0].Exec(ctx, command, nil)
 	require.NoError(t, err)
 
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferData.Amount))
-	// // Check fund was set to erc20 module account on rollapp
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// rollappErc20MaccBalance, err := rollapp1.GetBalance(ctx, erc20MAccAddr, dymensionIBCDenom)
-	// require.NoError(t, err)
+	text := string(stdout)
+	// Regular expression to match Ethereum addresses
+	re := regexp.MustCompile(`0x[0-9a-fA-F]{40}`)
+	addresses := re.FindAllString(text, -1)
 
-	// require.True(t, rollappErc20MaccBalance.Equal(transferAmount))
-	// require.NoError(t, err)
-
-	// tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, dymensionIBCDenom)
-	// require.NoError(t, err)
-	// require.NotNil(t, tokenPair)
-
-	// // convert erc20
-	// _, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), tokenPair.Erc20Address, transferAmount.String(), rollappUserAddr, rollappUserAddr, rollapp1.Config().ChainID)
-	// require.NoError(t, err, "can not convert erc20 to cosmos coin")
-
-	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	// require.NoError(t, err)
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferAmount)
+	var contractAddress string
+	if len(addresses) > 0 {
+		// Assuming the last address in the output is the contract address
+		contractAddress = addresses[len(addresses)-1]
+		fmt.Println("Contract Address:", contractAddress)
+	} else {
+		fmt.Println("No address found")
+	}
 
 	// rollappAdrrHex := common.BytesToAddress(rollappUser.Address())
 	// _, err = rollapp1.GetNode().ConvertCoin(ctx, rollappUser.KeyName(), fmt.Sprintf("%v%s", transferAmount, rollapp1.Config().Denom), rollappAdrrHex.String())
 	// require.NoError(t, err)
 
 	// register erc20 erc20
-	_, err = rollapp1.GetNode().RegisterERC20AsToken(ctx, rollappUser.KeyName(), string(contractAddress))
+	hash, err := rollapp1.GetNode().RegisterERC20AsToken(ctx, rollappUser.KeyName(), contractAddress)
 	require.NoError(t, err, "can not register erc20 to cosmos coin")
+	fmt.Println(hash)
+
+	tokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, contractAddress)
+	require.NoError(t, err)
+	require.NotNil(t, tokenPair)
+
+	// convert erc20
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, rollappUser.KeyName(), contractAddress, transferAmount.String(), rollappUserAddr, rollappUserAddr2, rollapp1.Config().ChainID)
+	require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, tokenPair.Denom, transferAmount)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Send a  ibc tx from RA -> Hub
+	transferData := ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   tokenPair.Denom,
+		Amount:  transferAmount,
+	}
+
+	// Compose an IBC transfer and send from rollapp -> Hub
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr2, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr2, tokenPair.Denom, zeroBal)
+
+	// wait until the packet is finalized
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	fmt.Println(res)
+	require.NoError(t, err)
+
+	for _, packet := range res.RollappPackets {
+		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		require.NoError(t, err)
+
+		fmt.Println(txhash)
+	}
+
+	// Get the IBC denom for urax on Hub
+	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, tokenPair.Denom)
+	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	t.Cleanup(
 		func() {
