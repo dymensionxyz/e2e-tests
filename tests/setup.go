@@ -202,7 +202,7 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 2,
+			Value: 3,
 		},
 		{
 			Key:   "consensus_params.block.max_gas",
@@ -226,6 +226,10 @@ var (
 		},
 		{
 			Key:   "app_state.evm.params.evm_denom",
+			Value: "urax",
+		},
+		{
+			Key:   "app_state.evm.params.gas_denom",
 			Value: "urax",
 		},
 		{
@@ -286,7 +290,7 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 2,
+			Value: 3,
 		},
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
