@@ -172,9 +172,6 @@ e2e-test-eibc-not-fulfillment-evm: clean-e2e
 
 e2e-test-pfm-gaia-to-rollapp-evm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferGaiaToRollApp_EVM .
-
-e2e-test-erc20-hub-to-rollapp-without-register:  clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestERC20HubToRollAppWithoutRegister_EVM .
 	
 e2e-test-rollapp-upgrade-non-state-breaking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestRollappUpgradeNonStateBreaking_EVM .
@@ -409,6 +406,9 @@ e2e-test-genesis-bridge-kick-proposer-evm: clean-e2e
 
 e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_EVM .
+
+e2e-test-erc20-rollapp-to-hub-new-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestERC20RollAppToHubNewRegister_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
