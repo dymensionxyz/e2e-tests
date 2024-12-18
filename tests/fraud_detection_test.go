@@ -182,13 +182,6 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 	}
 
 	output := strings.Join(lines, "\n")
-
-
-	fmt.Println("Output as bytes:")
-	fmt.Println([]byte(output)) 
-	fmt.Println("Output as string:")
-	fmt.Println(output) 
-	
 	file, err = os.Create("/tmp/celestia/light/config.toml")
 	require.NoError(t, err)
 	defer file.Close()
