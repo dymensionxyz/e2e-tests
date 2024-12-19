@@ -139,7 +139,7 @@ var (
 
 	preUpgradeRollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "latest",
+		Version:    "fraud",
 		UidGid:     "1025:1025",
 	}
 
