@@ -410,6 +410,9 @@ e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 e2e-test-erc20-rollapp-to-hub-new-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestERC20RollAppToHubNewRegister_EVM .
 
+e2e-test-update-min-gas-prices-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestUpdateMinGasPrice_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
