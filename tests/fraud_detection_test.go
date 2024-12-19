@@ -644,6 +644,7 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["fraud_cmds_path"] = ""
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -654,16 +655,12 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	configFileOverrides1["config/config.toml"] = configTomlOverrides1
 
-	modifyRAGenesisKV := append(
+	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "celestia",
 		},
-		// cosmos.GenesisKV{
-		// 	Key:   "app_state.rollappparams.params.da",
-		// 	Value: "grpc",
-		// },
 	)
 
 	// Create chain factory with dymension
@@ -843,31 +840,15 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -885,6 +866,40 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	StartDA(ctx, t, client, network)
 
+
+	fmt.Println("rollapp1111:", rollapp1)
+	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	parts := strings.Split(keyDir1, "/")
+	fraudFolderName := parts[len(parts)-1]
+	fmt.Println("fraudFolderName:", fraudFolderName)
+
+	fraudCmdsPath := "/tmp/" + fraudFolderName + "/fraud.json"
+	fmt.Println("fraudCmdsPath", fraudCmdsPath)
+
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "fraud_cmds_path =") {
+			lines[i] = fmt.Sprintf("fraud_cmds_path = \"%s\"", fraudCmdsPath)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+	
 	// relayer for rollapp 1
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -1044,16 +1059,10 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 			return true, nil
 		},
 	)
-
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err)
+	// check freeze
+	err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+	require.Error(t, err)
 
 }
