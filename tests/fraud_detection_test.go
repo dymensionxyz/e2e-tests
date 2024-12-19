@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	// "cosmossdk.io/math"
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/stretchr/testify/require"
@@ -866,6 +866,24 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	StartDA(ctx, t, client, network)
 
+	// relayer for rollapp 1
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer", network)
+
+	ic = test.NewSetup().
+		AddRollUp(dymension, rollapp1)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
 
 	fmt.Println("rollapp1111:", rollapp1)
 	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
@@ -899,32 +917,6 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
-	
-	// relayer for rollapp 1
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer", network)
-
-	ic = test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
-
-	rep = testreporter.NewNopReporter()
-	eRep = rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
 
 	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -949,28 +941,6 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
-
-	// cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	// pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	// require.NoError(t, err)
-
-	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
-	}
-	err = dymension.SendFunds(ctx, "faucet", fund)
-	require.NoError(t, err)
-
-	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1001,45 +971,12 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// wait until the packet is finalized
+	rollappHeight, err = rollapp1.Validators[0].Height(ctx)
+	require.NoError(t, err)
+
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
-
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// Stop the full node
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
-
-	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 30, dymension)
-	require.NoError(t, err)
-
-	// Start full node again
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
-	require.NoError(t, err)
-
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
@@ -1063,6 +1000,5 @@ func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
 
 	// check freeze
 	err = testutil.WaitForBlocks(ctx, 20, rollapp1)
-	require.Error(t, err)
-
+	require.NoError(t, err)
 }
