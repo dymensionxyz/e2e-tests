@@ -198,39 +198,13 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	require.NoError(t, err)
-
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
-
 	// Change the min gas price rollapp param using gov
-	neeMinGasPriceParam := json.RawMessage(`["1adym"]`)
+	neeMinGasPriceParam := json.RawMessage(`[
+			{
+				"denom": "adym",
+				"amount": "1"
+			}
+		]`)
 	_, err = rollapp1.GetNode().ParamChangeProposal(ctx, rollappUser.KeyName(),
 		&utils.ParamChangeProposalJSON{
 			Title:       "Change min gas price param",
@@ -249,8 +223,24 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 	require.NoError(t, err, "error fetching height")
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
-	//
 
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+	
+	paramsChange, err := rollapp1.GetNode().QueryParam(ctx, "rollappparams", "minGasPrices")
+	require.NoError(t, err)
+	require.Equal(t,`[{"denom":"adym","amount":"1.000000000000000000"}]`, paramsChange.Value)
+
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp1.Config().Denom,
+		Amount:  transferAmount,
+	}
+	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
