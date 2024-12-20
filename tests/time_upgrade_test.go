@@ -255,10 +255,10 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	upgradeTime := blockTime.Add(90 * time.Second).Format(time.RFC3339)
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
-		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":       2, 
-		"upgrade_time": upgradeTime, 
+		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
+		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":          3,
+		"upgrade_time": upgradeTime,
 	}
 
 	rawMsg, err := json.Marshal(msg)
@@ -588,10 +588,10 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	upgradeTime := "2024-09-06T18:10:00Z" // upgrade time in the past
 	fmt.Println("Upgrade Time:", upgradeTime)
 	msg := map[string]interface{}{
-		"@type": "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
-		"authority": "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":       2, 
-		"upgrade_time": upgradeTime, 
+		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
+		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
+		"drs":          2,
+		"upgrade_time": upgradeTime,
 	}
 
 	rawMsg, err := json.Marshal(msg)
