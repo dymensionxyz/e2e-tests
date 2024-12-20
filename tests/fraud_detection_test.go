@@ -1,14 +1,17 @@
 package tests
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"testing"
-	"time"
 	"os"
 	"strings"
-	"bufio"
+	"testing"
+	"time"
+
+	// "cosmossdk.io/math"
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -337,12 +340,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -351,12 +354,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 		}
 	}
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -386,12 +389,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -556,12 +559,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -570,12 +573,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 		}
 	}
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -605,12 +608,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -618,4 +621,148 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 			break
 		}
 	}
+}
+
+func TestFraudDetect_Corrupted_DA_Blob_EVM(t *testing.T) {
+
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["fraud_cmds_path"] = ""
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key:   "app_state.rollappparams.params.da",
+		// 	Value: "celestia",
+		// },
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 1
+	numRollAppVals := 1
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+	StartDA(ctx, t, client, network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1)
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	parts := strings.Split(keyDir1, "/")
+	fraudFolderName := parts[len(parts)-1]
+	fmt.Println("fraudFolderName:", fraudFolderName)
+
+	fraudCmdsPath := rollapp1.GetSequencerKeyDir() + "/fraud.json"
+	fmt.Println("fraudCmdsPath", fraudCmdsPath)
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "fraud_cmds_path =") {
+			lines[i] = fmt.Sprintf("fraud_cmds_path = \"%s\"", fraudCmdsPath)
+		}
+	}
+
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Stop the full node
+	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
+
+	// Start full node again
+	err = rollapp1.StartAllNodes(ctx)
+	require.NoError(t, err)
+
+	// check freeze
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
+	require.Error(t, err)
 }

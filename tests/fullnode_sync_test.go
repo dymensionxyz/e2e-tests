@@ -64,7 +64,7 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 		ctx,
 		&container.Config{
 			Image: "ghcr.io/decentrio/dymint:srene-hardfork-fix", // Image to run
-			Tty:   true,                                          // Attach to a TTY
+			Tty:   true,                                              // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
