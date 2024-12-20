@@ -107,7 +107,7 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
@@ -127,7 +127,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Version:    "fraud",
 		UidGid:     "1025:1025",
 	}
 
@@ -139,7 +139,7 @@ var (
 
 	preUpgradeRollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    "fraud",
+		Version:    rollappEVMVersion,
 		UidGid:     "1025:1025",
 	}
 
