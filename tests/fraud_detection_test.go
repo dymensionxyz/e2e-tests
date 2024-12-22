@@ -824,6 +824,37 @@ func TestFraudDetect_Specify_Dymint_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
+	// Get original account balances
+	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	require.NoError(t, err)
+
+	// Compose an IBC transfer and send from dymension -> rollapp
+	transferData = ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	// Compose an IBC transfer and send from Hub -> rollapp
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	require.NoError(t, err)
+
+	// Assert balance was updated on the hub
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	// Get the IBC denom
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
+
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
+
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
@@ -882,32 +913,6 @@ func TestFraudDetect_Specify_Dymint_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// lastBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
-	time.Sleep(200 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err)
-
-	_ = rollapp1.StartAllNodes(ctx)
-
-	time.Sleep(100 * time.Second)
-
-	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
-	require.True(t, found)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
-
 	fmt.Println("rollapp1111:", rollapp1)
 	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	parts := strings.Split(keyDir1, "/")
@@ -941,40 +946,44 @@ func TestFraudDetect_Specify_Dymint_EVM(t *testing.T) {
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// Stop the full node
-	err = rollapp1.FullNodes[0].StopContainer(ctx)
-	require.NoError(t, err)
+	// lastBlock, err := rollapp1.Height(ctx)
+	// require.NoError(t, err)
 
-	// Wait for a few blocks before start the node again and sync
-	err = testutil.WaitForBlocks(ctx, 40, dymension)
+	time.Sleep(200 * time.Second)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	// Stop the full node
+	err = rollapp1.StopAllNodes(ctx)
 
 	// Start full node again
-	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	time.Sleep(100 * time.Second)
+
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	// Poll until full node is sync
-	err = testutil.WaitForCondition(
-		time.Minute*50,
-		time.Second*5, // each epoch is 5 seconds
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			require.NoError(t, err)
-
-			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
-			if valHeight > fullnodeHeight {
-				return false, nil
-			}
-
-			return true, nil
-		},
-	)
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
+
+	
+
+	// // Stop the full node
+	// err = rollapp1.StopAllNodes(ctx)
+
+	// // Start full node again
+	// err = rollapp1.StartAllNodes(ctx)
+	// require.NoError(t, err)
 
 	// check freeze
-	err = testutil.WaitForBlocks(ctx, 20, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
 	require.Error(t, err)
 }

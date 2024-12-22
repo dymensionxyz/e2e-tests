@@ -8,7 +8,7 @@
         }
       },
       {
-        "Height": 44,
+        "Height": 54,
         "Variants": "da,gossip,produce",
         "Block": {
           "HeaderDataHash": "1290830918230981239812903819823909123",
@@ -18,7 +18,7 @@
       },
       {
         "Height": 105,
-        "Variants": "gossip",
+        "Variants": "da,gossip,produce",
         "Block": {
           "HeaderTime": 1734374656000000000,
           "HeaderNextSequencerHash": "1092381209381923809182391823098129038"
