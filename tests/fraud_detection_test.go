@@ -624,7 +624,7 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 	}
 }
 
-func TestFraudDetect_Specify_Dymint_EVM(t *testing.T) {
+func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -973,8 +973,6 @@ func TestFraudDetect_Specify_Dymint_EVM(t *testing.T) {
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
-
-	
 
 	// // Stop the full node
 	// err = rollapp1.StopAllNodes(ctx)
