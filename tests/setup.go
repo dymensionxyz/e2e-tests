@@ -89,7 +89,7 @@ var (
 
 	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
+	RollappEVMMainRepo = "ghcr.io/decentrio/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
@@ -109,7 +109,7 @@ var (
 
 	rollappEVMImage = ibc.DockerImage{
 		Repository: RollappEVMMainRepo,
-		Version:    rollappEVMVersion,
+		Version:    "fraud",
 		UidGid:     "1025:1025",
 	}
 
@@ -184,7 +184,7 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 4,
+			Value: 3,
 		},
 		{
 			Key:   "consensus_params.block.max_gas",

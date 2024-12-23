@@ -1,0 +1,11 @@
+{
+    "Instances": [
+      {
+        "Height": 40,
+        "Variants": "da,gossip",
+        "Block": {
+          "HeaderProposerAddr": "1092381209381923809182391823098129038"
+        }
+      }
+    ]
+  }
