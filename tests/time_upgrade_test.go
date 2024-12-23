@@ -257,7 +257,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":          3,
+		"drs":          4,
 		"upgrade_time": upgradeTime,
 	}
 
