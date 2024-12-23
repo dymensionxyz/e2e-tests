@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
-	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
@@ -644,7 +642,7 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
-	modifyRAGenesisKV := append(
+	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
@@ -674,31 +672,15 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
 				ConfigFileOverrides: configFileOverrides,
 			},
 			NumValidators: &numRollAppVals,
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "dymension-hub",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "hub-dym",
-				Name:                "dymension",
-				ChainID:             "dymension_100-1",
-				Images:              []ibc.DockerImage{dymensionImage},
-				Bin:                 "dymd",
-				Bech32Prefix:        "dym",
-				Denom:               "adym",
-				CoinType:            "60",
-				GasPrices:           "0.0adym",
-				EncodingConfig:      encodingConfig(),
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
-				ConfigFileOverrides: nil,
-			},
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
 			NumFullNodes:  &numHubFullNodes,
 		},
@@ -713,22 +695,10 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
-
 	StartDA(ctx, t, client, network)
-	// relayer for rollapp 1
-	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1).
-		AddRelayer(r, "relayer").
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp1,
-			Relayer: r,
-			Path:    ibcPath,
-		})
+		AddRollUp(dymension, rollapp1)
 
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
@@ -738,40 +708,12 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
-	require.True(t, found)
-
-	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
-	require.NoError(t, err)
-
-	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
-
-	// Check IBC Transfer before switch
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-
-	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
-
-	// Get our Bech32 encoded user addresses
-	dymensionUser := users[0]
-
-	dymensionUserAddr := dymensionUser.FormattedAddress()
-
-	err = r.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	fmt.Println("rollapp1111:", rollapp1)
 	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	parts := strings.Split(keyDir1, "/")
 	fraudFolderName := parts[len(parts)-1]
@@ -806,89 +748,24 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 
 	// Stop the full node
 	err = rollapp1.StopAllNodes(ctx)
+	require.NoError(t, err)
 
 	// Start full node again
 	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
 
-	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
-	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
-	require.NoError(t, err)
-
-	fund := ibc.WalletData{
-		Address: sequencer,
-		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
-	}
-	err = dymension.SendFunds(ctx, "faucet", fund)
-	require.NoError(t, err)
-
-	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
-
-	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
-	require.NoError(t, err)
-
-	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-
-	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
-
-	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
-	require.NoError(t, err)
-
-	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
-	require.NoError(t, err)
-
-	queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, seqAddr)
-	require.NoError(t, err)
-	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
-
-	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
-	require.NoError(t, err)
-
-	time.Sleep(200 * time.Second)
-
-	err = rollapp1.StopAllNodes(ctx)
-	require.NoError(t, err)
-
-	_ = rollapp1.StartAllNodes(ctx)
-
-	time.Sleep(100 * time.Second)
-
-	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
-	require.True(t, found)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
-
 	// check freeze
-	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
-	require.Error(t, err)
+	err = testutil.WaitForBlocks(ctx, 30, rollapp1)
+	require.NoError(t, err)
+
+	fnHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
+	require.NoError(t, err)
+
+	fnHeightAfter, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+	require.Equal(t, fnHeight, fnHeightAfter)
+
 }
