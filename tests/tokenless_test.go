@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+
 	// "strconv"
 	"encoding/json"
 
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
@@ -17,7 +19,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -449,7 +450,7 @@ func TestTokenlessTransferSuccess_EVM(t *testing.T) {
 		Address: rollappUserAddr,
 		Denom:   dymension.Config().Denom,
 		Amount:  bigTransferAmount,
-	} 
+	}
 
 	// Get the IBC denom
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
@@ -600,8 +601,8 @@ func TestTokenlessTransferDiffGas_EVM(t *testing.T) {
 				Bech32Prefix:        "ethm",
 				Denom:               "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 				CoinType:            "60",
-				GasPrices:           "0.0ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
-				GasAdjustment:       1.1,
+				GasPrices:           "10.0ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
+				GasAdjustment:       1.3,
 				TrustingPeriod:      "112h",
 				EncodingConfig:      encodingConfig(),
 				NoHostMount:         false,
@@ -739,7 +740,7 @@ func TestTokenlessTransferDiffGas_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	command := []string{"rollappd", "tx", "ibc-transfer", "transfer", "transfer", "channel-0", transferData.Address, fmt.Sprintf("%s%s", transferData.Amount.String(), transferData.Denom), "--gas", "auto", "--gas-prices", "1.0urax", "--gas-adjustment", "1.1", "--from", rollappUserAddr, "--keyring-backend", "test", "--output", "json", "-y", "--home", rollapp1.HomeDir(), "--node", fmt.Sprintf("tcp://%s:26657", rollapp1.Validators[0].HostName()), "--chain-id", "rollappevm_1234-1"}
+	command := []string{"rollappd", "tx", "ibc-transfer", "transfer", "transfer", "channel-0", transferData.Address, fmt.Sprintf("%s%s", transferData.Amount.String(), transferData.Denom), "--gas", "auto", "--gas-prices", "10.0urax", "--gas-adjustment", "1.1", "--from", rollappUserAddr, "--keyring-backend", "test", "--output", "json", "-y", "--home", rollapp1.HomeDir(), "--node", fmt.Sprintf("tcp://%s:26657", rollapp1.Validators[0].HostName()), "--chain-id", "rollappevm_1234-1"}
 
 	stdout, _, err := rollapp1.Validators[0].Exec(ctx, command, nil)
 	require.NoError(t, err)
@@ -1073,10 +1074,10 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
-	
+
 	paramsChange, err := rollapp1.GetNode().QueryParam(ctx, "rollappparams", "minGasPrices")
 	require.NoError(t, err)
-	require.Equal(t,`[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Value)
+	require.Equal(t, `[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Value)
 
 	// Send a  ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
