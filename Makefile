@@ -422,6 +422,9 @@ e2e-test-tokenless-transfer-success-evm: clean-e2e
 e2e-test-tokenless-transfer-diff-gas-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferDiffGas_EVM .
 
+e2e-test-fraud-detection-produce-block-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestFraudDetect_L2_Produce_Block_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
