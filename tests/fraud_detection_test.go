@@ -172,6 +172,8 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	require.NoError(t, err)
 
+	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 	cmd = []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight)}
