@@ -1,0 +1,12 @@
+{
+    "Instances": [
+      {
+        "Height": 40,
+        "Variants": "da,gossip",
+        "Block": {
+          "HeaderTime": 1734374656000000000,
+          "HeaderNextSequencerHash": "1092381209381923809182391823098129038"
+        }
+      }
+    ]
+  }
