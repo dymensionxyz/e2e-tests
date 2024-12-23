@@ -410,6 +410,9 @@ e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 e2e-test-erc20-rollapp-to-hub-new-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestERC20RollAppToHubNewRegister_EVM .
 
+e2e-test-update-min-gas-prices-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestUpdateMinGasPrice_EVM .
+
 e2e-test-tokenless-create-erc20-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessCreateERC20_EVM .
 
