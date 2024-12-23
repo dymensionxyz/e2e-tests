@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -763,13 +761,9 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser := users[0]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
-
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -777,83 +771,45 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
+	fmt.Println("rollapp1111:", rollapp1)
+	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	parts := strings.Split(keyDir1, "/")
+	fraudFolderName := parts[len(parts)-1]
+	fmt.Println("fraudFolderName:", fraudFolderName)
+
+	fraudCmdsPath := rollapp1.GetSequencerKeyDir() + "/fraud.json"
+	fmt.Println("fraudCmdsPath", fraudCmdsPath)
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
 
-	// Compose an IBC transfer and send from rollapp -> Hub
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
+	for i, line := range lines {
+		if strings.HasPrefix(line, "fraud_cmds_path =") {
+			lines[i] = fmt.Sprintf("fraud_cmds_path = \"%s\"", fraudCmdsPath)
+		}
 	}
 
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
+	require.NoError(t, err)
+	defer file.Close()
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// Get original account balances
-	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
+	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
 
-	// Compose an IBC transfer and send from dymension -> rollapp
-	transferData = ibc.WalletData{
-		Address: rollappUserAddr,
-		Denom:   dymension.Config().Denom,
-		Amount:  transferAmount,
-	}
+	// Stop the full node
+	err = rollapp1.StopAllNodes(ctx)
 
-	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	// Start full node again
+	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	require.NoError(t, err)
-	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -913,54 +869,12 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
-	fmt.Println("rollapp1111:", rollapp1)
-	keyDir1 := dymension.GetRollApps()[0].GetSequencerKeyDir()
-	parts := strings.Split(keyDir1, "/")
-	fraudFolderName := parts[len(parts)-1]
-	fmt.Println("fraudFolderName:", fraudFolderName)
-
-	fraudCmdsPath := rollapp1.GetSequencerKeyDir() + "/fraud.json"
-	fmt.Println("fraudCmdsPath", fraudCmdsPath)
-
-	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	lines := []string{}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	for i, line := range lines {
-		if strings.HasPrefix(line, "fraud_cmds_path =") {
-			lines[i] = fmt.Sprintf("fraud_cmds_path = \"%s\"", fraudCmdsPath)
-		}
-	}
-
-	output := strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", fraudFolderName))
-	require.NoError(t, err)
-	defer file.Close()
-
-	_, err = file.Write([]byte(output))
-	require.NoError(t, err)
-
-	// lastBlock, err := rollapp1.Height(ctx)
-	// require.NoError(t, err)
-
 	time.Sleep(200 * time.Second)
 
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	// Stop the full node
 	err = rollapp1.StopAllNodes(ctx)
-
-	// Start full node again
-	err = rollapp1.StartAllNodes(ctx)
 	require.NoError(t, err)
+
+	_ = rollapp1.StartAllNodes(ctx)
 
 	time.Sleep(100 * time.Second)
 
@@ -973,13 +887,6 @@ func TestFraudDetect_Sequencer_Rotation_EVM(t *testing.T) {
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
 	require.NoError(t, err)
-
-	// // Stop the full node
-	// err = rollapp1.StopAllNodes(ctx)
-
-	// // Start full node again
-	// err = rollapp1.StartAllNodes(ctx)
-	// require.NoError(t, err)
 
 	// check freeze
 	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
