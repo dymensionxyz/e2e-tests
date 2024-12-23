@@ -27,30 +27,12 @@ import (
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	denommetadatatypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	eibc "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	ethermintcrypto "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 )
-
-var rollappDenomMetadata = banktypes.Metadata{
-	Description: "Denom of the rollapp",
-	Base:        "urax",
-	Display:     "RAX",
-	Name:        "RAX",
-	Symbol:      "urax",
-	DenomUnits: []*banktypes.DenomUnit{
-		{
-			Denom:    "urax",
-			Exponent: 0,
-		}, {
-			Denom:    "RAX",
-			Exponent: 18,
-		},
-	},
-}
 
 type memoData struct {
 	denommetadatatypes.MemoData
