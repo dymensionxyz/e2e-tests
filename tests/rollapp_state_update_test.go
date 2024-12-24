@@ -1006,7 +1006,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	// send from rollapp to hub again and make sure new bridge fee is applied
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
- 	require.NoError(t, err)
+	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
