@@ -1486,7 +1486,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "10s"
-	dymintTomlOverrides["max_skew_time"] = "15s"
+	dymintTomlOverrides["max_skew_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	dymintTomlOverrides1 := make(testutil.Toml)
@@ -1497,7 +1497,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	dymintTomlOverrides1["max_idle_time"] = "1s"
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
 	dymintTomlOverrides1["batch_submit_time"] = "10s"
-	dymintTomlOverrides1["max_skew_time"] = "15s"
+	dymintTomlOverrides1["max_skew_time"] = "50s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides2 := make(map[string]any)
@@ -1969,7 +1969,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "10s"
-	dymintTomlOverrides["max_skew_time"] = "15s"
+	dymintTomlOverrides["max_skew_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	dymintTomlOverrides1 := make(testutil.Toml)
@@ -1980,7 +1980,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	dymintTomlOverrides1["max_idle_time"] = "1s"
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
 	dymintTomlOverrides1["batch_submit_time"] = "10s"
-	dymintTomlOverrides1["max_skew_time"] = "15s"
+	dymintTomlOverrides1["max_skew_time"] = "50s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides2 := make(map[string]any)
