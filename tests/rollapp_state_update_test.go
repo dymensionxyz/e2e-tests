@@ -735,8 +735,8 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["max_skew_time"] = "51s"
+	dymintTomlOverrides["batch_submit_time"] = "10s"
+	dymintTomlOverrides["max_skew_time"] = "15s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
@@ -752,8 +752,8 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides2["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides2["max_idle_time"] = "1s"
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
-	dymintTomlOverrides2["batch_submit_time"] = "50s"
-	dymintTomlOverrides2["max_skew_time"] = "51s"
+	dymintTomlOverrides2["batch_submit_time"] = "10s"
+	dymintTomlOverrides2["max_skew_time"] = "15s"
 	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
 	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
@@ -903,7 +903,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	//Update white listed relayers
@@ -1006,7 +1006,7 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	// send from rollapp to hub again and make sure new bridge fee is applied
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+ 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
