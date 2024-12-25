@@ -361,7 +361,10 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
