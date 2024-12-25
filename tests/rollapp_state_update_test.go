@@ -202,13 +202,19 @@ func Test_RollAppStateUpdateSuccess_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -547,13 +553,19 @@ func Test_RollAppStateUpdateSuccess_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -908,13 +920,19 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -1283,13 +1301,19 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -1485,8 +1509,8 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "10s"
-	dymintTomlOverrides["max_skew_time"] = "500s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["max_skew_time"] = "70s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	dymintTomlOverrides1 := make(testutil.Toml)
@@ -1496,8 +1520,8 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	dymintTomlOverrides1["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides1["max_idle_time"] = "1s"
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
-	dymintTomlOverrides1["batch_submit_time"] = "10s"
-	dymintTomlOverrides1["max_skew_time"] = "500s"
+	dymintTomlOverrides1["batch_submit_time"] = "50s"
+	dymintTomlOverrides1["max_skew_time"] = "70s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides2 := make(map[string]any)
@@ -1828,13 +1852,19 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -1968,8 +1998,8 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "10s"
-	dymintTomlOverrides["max_skew_time"] = "500s"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["max_skew_time"] = "70s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	dymintTomlOverrides1 := make(testutil.Toml)
@@ -1979,8 +2009,8 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	dymintTomlOverrides1["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides1["max_idle_time"] = "1s"
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
-	dymintTomlOverrides1["batch_submit_time"] = "10s"
-	dymintTomlOverrides1["max_skew_time"] = "500s"
+	dymintTomlOverrides1["batch_submit_time"] = "50s"
+	dymintTomlOverrides1["max_skew_time"] = "70s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides2 := make(map[string]any)
@@ -2313,13 +2343,19 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)

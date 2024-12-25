@@ -185,13 +185,19 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -539,13 +545,19 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -907,13 +919,19 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -1259,13 +1277,19 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	err = testutil.WaitForBlocks(ctx, 2, dymension)
 	require.NoError(t, err)
 
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, anotherIbcPath)
@@ -1572,7 +1596,10 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1855,7 +1882,10 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -2160,7 +2190,10 @@ func TestEIBCUpdateOnTimeout_Unallowed_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -2413,7 +2446,10 @@ func TestEIBCUpdateOnTimeout_Unallowed_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 

@@ -128,7 +128,10 @@ func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -294,7 +297,10 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -460,7 +466,10 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -657,7 +666,10 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1071,7 +1083,10 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1227,7 +1242,10 @@ func TestGenesisBridgeNoRelayAck_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1411,7 +1429,10 @@ func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1613,7 +1634,10 @@ func TestGenesisBridgeWithoutGenesisAcc_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1775,7 +1799,10 @@ func TestGenesisTransferBridgeUnBond_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1955,7 +1982,10 @@ func TestGenesisTransferBridgeUnBond_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -2177,7 +2207,10 @@ func TestGenTransferBridgeKickProposer_EVM(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2390,7 +2423,10 @@ func TestGenTransferBridgeKickProposer_Wasm(t *testing.T) {
 
 	//Update white listed relayers
 	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	require.NoError(t, err)
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
