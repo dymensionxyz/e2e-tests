@@ -646,6 +646,9 @@ e2e-test-fraud-detection-da-p2p-wasm: clean-e2e
 e2e-test-tokenless-transfer-diff-gas-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferDiffGas_Wasm .
 
+e2e-test-full-node-sync-mul-forks-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_FulNodeSync_MulForks_Wasm .
+
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-ibc-timeout-evm \
