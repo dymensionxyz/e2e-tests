@@ -1111,37 +1111,9 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
-	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
-	require.NoError(t, err)
-
-	sequencer2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
-	require.NoError(t, err)
-
-	fund = ibc.WalletData{
-		Address: sequencer2,
-		Denom:   dymension.Config().Denom,
-		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
-	}
-	err = dymension.SendFunds(ctx, "faucet", fund)
-	require.NoError(t, err)
-
-	// Wait a few blocks for relayer to start and for user accounts to be created
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
-
-	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
-	require.NoError(t, err)
-
 	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, len(res.Sequencers), 3, "should have 3 sequences")
+	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
 
 	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -1223,6 +1195,38 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
+	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	sequencer2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	fund = ibc.WalletData{
+		Address: sequencer2,
+		Denom:   dymension.Config().Denom,
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	}
+	err = dymension.SendFunds(ctx, "faucet", fund)
+	require.NoError(t, err)
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	res, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 3, "should have 3 sequences")
+
 	nextProposer, err = dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
@@ -1231,8 +1235,8 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	// require.NoError(t, err)
 	// require.Equal(t, res.Sequencers[1].Address, currentProposer.ProposerAddr)
 
-	rollapp1HomeDir = strings.Split(rollapp1.FullNodes[1].HomeDir(), "/")
-	rollapp1FolderName = rollapp1HomeDir[len(rollapp1HomeDir)-1]
+	rollapp1Fn1HomeDir := strings.Split(rollapp1.FullNodes[1].HomeDir(), "/")
+	rollapp1Fn1FolderName := rollapp1Fn1HomeDir[len(rollapp1Fn1HomeDir)-1]
 
 	// stop proposer => slashing then
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
@@ -1254,4 +1258,41 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Frozen", clientStatus.Status)
 
+	rollapp1Fn0HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1Fn0FolderName := rollapp1Fn0HomeDir[len(rollapp1Fn0HomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn0FolderName))
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[1].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
+
+	err = rollapp1.FullNodes[1].StartContainer(ctx)
+	// require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.FullNodes[1].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[1].StartContainer(ctx)
+	}
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
 }
