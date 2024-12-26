@@ -1068,10 +1068,6 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	dymensionUser, _ := users[0], users[1]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	// rollappUserAddr := rollappUser.FormattedAddress()
-
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1175,14 +1171,14 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
+	valHeight, err := rollapp1.FullNodes[0].Height(ctx)
 	require.NoError(t, err)
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
 		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			fullnodeHeight, err := rollapp1.Validators[0].Height(ctx)
 			require.NoError(t, err)
 
 			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
@@ -1230,10 +1226,6 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	nextProposer, err = dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
-
-	// currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	// require.NoError(t, err)
-	// require.Equal(t, res.Sequencers[1].Address, currentProposer.ProposerAddr)
 
 	rollapp1Fn1HomeDir := strings.Split(rollapp1.FullNodes[1].HomeDir(), "/")
 	rollapp1Fn1FolderName := rollapp1Fn1HomeDir[len(rollapp1Fn1HomeDir)-1]
@@ -1295,4 +1287,36 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
 	require.NoError(t, err)
 	require.Equal(t, "Active", clientStatus.Status)
+
+	valHeight, err = rollapp1.FullNodes[1].Height(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
 }
