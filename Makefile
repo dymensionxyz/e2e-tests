@@ -422,6 +422,15 @@ e2e-test-tokenless-transfer-success-evm: clean-e2e
 e2e-test-tokenless-transfer-diff-gas-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferDiffGas_EVM .
 
+e2e-test-eibc-client-timeout-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Timeout_EVM .
+
+e2e-test-eibc-client-ackerr-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_AckErr_EVM .
+
+e2e-test-eibc-client-update-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Update_Order_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
