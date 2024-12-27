@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -18,12 +20,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
+	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
+	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 
@@ -875,6 +879,852 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	require.True(t, isFinalized)
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
+}
+
+func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	// setup config for rollapp 1
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppVals := 1
+	numRollAppFn := 2
+
+	modifyHubGenesisKV := append(
+		dymensionGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key: "app_state.sequencer.params.kick_threshold",
+		// 	Value: map[string]interface{}{
+		// 		"denom":  "adym",
+		// 		"amount": "99999999999999999999",
+		// 	},
+		// },
+		cosmos.GenesisKV{
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_blocks",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_interval",
+			Value: "1",
+		},
+	)
+
+	modifyRAGenesisKV := append(
+		rollappEVMGenesisKV,
+
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyRAGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ConfigFileOverrides: nil,
+			},
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
+	// relayer for rollapp 1
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer", network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r, "relayer").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r,
+			Path:    ibcPath,
+		})
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
+
+	// Check IBC Transfer before switch
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+
+	// Get our Bech32 encoded user addresses
+	dymensionUser, _ := users[0], users[1]
+
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	fund := ibc.WalletData{
+		Address: sequencer,
+		Denom:   dymension.Config().Denom,
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	}
+	err = dymension.SendFunds(ctx, "faucet", fund)
+	require.NoError(t, err)
+
+	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
+
+	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
+
+	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	// stop proposer => slashing then
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	// kick current proposer
+	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	// check client was frozen after kicked
+	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Frozen", clientStatus.Status)
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.Validators[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.Validators[0].StartContainer(ctx)
+	}
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
+
+	valHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.Validators[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
+
+	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
+	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	sequencer2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	fund = ibc.WalletData{
+		Address: sequencer2,
+		Denom:   dymension.Config().Denom,
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	}
+	err = dymension.SendFunds(ctx, "faucet", fund)
+	require.NoError(t, err)
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	res, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 3, "should have 3 sequences")
+
+	nextProposer, err = dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
+
+	rollapp1Fn1HomeDir := strings.Split(rollapp1.FullNodes[1].HomeDir(), "/")
+	rollapp1Fn1FolderName := rollapp1Fn1HomeDir[len(rollapp1Fn1HomeDir)-1]
+
+	// stop proposer => slashing then
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+
+	// kick current proposer
+	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Frozen", clientStatus.Status)
+
+	rollapp1Fn0HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1Fn0FolderName := rollapp1Fn0HomeDir[len(rollapp1Fn0HomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn0FolderName))
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[1].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
+
+	err = rollapp1.FullNodes[1].StartContainer(ctx)
+	// require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.FullNodes[1].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[1].StartContainer(ctx)
+	}
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
+
+	valHeight, err = rollapp1.FullNodes[1].Height(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
+}
+
+func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	// setup config for rollapp 1
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappwasm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppVals := 1
+	numRollAppFn := 2
+
+	modifyHubGenesisKV := append(
+		dymensionGenesisKV,
+		// cosmos.GenesisKV{
+		// 	Key: "app_state.sequencer.params.kick_threshold",
+		// 	Value: map[string]interface{}{
+		// 		"denom":  "adym",
+		// 		"amount": "99999999999999999999",
+		// 	},
+		// },
+		cosmos.GenesisKV{
+			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_blocks",
+			Value: "1",
+		},
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.liveness_slash_interval",
+			Value: "1",
+		},
+	)
+
+	modifyRAGenesisKV := append(
+		rollappWasmGenesisKV,
+
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: "grpc",
+		},
+	)
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappwasm_1234-1",
+				Images:              []ibc.DockerImage{rollappWasmImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "rol",
+				Denom:               "urax",
+				CoinType:            "118",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappWasmGenesis(modifyRAGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name: "dymension-hub",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "hub-dym",
+				Name:                "dymension",
+				ChainID:             "dymension_100-1",
+				Images:              []ibc.DockerImage{dymensionImage},
+				Bin:                 "dymd",
+				Bech32Prefix:        "dym",
+				Denom:               "adym",
+				CoinType:            "60",
+				GasPrices:           "0.0adym",
+				EncodingConfig:      encodingConfig(),
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				NoHostMount:         false,
+				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
+				ConfigFileOverrides: nil,
+			},
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+
+	StartDA(ctx, t, client, network)
+	// relayer for rollapp 1
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer", network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r, "relayer").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r,
+			Path:    ibcPath,
+		})
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	err = testutil.WaitForBlocks(ctx, 2, dymension, rollapp1)
+	require.NoError(t, err)
+
+	//Update white listed relayers
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	if err != nil {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		require.NoError(t, err)
+	}
+
+	// Check IBC Transfer before switch
+	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+
+	// Get our Bech32 encoded user addresses
+	dymensionUser, _ := users[0], users[1]
+
+	dymensionUserAddr := dymensionUser.FormattedAddress()
+
+	err = r.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
+	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
+	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	sequencer, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	fund := ibc.WalletData{
+		Address: sequencer,
+		Denom:   dymension.Config().Denom,
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	}
+	err = dymension.SendFunds(ctx, "faucet", fund)
+	require.NoError(t, err)
+
+	resp0, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(resp0.Sequencers), 1, "should have 1 sequences")
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	res, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 2, "should have 2 sequences")
+
+	nextProposer, err := dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
+
+	currentProposer, err := dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	// stop proposer => slashing then
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 2, dymension)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	// kick current proposer
+	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir())
+	require.NoError(t, err)
+
+	// check client was frozen after kicked
+	clientStatus, err := dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Frozen", clientStatus.Status)
+
+	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.Validators[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.Validators[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.Validators[0].StartContainer(ctx)
+	}
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
+
+	valHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+	// Poll until full node is sync
+	err = testutil.WaitForCondition(
+		time.Minute*50,
+		time.Second*5, // each epoch is 5 seconds
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.Validators[0].Height(ctx)
+			require.NoError(t, err)
+
+			fmt.Println("valHeight", valHeight, " || fullnodeHeight", fullnodeHeight)
+			if valHeight > fullnodeHeight {
+				return false, nil
+			}
+
+			return true, nil
+		},
+	)
+	require.NoError(t, err)
+
+	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
+	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	sequencer2, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	fund = ibc.WalletData{
+		Address: sequencer2,
+		Denom:   dymension.Config().Denom,
+		Amount:  math.NewInt(10_000_000_000_000).MulRaw(100_000_000),
+	}
+	err = dymension.SendFunds(ctx, "faucet", fund)
+	require.NoError(t, err)
+
+	// Wait a few blocks for relayer to start and for user accounts to be created
+	err = testutil.WaitForBlocks(ctx, 5, dymension)
+	require.NoError(t, err)
+
+	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
+
+	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
+	require.NoError(t, err)
+
+	res, err = dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+	require.Equal(t, len(res.Sequencers), 3, "should have 3 sequences")
+
+	nextProposer, err = dymension.GetNode().GetNextProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.Equal(t, "sentinel", nextProposer.NextProposerAddr)
+
+	rollapp1Fn1HomeDir := strings.Split(rollapp1.FullNodes[1].HomeDir(), "/")
+	rollapp1Fn1FolderName := rollapp1Fn1HomeDir[len(rollapp1Fn1HomeDir)-1]
+
+	// stop proposer => slashing then
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+
+	// kick current proposer
+	err = dymension.FullNodes[0].KickProposer(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
+	require.NoError(t, err)
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Frozen", clientStatus.Status)
+
+	rollapp1Fn0HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1Fn0FolderName := rollapp1Fn0HomeDir[len(rollapp1Fn0HomeDir)-1]
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn1FolderName))
+	require.NoError(t, err)
+
+	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1Fn0FolderName))
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[1].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	testutil.WaitForBlocks(ctx, 5, dymension)
+
+	err = rollapp1.FullNodes[1].StartContainer(ctx)
+	// require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.FullNodes[1].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[1].StartContainer(ctx)
+	}
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
+	// check client was frozen after kicked
+	clientStatus, err = dymension.GetNode().QueryClientStatus(ctx, "07-tendermint-0")
+	require.NoError(t, err)
+	require.Equal(t, "Active", clientStatus.Status)
+
+	valHeight, err = rollapp1.FullNodes[1].Height(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+
+	if err != nil {
+		err = rollapp1.FullNodes[0].StopContainer(ctx)
+		require.NoError(t, err)
+		err = rollapp1.FullNodes[0].StartContainer(ctx)
+	}
+
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
