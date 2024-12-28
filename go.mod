@@ -13,7 +13,7 @@ replace (
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
 	github.com/decentrio/rollup-e2e-testing v0.0.0-20241223152339-fd578076e6e9
-	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241016085626-2b8c8898058b
+	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241224113003-12bfcad722ac
 )
 
 require (
@@ -75,6 +75,7 @@ require (
 	cloud.google.com/go/iam v1.1.6 // indirect
 	cloud.google.com/go/storage v1.38.0 // indirect
 	cosmossdk.io/api v0.7.0 // indirect
+	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.10.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
@@ -102,6 +103,7 @@ require (
 	github.com/cometbft/cometbft-db v0.11.0 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
+	github.com/cosmos/cosmos-db v1.0.0 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v0.20.1 // indirect
@@ -122,7 +124,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/dymensionxyz/gerr-cosmos v1.1.0 // indirect
-	github.com/dymensionxyz/sdk-utils v0.2.9 // indirect
+	github.com/dymensionxyz/sdk-utils v0.2.12 // indirect
 	github.com/ethereum/go-ethereum v1.12.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

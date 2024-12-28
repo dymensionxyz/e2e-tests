@@ -519,6 +519,8 @@ cloud.google.com/go/workflows v1.9.0/go.mod h1:ZGkj1aFIOd9c8Gerkjjq7OW7I5+l6cSvT
 cloud.google.com/go/workflows v1.10.0/go.mod h1:fZ8LmRmZQWacon9UCX1r/g/DfAXx5VcPALq2CxzdePw=
 cosmossdk.io/api v0.3.1 h1:NNiOclKRR0AOlO4KIqeaG6PS6kswOMhHD0ir0SscNXE=
 cosmossdk.io/api v0.3.1/go.mod h1:DfHfMkiNA2Uhy8fj0JJlOCYOBp4eWUUJ1te5zBGNyIw=
+cosmossdk.io/collections v0.4.0 h1:PFmwj2W8szgpD5nOd8GWH6AbYNi1f2J6akWXJ7P5t9s=
+cosmossdk.io/collections v0.4.0/go.mod h1:oa5lUING2dP+gdDquow+QjlF45eL1t4TJDypgGd+tv0=
 cosmossdk.io/core v0.10.0 h1:NP28Ol9YyRODmZLJg2ko/mUl40hMegeMzhJnG+XPkcY=
 cosmossdk.io/core v0.10.0/go.mod h1:MygXNld9DvMgYY4yE76DM/mdZpgfeyRjy6FPjEEehlY=
 cosmossdk.io/depinject v1.0.0-alpha.4 h1:PLNp8ZYAMPTUKyG9IK2hsbciDWqna2z1Wsl98okJopc=
@@ -698,6 +700,8 @@ github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSV
 github.com/coreos/pkg v0.0.0-20160727233714-3ac0863d7acf/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/cosmos/btcutil v1.0.5 h1:t+ZFcX77LpKtDBhjucvnOH8C2l2ioGsBNEQ3jef8xFk=
 github.com/cosmos/btcutil v1.0.5/go.mod h1:IyB7iuqZMJlthe2tkIFL33xPyzbFYP0XVdS8P5lUPis=
+github.com/cosmos/cosmos-db v1.0.0 h1:EVcQZ+qYag7W6uorBKFPvX6gRjw6Uq2hIh4hCWjuQ0E=
+github.com/cosmos/cosmos-db v1.0.0/go.mod h1:iBvi1TtqaedwLdcrZVYRSSCb6eSy61NLj4UNmdIgs0U=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
 github.com/cosmos/cosmos-sdk v0.47.13 h1:9d57rl2ilSgc8a6u1JAulqNX/E5w8lbqbRe3NON3Jb4=
@@ -776,14 +780,14 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA2EjTY=
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241016085626-2b8c8898058b h1:jlxb5qxWESadVcPasZ/3Xcbcl51nrx218ZyjbmU3WLQ=
-github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241016085626-2b8c8898058b/go.mod h1:mq/Q6gC3Fad6Nn1aPH56b1phBbL1KTjOeOkEJa/rSuc=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241224113003-12bfcad722ac h1:XT+A2KHLYUHhC9j8lT8Ex+jJthdvJhLIevONazGhdKU=
+github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241224113003-12bfcad722ac/go.mod h1:sNYsQiQYz2Kd5QuQSGIzghpav5Ps8mmkP58jk1bkaNc=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050 h1:1mtlo6bDOdBihHWbDpOaai0NMC/4xHCkCHGCqdLT8WM=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050/go.mod h1:aokD0im7cUMMtR/khzNsmcGtINtxCpBfcgRvJdmLymA=
 github.com/dymensionxyz/gerr-cosmos v1.1.0 h1:IW/P7HCB/iP9kgk3VXaWUoMoyx3vD76YO6p1fnubHVc=
 github.com/dymensionxyz/gerr-cosmos v1.1.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
-github.com/dymensionxyz/sdk-utils v0.2.9 h1:uokHmBjaygJKXQMI0EBhvjsIIYRCIa4Ndpq8tmMwoH8=
-github.com/dymensionxyz/sdk-utils v0.2.9/go.mod h1:it9owYOpnIe17+ftTATQNDN4z+mBQx20/2Jm8SK15Rk=
+github.com/dymensionxyz/sdk-utils v0.2.12 h1:wrcof+IP0AJQ7vvMRVpSekNNwa6B7ghAspHRjp/k+Lk=
+github.com/dymensionxyz/sdk-utils v0.2.12/go.mod h1:it9owYOpnIe17+ftTATQNDN4z+mBQx20/2Jm8SK15Rk=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
