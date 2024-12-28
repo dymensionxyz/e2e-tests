@@ -1386,6 +1386,10 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
+		cosmos.GenesisKV{
+			Key:   "app_state.erc20.params.enable_erc20",
+			Value: false,
+		},
 	)
 
 	numHubVals := 1
@@ -1461,7 +1465,6 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	StartDA(ctx, t, client, network)
-	time.Sleep(120 * time.Second)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -1627,55 +1630,6 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: lp1Addr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  bigTransferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, lp1Addr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, lp1Addr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
-
 	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
 	dymFolderName := dymHomeDir[len(dymHomeDir)-1]
 
@@ -1718,7 +1672,7 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 	policyAddr := policiesGroup.GroupPolicies[0].Address
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "1000000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "1000000"+rollappIBCDenom, "0.1", false)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "1000000"+dymension.Config().Denom, "rollappevm_1234-1", dymension.Config().Denom, "0.0001", "1000000"+dymension.Config().Denom, "0.0001", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -1752,7 +1706,7 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	config.Operator.GroupID = 1
 	config.Operator.KeyringBackend = "test"
 	config.Operator.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
-	config.Operator.MinFeeShare = "0.1"
+	config.Operator.MinFeeShare = "0.0001"
 	config.Rollapps = map[string]RollappConfig{
 		"rollappevm_1234-1": {
 			FullNodes:        []string{fmt.Sprintf("http://ra-rollappevm_1234-1-fn-0-%s:26657", t.Name())},
@@ -1791,16 +1745,12 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Send a ibc tx from RA -> Hub
-	transferData = ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
+	// Send a ibc tx from Hub -> RA
+	transferData := ibc.WalletData{
+		Address: rollappUserAddr,
+		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
-
-	multiplier := math.NewInt(10)
-
-	eibcFee := transferAmount.Quo(multiplier)
 
 	// set eIBC specific memo
 	var options ibc.TransferOptions
@@ -1810,31 +1760,27 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 		Timeout: &ibc.IBCTimeout{
 			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
 		},
-		Memo: fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String()),
 	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, options)
 	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
-
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -1854,10 +1800,10 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, rollappIBCDenom, math.NewInt(998091000))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -1891,6 +1837,10 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
+		cosmos.GenesisKV{
+			Key:   "app_state.erc20.params.enable_erc20",
+			Value: false,
+		},
 	)
 
 	numHubVals := 1
@@ -1966,7 +1916,6 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	StartDA(ctx, t, client, network)
-	time.Sleep(120 * time.Second)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
@@ -2089,12 +2038,10 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, lp1, rollappUser := users[0], users[1], users[2]
+	dymensionUser, lp1, _ := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	lp1Addr := lp1.FormattedAddress()
-	// lp2Addr := lp2.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
 	cmd := []string{"keys", "add", "operator",
@@ -2132,55 +2079,6 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
-
-	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: lp1Addr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  bigTransferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, lp1Addr)
-	fmt.Println(res)
-	require.NoError(t, err)
-
-	for _, packet := range res.RollappPackets {
-
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, lp1Addr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
-
-		fmt.Println(txhash)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, rollappIBCDenom, transferData.Amount.Sub(bigBridgingFee))
 
 	dymHomeDir := strings.Split(dymension.Validators[0].HomeDir(), "/")
 	dymFolderName := dymHomeDir[len(dymHomeDir)-1]
@@ -2224,7 +2122,7 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	require.NoError(t, err)
 	policyAddr := policiesGroup.GroupPolicies[0].Address
 
-	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "1000000"+rollappIBCDenom, "rollappevm_1234-1", rollappIBCDenom, "0.1", "1000000"+rollappIBCDenom, "0.1", false)
+	txHash, err = dymension.GetNode().GrantAuthorization(ctx, lp1.KeyName(), policyAddr, "1000000"+dymension.Config().Denom, "rollappevm_1234-1", dymension.Config().Denom, "0.0001", "1000000"+dymension.Config().Denom, "0.0001", false)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
@@ -2258,7 +2156,7 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	config.Operator.GroupID = 1
 	config.Operator.KeyringBackend = "test"
 	config.Operator.KeyringDir = fmt.Sprintf("/root/%s", dymensionFolderName)
-	config.Operator.MinFeeShare = "0.1"
+	config.Operator.MinFeeShare = "0.0001"
 	config.Rollapps = map[string]RollappConfig{
 		"rollappevm_1234-1": {
 			FullNodes:        []string{fmt.Sprintf("http://ra-rollappevm_1234-1-fn-0-%s:26657", t.Name())},
@@ -2297,43 +2195,43 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Send a ibc tx from RA -> Hub
-	transferData = ibc.WalletData{
-		Address: "dym1cd2wyn57yxskydzzpmzhzhm564r5vgctfnq2dg1111111", // bad recipient address
-		Denom:   rollapp1.Config().Denom,
+	// Send a ibc tx from Hub -> RA
+	transferData := ibc.WalletData{
+		Address: "rollappUserAddr",
+		Denom:   dymension.Config().Denom,
 		Amount:  transferAmount,
 	}
 
-	multiplier := math.NewInt(10)
+	dymHeight, err := dymension.GetNode().Height(ctx)
+	require.NoError(t, err)
 
-	eibcFee := transferAmount.Quo(multiplier)
-
-	// set eIBC specific memo
-	var options ibc.TransferOptions
-	options.Memo = BuildEIbcMemo(eibcFee)
-
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, options)
+	ibcTx, err := dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// get eIbc event
-	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 60, true)
+	eibcEvents, err := getEIbcEventsWithinBlockRange(ctx, dymension, 10, false)
 	require.NoError(t, err)
 	for i, eibcEvent := range eibcEvents {
 		fmt.Println(i, "EIBC Event:", eibcEvent)
 	}
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	ack, err := testutil.PollForAck(ctx, dymension, dymHeight, dymHeight+30, ibcTx.Packet)
 	require.NoError(t, err)
 
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(bigTransferAmount))
+	fmt.Println("ack:", ack.Acknowledgement)
+
+	// Make sure that the ack contains error
+	require.True(t, bytes.Contains(ack.Acknowledgement, []byte("error")))
+
+	rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
@@ -2349,14 +2247,11 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
 	// Minus 0.1% of transfer amount for bridge fee
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, rollappIBCDenom, math.NewInt(998091000))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -2465,7 +2360,6 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
 	StartDA(ctx, t, client, network)
-	time.Sleep(120 * time.Second)
 
 	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
