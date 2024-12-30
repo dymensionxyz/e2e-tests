@@ -14,14 +14,23 @@ e2e-test: clean-e2e
 e2e-test-ibc-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_EVM .
 
-e2e-test-light-client-same-chain-id: clean-e2e
+e2e-test-light-client-same-chain-id-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferRA_3rdSameChainID_EVM .
 
-e2e-test-light-client-hub-3rd: clean-e2e
+e2e-test-light-client-same-chain-id-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransferRA_3rdSameChainID_Wasm .
+
+e2e-test-light-client-hub-3rd-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferBetweenHub3rd_EVM .
+
+e2e-test-light-client-hub-3rd-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransferBetweenHub3rd_Wasm .
 
 e2e-test-light-client-same-chain-id-no-light-client: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransfer_NoLightClient_EVM .
+
+e2e-test-light-client-same-chain-id-no-light-client-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCTransfer_NoLightClient_Wasm .
 
 e2e-test-spinup: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSpinUp .
@@ -47,6 +56,9 @@ e2e-hub-to-RA-migrate-dym-evm: clean-e2e
 e2e-test-bridge-fee-param-change-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestChangeBridgeFeeParam_EVM .
 
+e2e-test-bridge-fee-param-change-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestChangeBridgeFeeParam_Wasm .
+
 e2e-test-ibc-transfer-reserved-word-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisIBCTransferReservedMemo_EVM .
 
@@ -56,8 +68,11 @@ e2e-test-ibc-timeout-evm: clean-e2e
 e2e-test-eibc-fulfillment-only-one-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCFulfillOnOneRollApp_EVM .
 
-e2e-test-eibc-fulfillment-evm-2-RAs:  clean-e2e
+e2e-test-eibc-fulfillment-evm-2-RAs-evm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCFulfillment_two_rollapps_EVM .
+
+e2e-test-eibc-fulfillment-evm-2-RAs-wasm:  clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBCFulfillment_two_rollapps_Wasm .
 
 e2e-test-ibc-grace-period-evm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCGracePeriodCompliance_EVM .
@@ -86,14 +101,26 @@ e2e-test-eibc-pfm-evm: clean-e2e
 e2e-test-eibc-fulfill-no-balance-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCNoBalanceToFulfillOrder_EVM .
 
+e2e-test-eibc-fulfill-no-balance-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBCNoBalanceToFulfillOrder_Wasm .
+
 e2e-test-eibc-corrupted-memo-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCCorruptedMemoNegative_EVM .
+
+e2e-test-eibc-corrupted-memo-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBCCorruptedMemoNegative_Wasm .
 
 e2e-test-eibc-excessive-fee-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCFeeTooHigh_EVM .
 
+e2e-test-eibc-excessive-fee-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBCFeeTooHigh_Wasm .
+
 e2e-test-eibc-timeout-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutDymToRollapp_EVM .
+
+e2e-test-eibc-timeout-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutDymToRollapp_Wasm .
 
 e2e-test-eibc-timeout_and_fulfill-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCTimeoutFulFillDymToRollapp_EVM .
@@ -212,8 +239,14 @@ e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
 e2e-test-rollapp-hardforkduetodrs-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_EVM .
 	
+e2e-test-rollapp-hardforkduetodrs-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_Wasm .
+	
 e2e-test-rollapp-hardforkduetofraud-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToFraud_EVM .
+
+e2e-test-rollapp-hardforkduetofraud-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToFraud_Wasm .
 
 e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeBlocking_EVM .
@@ -227,8 +260,14 @@ e2e-test-genesis-bridge-invalid-evm: clean-e2e
 e2e-test-genesis-bridge-before-channel-set-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeBeforeChannelSet_EVM .
 
+e2e-test-genesis-bridge-before-channel-set-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeBeforeChannelSet_Wasm .
+
 e2e-test-non-rollapp-unaffected-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_Non_Rollappchain_Unaffected_EVM .
+
+e2e-test-non-rollapp-unaffected-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_Non_Rollappchain_Unaffected_Wasm .
 
 e2e-test-admc-originates-hub-to-rollapp-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestADMC_Originates_HubtoRA_EVM .
@@ -251,14 +290,26 @@ e2e-test-update-do-timeout-unallowed-evm: clean-e2e
 e2e-test-sequencer-celestia-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSequencerCelestia_EVM .
 
+e2e-test-sequencer-celestia-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestSequencerCelestia_Wasm .
+
 e2e-test-sequencer-hub-disconnection-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSequencerHubDisconnection_EVM .
+
+e2e-test-sequencer-hub-disconnection-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestSequencerHubDisconnection_Wasm .
 
 e2e-test-fullnode-sync-block-sync-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_EVM .
 
+e2e-test-fullnode-sync-block-sync-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_Wasm .
+
 e2e-test-fullnode-disconnect-block-sync-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_fn_disconnect_EVM .
+
+e2e-test-fullnode-disconnect-block-sync-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestSync_BlockSync_fn_disconnect_Wasm .
 
 e2e-test-sequencer-rotation-oneseq-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_OneSeq_DA_EVM .
@@ -353,17 +404,32 @@ e2e-test-sequencer-rotation-history-sync-old-sequencer-unbonded-p2p-wasm: clean-
 e2e-test-sequencer-rotation-forced-da-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Forced_DA_EVM .
 
+e2e-test-sequencer-rotation-forced-da-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRotation_Forced_DA_Wasm .
+
 e2e-test-sequencer-rewardsaddress-update-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Update_EVM .
 
+e2e-test-sequencer-rewardsaddress-update-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Update_Wasm .
+
 e2e-test-sequencer-rewardsaddress-register-evm: clean-e2e
 	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Register_EVM .
+
+e2e-test-sequencer-rewardsaddress-register-wasm: clean-e2e
+	cd tests && go test -timeout=30m -race -v -run Test_SeqRewardsAddress_Register_Wasm .
   
 e2e-test-eibc-client-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Success_EVM .
 
+e2e-test-eibc-client-success-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Success_Wasm .
+
 e2e-test-eibc-client-nofulfillrollapp-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_NoFulfillRollapp_EVM .
+
+e2e-test-eibc-client-nofulfillrollapp-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_NoFulfillRollapp_Wasm .
 
 e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeNoRelayAck_EVM .
@@ -371,23 +437,41 @@ e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 e2e-test-timebaseupgrade-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_EVM .
 
+e2e-test-timebaseupgrade-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_Wasm .
+
 e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
 
 e2e-test-fraud-detection-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetection_EVM .
 
+e2e-test-fraud-detection-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestFraudDetection_Wasm .
+
 e2e-test-timebaseupgradeinpast-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
 
+e2e-test-timebaseupgradeinpast-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_Wasm .
+
 e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RotatedSequencer_EVM .
+
+e2e-test-zero-fee-rotated-sequencer-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RotatedSequencer_Wasm .
 	
 e2e-test-zero-fee-relay-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_EVM .
 
+e2e-test-zero-fee-relay-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_Wasm .
+
 e2e-test-hardfork-kick-proposer-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_HardFork_KickProposer_EVM .
+
+e2e-test-hardfork-kick-proposer-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_KickProposer_Wasm .
 
 e2e-test-rollapp-state-update-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateSuccess_EVM .
@@ -413,11 +497,17 @@ e2e-test-erc20-rollapp-to-hub-new-evm: clean-e2e
 e2e-test-update-min-gas-prices-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestUpdateMinGasPrice_EVM .
 
+e2e-test-update-min-gas-prices-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestUpdateMinGasPrice_Wasm .
+
 e2e-test-tokenless-create-erc20-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessCreateERC20_EVM .
 
 e2e-test-tokenless-transfer-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferSuccess_EVM .
+
+e2e-test-tokenless-transfer-success-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferSuccess_Wasm .
 
 e2e-test-tokenless-transfer-diff-gas-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenlessTransferDiffGas_EVM .
@@ -425,11 +515,20 @@ e2e-test-tokenless-transfer-diff-gas-evm: clean-e2e
 e2e-test-eibc-client-timeout-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Timeout_EVM .
 
+e2e-test-eibc-client-timeout-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Timeout_Wasm .
+
 e2e-test-eibc-client-ackerr-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_AckErr_EVM .
 
+e2e-test-eibc-client-ackerr-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_AckErr_Wasm .
+
 e2e-test-eibc-client-update-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Update_Order_EVM .
+
+e2e-test-eibc-client-update-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_EIBC_Client_Update_Order_Wasm .
 
 e2e-test-full-node-sync-mul-forks-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_FulNodeSync_MulForks_EVM .
@@ -633,6 +732,9 @@ e2e-test-zero-fee-relay-wasm: clean-e2e
 
 e2e-test-without-genesis-account-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeWithoutGenesisAcc_EVM .
+
+e2e-test-without-genesis-account-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeWithoutGenesisAcc_Wasm .
 
 e2e-test-rollapp-state-update-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_RollAppStateUpdateSuccess_Wasm .
