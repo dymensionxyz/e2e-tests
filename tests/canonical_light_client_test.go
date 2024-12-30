@@ -1088,10 +1088,6 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 		require.NoError(t, err)
 
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount).Sub(transferAmount))
-		erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-		require.NoError(t, err)
-		erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-		testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, secondHopIBCDenom, transferAmount)
 
 		// Run invariant check
 		CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())

@@ -3011,10 +3011,6 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
 		},
-		cosmos.GenesisKV{
-			Key:   "app_state.erc20.params.enable_erc20",
-			Value: false,
-		},
 	)
 
 	numHubVals := 1
@@ -3909,10 +3905,6 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 		cosmos.GenesisKV{
 			Key:   "app_state.rollappparams.params.da",
 			Value: "grpc",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.erc20.params.enable_erc20",
-			Value: false,
 		},
 	)
 
