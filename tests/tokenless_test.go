@@ -585,14 +585,6 @@ func TestTokenlessTransferSuccess_Wasm(t *testing.T) {
 			Key:   "app_state.staking.params.bond_denom",
 			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 		},
-		cosmos.GenesisKV{
-			Key:   "app_state.wasm.params.wasm_denom",
-			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.wasm.params.gas_denom",
-			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
-		},
 	)
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
@@ -1480,14 +1472,6 @@ func TestUpdateMinGasPrice_Wasm(t *testing.T) {
 		},
 		cosmos.GenesisKV{
 			Key:   "app_state.staking.params.bond_denom",
-			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.wasm.params.wasm_denom",
-			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
-		},
-		cosmos.GenesisKV{
-			Key:   "app_state.wasm.params.gas_denom",
 			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 		},
 	)

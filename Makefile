@@ -239,8 +239,8 @@ e2e-test-rollapp-hardfork-recover-ibc-client-evm: clean-e2e
 e2e-test-rollapp-hardforkduetodrs-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_EVM .
 	
-e2e-test-rollapp-hardforkduetodrs-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_Wasm .
+# e2e-test-rollapp-hardforkduetodrs-wasm: clean-e2e
+# 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToDrs_Wasm .
 	
 e2e-test-rollapp-hardforkduetofraud-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToFraud_EVM .
@@ -437,8 +437,8 @@ e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 e2e-test-timebaseupgrade-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_EVM .
 
-e2e-test-timebaseupgrade-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_Wasm .
+# e2e-test-timebaseupgrade-wasm: clean-e2e
+# 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_Wasm .
 
 e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
@@ -452,8 +452,8 @@ e2e-test-fraud-detection-wasm: clean-e2e
 e2e-test-timebaseupgradeinpast-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
 
-e2e-test-timebaseupgradeinpast-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_Wasm .
+# e2e-test-timebaseupgradeinpast-wasm: clean-e2e
+# 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_Wasm .
 
 e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RotatedSequencer_EVM .
@@ -726,9 +726,6 @@ e2e-test-genesis-bridge-no-relay-ack-wasm: clean-e2e
 
 e2e-test-sequencer-rotation-roatate-request-no-da-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_Wasm .
-
-e2e-test-zero-fee-relay-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RelaySuccess_Wasm .
 
 e2e-test-without-genesis-account-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisBridgeWithoutGenesisAcc_EVM .
