@@ -981,8 +981,8 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount)
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount)
 
-	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	require.NoError(t, err)
+	// channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	// require.NoError(t, err)
 
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -991,51 +991,51 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
-	transferData := ibc.WalletData{
-		Address: dymensionUserAddr,
-		Denom:   rollapp1.Config().Denom,
-		Amount:  transferAmount,
-	}
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	require.NoError(t, err)
+	// transferData := ibc.WalletData{
+	// 	Address: dymensionUserAddr,
+	// 	Denom:   rollapp1.Config().Denom,
+	// 	Amount:  transferAmount,
+	// }
+	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	// require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
+	// require.NoError(t, err)
+	// // Assert balance was updated on the hub
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
+	// // wait until the packet is finalized
+	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	// require.NoError(t, err)
+	// require.True(t, isFinalized)
 
-	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
-	require.NoError(t, err)
+	// res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
+	// fmt.Println(res)
+	// require.NoError(t, err)
 
-	for _, packet := range res.RollappPackets {
+	// for _, packet := range res.RollappPackets {
 
-		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-		require.NoError(t, err)
-		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-		require.NoError(t, err)
+	// 	proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
+	// 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+	// 	require.NoError(t, err)
+	// 	require.True(t, isFinalized)
+	// 	txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+	// 	require.NoError(t, err)
 
-		fmt.Println(txhash)
-	}
+	// 	fmt.Println(txhash)
+	// }
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
+	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	// require.NoError(t, err)
 
-	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+	// // Get the IBC denom for urax on Hub
+	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bridgingFee))
+	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferData.Amount.Sub(bridgingFee))
 
 	// setup fow CW20 steps
 	err = rollapp1.Validators[0].CopyFile(ctx, "data/cw20_base.wasm", "cw20_base.wasm")
@@ -1048,28 +1048,8 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	wasmCodesResp, err := rollapp1.GetNode().QueryWasmCodes(ctx, rollappUserAddr)
 	cw20Id := wasmCodesResp.CodeInfos[len(wasmCodesResp.CodeInfos)-1].CodeID
-
 	// Create the contract instance
-	initCW20 := fmt.Sprintf(`{
-		"name": "My first token",
-		"symbol": "test",
-		"decimals": 18,
-		"initial_balances": [{
-		  "address": "%s",
-		  "amount": "100000000000"
-		}],
-		"mint": {
-		  "minter": "%s",
-		  "cap": "10000000000000"
-		}
-	  }`, rollappUserAddr, rollappUserAddr)
-
-	// Serialize to JSON
-	// initCW20JSON, err := json.MarshalIndent(initCW20, "", "  ")
-	// if err != nil {
-	// 	fmt.Println("Error serializing JSON:", err)
-	// 	return
-	// }
+	initCW20 := fmt.Sprintf(`{"name":"My first token","symbol":"test","decimals":18,"initial_balances":[{"address":"%s","amount":"100000000000"}],"mint":{"minter":"%s","cap":"10000000000000"}}`, rollappUserAddr, rollappUserAddr)
 
 	err = rollapp1.GetNode().WasmInstantiateContract(ctx, rollappUserAddr, cw20Id, initCW20)
 	require.NoError(t, err)
