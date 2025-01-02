@@ -1086,8 +1086,14 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	queryMsg = fmt.Sprintf(`{"port":{}}`)
 	stateSmartICS20, err := rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
 	require.NoError(t, err)
-	wasm_port := stateSmartICS20.Data.PortId
-	fmt.Printf("Contract %s has wasm port: %s", ics20Addr, wasm_port)
+	wasmPort := stateSmartICS20.Data.PortId
+	fmt.Printf("Contract %s has wasm port: %s", ics20Addr, wasmPort)
+
+	err = r1.GeneratePathWasm(ctx, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	require.NoError(t, err)
+
+	err = r1.LinkPathWasm(ctx, eRep, rollapp1.Config().ChainID, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	require.NoError(t, err)
 
 	t.Cleanup(
 		func() {
