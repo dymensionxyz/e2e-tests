@@ -1061,10 +1061,10 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	queryMsg := fmt.Sprintf(`{"balance":{"address":"%s"}}`, rollappUserAddr)
 
-	stateSmart, err := rollapp1.GetNode().QueryWasmContractStateSmart(ctx, rollappUserAddr, cw20Addr, queryMsg)
+	stateSmartCW20, err := rollapp1.GetNode().QueryWasmContractCW20StateSmart(ctx, rollappUserAddr, cw20Addr, queryMsg)
 	require.NoError(t, err)
 
-	balance := stateSmart.Data.Balance
+	balance := stateSmartCW20.Data.Balance
 	fmt.Printf("User %s has balance %s for contract %s", rollappUserAddr, balance, cw20Addr)
 
 	err = rollapp1.GetNode().WasmStore(ctx, rollappUserAddr, rollapp1.GetSequencerKeyDir()+"/cw20_ics20.wasm")
@@ -1081,6 +1081,13 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	ics20Addr := respQueryWasmListContract.Contracts[0]
 	println("ICS20 contract deployed at: ", ics20Addr)
+
+	// get ics20 wasm port
+	queryMsg = fmt.Sprintf(`{"port":{}}`)
+	stateSmartICS20, err := rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	require.NoError(t, err)
+	wasm_port := stateSmartICS20.Data.PortId
+	fmt.Printf("Contract %s has wasm port: %s", ics20Addr, wasm_port)
 
 	t.Cleanup(
 		func() {
