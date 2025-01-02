@@ -873,7 +873,7 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:                "rollapp-dym",
 				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
+				ChainID:             "rollappwasm_1234-1",
 				Images:              []ibc.DockerImage{rollappWasmImage},
 				Bin:                 "rollappd",
 				Bech32Prefix:        "rol",
@@ -1040,7 +1040,7 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	// setup fow CW20 steps
 	err = rollapp1.Validators[0].CopyFile(ctx, "data/cw20_base.wasm", "cw20_base.wasm")
 	require.NoError(t, err)
-	err = rollapp1.Validators[0].CopyFile(ctx, "data/cw20_ics20.wasm", "cw20_base.wasm")
+	err = rollapp1.Validators[0].CopyFile(ctx, "data/cw20_ics20.wasm", "cw20_ics20.wasm")
 	require.NoError(t, err)
 
 	err = rollapp1.GetNode().WasmStore(ctx, rollappUserAddr, rollapp1.GetSequencerKeyDir()+"/cw20_base.wasm")
