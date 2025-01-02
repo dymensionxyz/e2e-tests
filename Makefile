@@ -437,8 +437,8 @@ e2e-test-genesis-bridge-no-relay-ack-evm: clean-e2e
 e2e-test-timebaseupgrade-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_EVM .
 
-# e2e-test-timebaseupgrade-wasm: clean-e2e
-# 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_Wasm .
+e2e-test-timebaseupgrade-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgrade_Wasm .
 
 e2e-test-sequencer-rotation-roatate-request-no-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRot_RotReq_No_DA_EVM .
@@ -452,8 +452,8 @@ e2e-test-fraud-detection-wasm: clean-e2e
 e2e-test-timebaseupgradeinpast-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_EVM .
 
-# e2e-test-timebaseupgradeinpast-wasm: clean-e2e
-# 	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_Wasm .
+e2e-test-timebaseupgradeinpast-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_TimeBaseUpgradeInPast_Wasm .
 
 e2e-test-zero-fee-rotated-sequencer-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestZeroFee_RotatedSequencer_EVM .
