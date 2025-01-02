@@ -1047,14 +1047,14 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	wasmCodesResp, err := rollapp1.GetNode().QueryWasmCodes(ctx, rollappUserAddr)
-	cw20Id := wasmCodesResp.CodeInfos[len(wasmCodesResp.CodeInfos)-1].CodeID
+	cw20CodeId := wasmCodesResp.CodeInfos[len(wasmCodesResp.CodeInfos)-1].CodeID
 	// Create the contract instance
-	initCW20 := fmt.Sprintf(`{"name":"My first token","symbol":"test","decimals":18,"initial_balances":[{"address":"%s","amount":"100000000000"}],"mint":{"minter":"%s","cap":"10000000000000"}}`, rollappUserAddr, rollappUserAddr)
+	initCW20CodeId := fmt.Sprintf(`{"name":"My first token","symbol":"test","decimals":18,"initial_balances":[{"address":"%s","amount":"100000000000"}],"mint":{"minter":"%s","cap":"10000000000000"}}`, rollappUserAddr, rollappUserAddr)
 
-	err = rollapp1.GetNode().WasmInstantiateContract(ctx, rollappUserAddr, cw20Id, initCW20)
+	err = rollapp1.GetNode().WasmInstantiateContract(ctx, rollappUserAddr, cw20CodeId, initCW20CodeId, "test")
 	require.NoError(t, err)
 
-	respQueryWasmListContract, err := rollapp1.GetNode().QueryWasmListContract(ctx, rollappUserAddr, cw20Id)
+	respQueryWasmListContract, err := rollapp1.GetNode().QueryWasmListContract(ctx, rollappUserAddr, cw20CodeId)
 	require.NoError(t, err)
 	cw20Addr := respQueryWasmListContract.Contracts[0]
 	println("Token contract deployed at: ", cw20Addr)
@@ -1066,6 +1066,21 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	balance := stateSmart.Data.Balance
 	fmt.Printf("User %s has balance %s for contract %s", rollappUserAddr, balance, cw20Addr)
+
+	err = rollapp1.GetNode().WasmStore(ctx, rollappUserAddr, rollapp1.GetSequencerKeyDir()+"/cw20_ics20.wasm")
+	require.NoError(t, err)
+
+	wasmCodesResp, err = rollapp1.GetNode().QueryWasmCodes(ctx, rollappUserAddr)
+	ics20CodeId := wasmCodesResp.CodeInfos[len(wasmCodesResp.CodeInfos)-1].CodeID
+
+	initIcs20CodeId := fmt.Sprintf(`{"default_timeout":1000,"gov_contract":"%s","allowlist":[{"contract":"%s"}]}`, rollappUserAddr, cw20Addr)
+	err = rollapp1.GetNode().WasmInstantiateContract(ctx, rollappUserAddr, ics20CodeId, initIcs20CodeId, "ics20")
+	require.NoError(t, err)
+
+	respQueryWasmListContract, err = rollapp1.GetNode().QueryWasmListContract(ctx, rollappUserAddr, ics20CodeId)
+	require.NoError(t, err)
+	ics20Addr := respQueryWasmListContract.Contracts[0]
+	println("ICS20 contract deployed at: ", ics20Addr)
 
 	t.Cleanup(
 		func() {
