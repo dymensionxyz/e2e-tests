@@ -12,7 +12,7 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20250101173655-60d71735f21b
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20250102114324-a1ad753427c3
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241224113003-12bfcad722ac
 )
 

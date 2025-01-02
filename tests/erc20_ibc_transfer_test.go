@@ -1054,6 +1054,19 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	err = rollapp1.GetNode().WasmInstantiateContract(ctx, rollappUserAddr, cw20Id, initCW20)
 	require.NoError(t, err)
 
+	respQueryWasmListContract, err := rollapp1.GetNode().QueryWasmListContract(ctx, rollappUserAddr, cw20Id)
+	require.NoError(t, err)
+	cw20Addr := respQueryWasmListContract.Contracts[0]
+	println("Token contract deployed at: ", cw20Addr)
+
+	queryMsg := fmt.Sprintf(`{"balance":{"address":"%s"}}`, rollappUserAddr)
+
+	stateSmart, err := rollapp1.GetNode().QueryWasmContractStateSmart(ctx, rollappUserAddr, cw20Addr, queryMsg)
+	require.NoError(t, err)
+
+	balance := stateSmart.Data.Balance
+	fmt.Printf("User %s has balance %s for contract %s", rollappUserAddr, balance, cw20Addr)
+
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
