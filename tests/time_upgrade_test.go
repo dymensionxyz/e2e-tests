@@ -594,7 +594,7 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          5,
+		"drs":          7,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -691,7 +691,6 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 }
-
 
 func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	if testing.Short() {
@@ -1260,4 +1259,3 @@ func Test_TimeBaseUpgradeInPast_Wasm(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 }
-
