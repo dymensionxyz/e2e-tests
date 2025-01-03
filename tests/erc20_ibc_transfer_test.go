@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"testing"
+	"encoding/base64"
+	"encoding/json"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -1092,7 +1094,25 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	err = r1.GeneratePathWasm(ctx, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID, "ics20-hub", wasmPort, "transfer", "ics20-1")
 	require.NoError(t, err)
 
-	err = r1.LinkPathWasm(ctx, eRep, rollapp1.Config().ChainID, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	err = r1.LinkPathWasm(ctx, eRep, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	require.NoError(t, err)
+
+	// get ics20 wasm channel id
+	queryMsg = fmt.Sprintf(`{"list_channels":{}}`)
+	stateSmartICS20, err = rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	require.NoError(t, err)
+	wasmChannelId := stateSmartICS20.Data.ChannelId
+	fmt.Printf("Contract %s has wasm channel id: %s", ics20Addr, wasmChannelId)
+
+	transferMsg := fmt.Sprintf(`{"channel":"%s","remote_address":"%s"}`, wasmChannelId, dymensionUserAddr)
+
+	jsonTranferMsg, err := json.Marshal(transferMsg)
+	encodedTransferMsg := base64.StdEncoding.EncodeToString(jsonTranferMsg)
+	println(encodedTransferMsg)
+
+	sendMsg := fmt.Sprintf(`{"send":{"contract":"%s","amount":"100000","msg":"%s"}}`, ics20Addr, encodedTransferMsg)
+
+	err = rollapp1.GetNode().WasmExecute(ctx, rollappUserAddr, cw20Addr, sendMsg)
 	require.NoError(t, err)
 
 	t.Cleanup(
