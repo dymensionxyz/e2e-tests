@@ -272,7 +272,7 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 5,
+			Value: 7,
 		},
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
