@@ -1103,7 +1103,8 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	wasmChannelId := stateSmartICS20.Data.ChannelId
 	fmt.Printf("Contract %s has wasm channel id: %s", ics20Addr, wasmChannelId)
-
+	
+	// setup for tranfer
 	transferMsg := fmt.Sprintf(`{"channel":"%s","remote_address":"%s"}`, wasmChannelId, dymensionUserAddr)
 
 	jsonTranferMsg, err := json.Marshal(transferMsg)
@@ -1111,10 +1112,14 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	println(encodedTransferMsg)
 
 	sendMsg := fmt.Sprintf(`{"send":{"contract":"%s","amount":"100000","msg":"%s"}}`, ics20Addr, encodedTransferMsg)
-
+	
 	err = rollapp1.GetNode().WasmExecute(ctx, rollappUserAddr, cw20Addr, sendMsg)
 	require.NoError(t, err)
 
+	// check balance of rollapp user after transfer
+	queryMsg = fmt.Sprintf(`{"balance":{"address":"%s"}}`, rollappUserAddr)
+	stateSmartCW20, err = rollapp1.GetNode().QueryWasmContractCW20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	require.NoError(t, err)
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
