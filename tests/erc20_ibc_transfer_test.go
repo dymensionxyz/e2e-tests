@@ -1086,11 +1086,32 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	wasmPort := stateSmartICS20.Data.PortId
 	fmt.Printf("Contract %s has wasm port: %s", ics20Addr, wasmPort)
 
-	err = r1.GeneratePathWasm(ctx, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	err = r1.GeneratePathWasm(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, "ics20-hub", "transfer", wasmPort, "ics20-1")
 	require.NoError(t, err)
 
-	err = r1.LinkPathWasm(ctx, eRep, "ics20-hub", wasmPort, "transfer", "ics20-1")
+	err = r1.CreateClients(ctx, eRep, "ics20-hub", ibc.DefaultClientOpts())
 	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, rollapp1, dymension)
+	require.NoError(t, err)
+
+	err = r1.CreateConnections(ctx, eRep, "ics20-hub")
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, rollapp1, dymension)
+	require.NoError(t, err)
+
+	option := ibc.CreateChannelOptions{
+		SourcePortName: "transfer",
+		DestPortName:   wasmPort,
+		Version:        "ics20-1",
+		Order:          ibc.Unordered,
+	}
+	err = r1.CreateChannel(ctx, eRep, "ics20-hub", option)
+	require.NoError(t, err)
+
+	// err = r1.LinkPathWasm(ctx, eRep, "ics20-hub", "transfer", "transfer", "ics20-1")
+	// require.NoError(t, err)
 
 	err = r1.StartRelayer(ctx, eRep, "ics20-hub")
 	require.NoError(t, err)
