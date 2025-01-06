@@ -2,12 +2,12 @@ package tests
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
-	"encoding/base64"
-	"encoding/json"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -936,9 +936,8 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
-			Path:    ibcPath,
+			Path:    "ics20-hub",
 		})
-
 	rep := testreporter.NewNopReporter()
 	eRep := rep.RelayerExecReporter(t)
 
@@ -956,6 +955,9 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
+	wallet2, found := r1.GetWallet(dymension.Config().ChainID)
+	require.True(t, found)
+
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
@@ -963,13 +965,12 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 	if err != nil {
-		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress(), wallet2.FormattedAddress()})
 		require.NoError(t, err)
 	}
 
-	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
 
@@ -985,12 +986,6 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	// channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	// require.NoError(t, err)
-
-	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
 
 	// Send a normal ibc tx from RA -> Hub
 	// transferData := ibc.WalletData{
@@ -1097,13 +1092,19 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	err = r1.LinkPathWasm(ctx, eRep, "ics20-hub", wasmPort, "transfer", "ics20-1")
 	require.NoError(t, err)
 
+	err = r1.StartRelayer(ctx, eRep, "ics20-hub")
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	require.NoError(t, err)
+
 	// get ics20 wasm channel id
 	queryMsg = fmt.Sprintf(`{"list_channels":{}}`)
 	stateSmartICS20, err = rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
 	require.NoError(t, err)
 	wasmChannelId := stateSmartICS20.Data.ChannelId
 	fmt.Printf("Contract %s has wasm channel id: %s", ics20Addr, wasmChannelId)
-	
+
 	// setup for tranfer
 	transferMsg := fmt.Sprintf(`{"channel":"%s","remote_address":"%s"}`, wasmChannelId, dymensionUserAddr)
 
@@ -1112,7 +1113,7 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 	println(encodedTransferMsg)
 
 	sendMsg := fmt.Sprintf(`{"send":{"contract":"%s","amount":"100000","msg":"%s"}}`, ics20Addr, encodedTransferMsg)
-	
+
 	err = rollapp1.GetNode().WasmExecute(ctx, rollappUserAddr, cw20Addr, sendMsg)
 	require.NoError(t, err)
 
