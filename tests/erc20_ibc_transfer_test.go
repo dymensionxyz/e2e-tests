@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -1081,9 +1080,9 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	// get ics20 wasm port
 	queryMsg = fmt.Sprintf(`{"port":{}}`)
-	stateSmartICS20, err := rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	portICS20, err := rollapp1.GetNode().QueryWasmContractICS20PortSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
 	require.NoError(t, err)
-	wasmPort := stateSmartICS20.Data.PortId
+	wasmPort := portICS20.Data.PortId
 	fmt.Printf("Contract %s has wasm port: %s", ics20Addr, wasmPort)
 
 	err = r1.GeneratePathWasm(ctx, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID, "ics20-hub", "transfer", wasmPort, "ics20-1")
@@ -1121,16 +1120,16 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	// get ics20 wasm channel id
 	queryMsg = fmt.Sprintf(`{"list_channels":{}}`)
-	stateSmartICS20, err = rollapp1.GetNode().QueryWasmContractICS20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	channelsICS20, err := rollapp1.GetNode().QueryWasmContractICS20ChannelsSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
 	require.NoError(t, err)
-	wasmChannelId := stateSmartICS20.Data.ChannelId
+	fmt.Println(channelsICS20)
+	wasmChannelId := channelsICS20.Data.Channels[0].ID
 	fmt.Printf("Contract %s has wasm channel id: %s", ics20Addr, wasmChannelId)
 
 	// setup for tranfer
 	transferMsg := fmt.Sprintf(`{"channel":"%s","remote_address":"%s"}`, wasmChannelId, dymensionUserAddr)
 
-	jsonTranferMsg, err := json.Marshal(transferMsg)
-	encodedTransferMsg := base64.StdEncoding.EncodeToString(jsonTranferMsg)
+	encodedTransferMsg := base64.StdEncoding.EncodeToString([]byte(transferMsg))
 	println(encodedTransferMsg)
 
 	sendMsg := fmt.Sprintf(`{"send":{"contract":"%s","amount":"100000","msg":"%s"}}`, ics20Addr, encodedTransferMsg)
@@ -1140,8 +1139,10 @@ func TestCW20RollAppToHub_Wasm(t *testing.T) {
 
 	// check balance of rollapp user after transfer
 	queryMsg = fmt.Sprintf(`{"balance":{"address":"%s"}}`, rollappUserAddr)
-	stateSmartCW20, err = rollapp1.GetNode().QueryWasmContractCW20StateSmart(ctx, rollappUserAddr, ics20Addr, queryMsg)
+	stateSmartCW20, err = rollapp1.GetNode().QueryWasmContractCW20StateSmart(ctx, rollappUserAddr, cw20Addr, queryMsg)
 	require.NoError(t, err)
+	fmt.Println(stateSmartCW20)
+
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
