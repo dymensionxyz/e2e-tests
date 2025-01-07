@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	test "github.com/decentrio/rollup-e2e-testing"
@@ -128,11 +129,18 @@ func TestDymFinalizeBlock_OnRecvPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -414,11 +422,18 @@ func TestDymFinalizeBlock_OnAckPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
@@ -606,11 +621,18 @@ func TestDymFinalizeBlock_OnTimeOutPacket_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -854,11 +876,18 @@ func TestDymFinalizeBlock_OnRecvPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -1145,11 +1174,18 @@ func TestDymFinalizeBlock_OnAckPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
@@ -1338,11 +1374,18 @@ func TestDymFinalizeBlock_OnTimeOutPacket_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 

@@ -233,11 +233,18 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -658,11 +665,18 @@ func Test_SeqRewardsAddress_Register_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1083,11 +1097,18 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1331,7 +1352,17 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
@@ -1636,11 +1667,18 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1884,7 +1922,17 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)

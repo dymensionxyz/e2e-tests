@@ -212,11 +212,18 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -375,7 +382,17 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	err = r.StopRelayer(ctx, eRep)
@@ -454,7 +471,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Get the IBC denom
@@ -654,11 +671,18 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -817,7 +841,17 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	err = r.StopRelayer(ctx, eRep)
@@ -1052,15 +1086,19 @@ func Test_HardFork_KickProposer_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1498,11 +1536,18 @@ func Test_HardFork_KickProposer_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1980,11 +2025,18 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// Check IBC Transfer before switch
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -2619,4 +2671,3 @@ func TestHardForkDueToDrs_EVM(t *testing.T) {
 // 	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 // 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 // }
-
