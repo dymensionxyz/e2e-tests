@@ -120,7 +120,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: C088KMGDNHW
-          slack-token: ${{ secrets.SLACK_TOKEN }}
+          slack-token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
           custom-payload: |
             {
               "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
@@ -197,7 +197,7 @@ jobs:
           uses: slackapi/slack-github-action@v1.24.0
           with:
             channel-id: C088KMGDNHW
-            slack-token: ${{ secrets.SLACK_TOKEN }}
+            slack-token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
             custom-payload: |
               {
                 "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
