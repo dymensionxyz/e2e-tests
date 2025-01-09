@@ -1,0 +1,227 @@
+on:
+  workflow_call:
+    inputs:
+      dymension_ci:
+        description: "CI run on Dymension Repo"
+        required: false
+        type: string
+        default: "latest"
+      rollapp_evm_ci:
+        description: "CI run on Rollapp-EVM Repo"
+        required: false
+        type: string
+        default: "latest"
+      rollapp_wasm_ci:
+        description: "CI run on Rollapp-Wasm Repo"
+        required: false
+        type: string
+        default: "latest"
+      relayer_ci:
+        description: "CI run on Relayer Repo"
+        required: false
+        type: string
+        default: "main-dym"
+      test:
+        description: 'test name to run as standalone'
+        required: false
+        type: string
+        default: ''
+      test-exclusions:
+        description: 'Comma separated list of tests to skip'
+        required: false
+        type: string
+        default: '' # empty string means don't skip any test.
+
+jobs:
+  build-evm-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+          ref: main
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.4"
+      - id: set-matrix
+        run: |
+          output=$(go run build_tests_matrix/main.go)
+          echo "matrix=$output" >> $GITHUB_OUTPUT
+        env:
+          TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
+          TEST_NAME: '${{ inputs.test }}'
+          ROLLAPP_TYPE: "EVM"
+  build-wasm-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+          ref: main
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.4"
+      - id: set-matrix
+        run: |
+          output=$(go run build_tests_matrix/main.go)
+          echo "matrix=$output" >> $GITHUB_OUTPUT
+        env:
+          TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
+          TEST_NAME: '${{ inputs.test }}'
+          ROLLAPP_TYPE: "Wasm"
+  # e2e-tests-by runs the actual go test command to trigger the test.
+  rollapp-evm:
+    needs:
+      - build-evm-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-evm-matrix.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: dymensionxyz/e2e-tests
+          ref: main
+      - name: Set up Go 1.23
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.23.4"
+
+      - name: Download Tarball Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: e2e
+          path: /tmp
+
+      - name: Load Docker Image
+        run: |
+          docker image load -i /tmp/e2e.tar 
+          docker image ls -a
+
+      - name: Rollapp-EVM E2E Tests
+        run: sudo -E make e2e-test test=${{ matrix.test }} || echo "Tests failed" > e2e-failures.log
+        env:
+          DYMENSION_CI: ${{ inputs.dymension_ci }}
+          ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
+          ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+          RELAYER_CI: ${{ inputs.relayer_ci }}
+
+      - name: Capture Failed Tests
+        id: capture-failures
+        if: failure() 
+        run: |
+          echo "FAILED_TESTS=$(cat e2e-failures.log || echo 'All tests passed')" >> $GITHUB_ENV
+      
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: C088KMGDNHW
+          slack-token: ${{ secrets.SLACK_TOKEN }}
+          custom-payload: |
+            {
+              "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*E2E Test Report for Rollapp-EVM*\n<$RUN_URL|View the run on GitHub>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Status: ${{ job.status }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Failed Tests:\n`$FAILED_TESTS `"
+                  }
+                }
+              ]
+            }
+
+  # e2e-tests-by runs the actual go test command to trigger the test.
+  rollapp-wasm:
+      needs:
+        - build-wasm-matrix
+      strategy:
+        fail-fast: false
+        matrix: ${{ fromJSON(needs.build-wasm-matrix.outputs.matrix) }}
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            repository: dymensionxyz/e2e-tests
+            ref: main
+        - name: Set up Go 1.23
+          uses: actions/setup-go@v4
+          with:
+            go-version: "1.23.4"
+  
+        - name: Download Tarball Artifact
+          uses: actions/download-artifact@v3
+          with:
+            name: e2e
+            path: /tmp
+  
+        - name: Load Docker Image
+          run: |
+            docker image load -i /tmp/e2e.tar 
+            docker image ls -a
+  
+        - name: Rollapp-Wasm E2E Tests
+          run: sudo -E make e2e-test test=${{ matrix.test }} 
+          env:
+            DYMENSION_CI: ${{ inputs.dymension_ci }}
+            ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
+            ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
+            RELAYER_CI: ${{ inputs.relayer_ci }}
+
+        - name: Capture Failed Tests
+          id: capture-failures
+          if: failure() 
+          run: |
+            echo "FAILED_TESTS=$(cat e2e-failures.log || echo 'All tests passed')" >> $GITHUB_ENV
+            echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      
+        - name: Send Slack Notification
+          uses: slackapi/slack-github-action@v1.24.0
+          with:
+            channel-id: C088KMGDNHW
+            slack-token: ${{ secrets.SLACK_TOKEN }}
+            custom-payload: |
+              {
+                "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*E2E Test Report for Rollapp-Wasm*\n<$RUN_URL|View the run on GitHub>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "Status: ${{ job.status }}"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "Failed Tests:\n`$FAILED_TESTS `"
+                    }
+                  }
+                ]
+              }
