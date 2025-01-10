@@ -103,59 +103,20 @@ jobs:
           docker image ls -a
 
       - name: Rollapp-EVM E2E Tests
-        run: sudo -E make e2e-test test=${{ matrix.test }} || echo "Tests failed" > e2e-failures.log
+        run: sudo -E make e2e-test test=${{ matrix.test }} || echo "${{ matrix.test }}" >> failed-tests.log
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
           ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
           RELAYER_CI: ${{ inputs.relayer_ci }}
-
-      - name: Capture Failed Tests
-        id: capture-success
-        if: success() 
-        run: |
-          echo "FAILED_TESTS=$(echo 'All tests passed')" >> $GITHUB_ENV
-          echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-      - name: Capture Failed Tests
-        id: capture-failures
-        if: failure() 
-        run: |
-          echo "FAILED_TESTS=$(cat e2e-failures.log)" >> $GITHUB_ENV
-          echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       
-      - name: Send Slack Notification
-        uses: slackapi/slack-github-action@v1.24.0
+      - name: Upload Failed Tests
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          channel-id: C088KMGDNHW
-          token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
-          payload: |
-            {
-              "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*E2E Test Report for Rollapp-EVM*\n<$RUN_URL|View the run on GitHub>"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Status: ${{ job.status }}"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Failed Tests:\n`$FAILED_TESTS `"
-                  }
-                }
-              ]
-            }
+          name: failed-tests-${{ matrix.test }}
+          path: failed-tests.log
+          if-no-files-found: ignore
 
   # e2e-tests-by runs the actual go test command to trigger the test.
   rollapp-wasm:
@@ -187,56 +148,61 @@ jobs:
             docker image ls -a
   
         - name: Rollapp-Wasm E2E Tests
-          run: sudo -E make e2e-test test=${{ matrix.test }} 
+          run: sudo -E make e2e-test test=${{ matrix.test }} || echo "${{ matrix.test }}" >> failed-tests.log
           env:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
             ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
             RELAYER_CI: ${{ inputs.relayer_ci }}
 
-        - name: Capture Failed Tests
-          id: capture-success
-          if: success() 
-          run: |
-            echo "FAILED_TESTS=$(echo 'All tests passed')" >> $GITHUB_ENV
-            echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-        - name: Capture Failed Tests
-          id: capture-failures
-          if: failure() 
-          run: |
-            echo "FAILED_TESTS=$(cat e2e-failures.log)" >> $GITHUB_ENV
-            echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      
-        - name: Send Slack Notification
-          uses: slackapi/slack-github-action@v1.24.0
+             
+        - name: Upload Failed Tests
+          if: always()
+          uses: actions/upload-artifact@v3
           with:
-            channel-id: C088KMGDNHW
-            token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
-            payload: |
-              {
-                "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
-                "blocks": [
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "*E2E Test Report for Rollapp-Wasm*\n<$RUN_URL|View the run on GitHub>"
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "Status: ${{ job.status }}"
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "Failed Tests:\n`$FAILED_TESTS `"
-                    }
-                  }
-                ]
-              }
+            name: failed-tests-${{ matrix.test }}
+            path: failed-tests.log
+            if-no-files-found: ignore
+
+  notify-slack:
+    runs-on: ubuntu-latest
+    needs: 
+      - rollapp-evm
+      - rollapp-wasm
+    steps:
+      - name: Download All Failed Test Logs
+        uses: actions/download-artifact@v3
+        with:
+          name: failed-tests-*
+
+      - name: Combine Failed Test Logs
+        run: |
+          set +e
+          touch combined-failed-tests.log
+          for file in failed-tests-*.log; do
+            cat "$file" >> combined-failed-tests.log
+          done
+          set -e
+          echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Aggregate Results
+        id: aggregate
+        run: |
+          if [ -s combined-failed-tests.log ]; then
+            FAILED_TESTS=$(awk '{print NR ". " $0}' combined-failed-tests.log | paste -sd '\n' -)
+            echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          else
+            echo "FAILED_TESTS=" >> $GITHUB_ENV
+          fi
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
+          payload: |     
+            channel: C088KMGDNHW,
+            text: "E2E Tests Report:\n- *Status*: ${{ env.FAILED_TESTS && 'Tests failed' || 'All tests passed!' }}\n${{ env.FAILED_TESTS && '- *Failed Tests:*\n' || '' }}${{ env.FAILED_TESTS || '' }}\n- *Run URL*: ${{ github.run_html_url }}"
+              
+
+            
