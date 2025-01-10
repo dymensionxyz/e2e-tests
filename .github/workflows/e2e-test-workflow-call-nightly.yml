@@ -111,17 +111,25 @@ jobs:
           RELAYER_CI: ${{ inputs.relayer_ci }}
 
       - name: Capture Failed Tests
+        id: capture-success
+        if: success() 
+        run: |
+          echo "FAILED_TESTS=$(echo 'All tests passed')" >> $GITHUB_ENV
+          echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Capture Failed Tests
         id: capture-failures
         if: failure() 
         run: |
-          echo "FAILED_TESTS=$(cat e2e-failures.log || echo 'All tests passed')" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$(cat e2e-failures.log)" >> $GITHUB_ENV
+          echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@v1.24.0
         with:
           channel-id: C088KMGDNHW
-          slack-token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
-          custom-payload: |
+          token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
+          payload: |
             {
               "text": "E2E Test Report for <$RUN_URL|GitHub Actions Run>",
               "blocks": [
