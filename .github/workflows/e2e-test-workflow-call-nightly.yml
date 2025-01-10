@@ -104,20 +104,18 @@ jobs:
 
       - name: Rollapp-EVM E2E Tests
         run: 
-          set +e
           sudo -E make e2e-test test=${{ matrix.test }}
-          TEST_EXIT_CODE=$?
-          set -e
-          if [ "$TEST_EXIT_CODE" -ne 0 ]; then
-            echo "${{ matrix.test }}" >> failed-tests.log
-            exit 1
-          fi
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
           ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
           RELAYER_CI: ${{ inputs.relayer_ci }}
       
+      - name: Write failed test
+        if: failure()
+        run:
+          echo "${{ matrix.test }}" >> failed-tests.log
+
       - name: Upload Failed Tests
         if: failure()
         uses: actions/upload-artifact@v4
@@ -156,23 +154,18 @@ jobs:
             docker image ls -a
   
         - name: Rollapp-Wasm E2E Tests
-          run: 
-            set +e
-            sudo -E make e2e-test test=${{ matrix.test }}
-            TEST_EXIT_CODE=$?
-            set -e
-            if [ "$TEST_EXIT_CODE" -ne 0 ]; then
-              echo "${{ matrix.test }}" >> failed-tests.log
-              exit 1
-            fi
-
+          run: sudo -E make e2e-test test=${{ matrix.test }}
           env:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
             ROLLAPP_WASM_CI: ${{ inputs.rollapp_wasm_ci }}
             RELAYER_CI: ${{ inputs.relayer_ci }}
+    
+        - name: Write failed test
+          if: failure()
+          run:
+            echo "${{ matrix.test }}" >> failed-tests.log
 
-             
         - name: Upload Failed Tests
           if: failure()
           uses: actions/upload-artifact@v4
