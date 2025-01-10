@@ -92,7 +92,7 @@ jobs:
           go-version: "1.23.4"
 
       - name: Download Tarball Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: e2e
           path: /tmp
@@ -103,7 +103,15 @@ jobs:
           docker image ls -a
 
       - name: Rollapp-EVM E2E Tests
-        run: sudo -E make e2e-test test=${{ matrix.test }} || echo "${{ matrix.test }}" >> failed-tests.log
+        run: 
+          set +e
+          sudo -E make e2e-test test=${{ matrix.test }}
+          TEST_EXIT_CODE=$?
+          set -e
+          if [ "$TEST_EXIT_CODE" -ne 0 ]; then
+            echo "${{ matrix.test }}" >> failed-tests.log
+            exit 1
+          fi
         env:
           DYMENSION_CI: ${{ inputs.dymension_ci }}
           ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
@@ -111,8 +119,8 @@ jobs:
           RELAYER_CI: ${{ inputs.relayer_ci }}
       
       - name: Upload Failed Tests
-        if: always()
-        uses: actions/upload-artifact@v3
+        if: failure()
+        uses: actions/upload-artifact@v4
         with:
           name: failed-tests-${{ matrix.test }}
           path: failed-tests.log
@@ -137,7 +145,7 @@ jobs:
             go-version: "1.23.4"
   
         - name: Download Tarball Artifact
-          uses: actions/download-artifact@v3
+          uses: actions/download-artifact@v4
           with:
             name: e2e
             path: /tmp
@@ -148,7 +156,16 @@ jobs:
             docker image ls -a
   
         - name: Rollapp-Wasm E2E Tests
-          run: sudo -E make e2e-test test=${{ matrix.test }} || echo "${{ matrix.test }}" >> failed-tests.log
+          run: 
+            set +e
+            sudo -E make e2e-test test=${{ matrix.test }}
+            TEST_EXIT_CODE=$?
+            set -e
+            if [ "$TEST_EXIT_CODE" -ne 0 ]; then
+              echo "${{ matrix.test }}" >> failed-tests.log
+              exit 1
+            fi
+
           env:
             DYMENSION_CI: ${{ inputs.dymension_ci }}
             ROLLAPP_EVM_CI: ${{ inputs.rollapp_evm_ci }}
@@ -157,8 +174,8 @@ jobs:
 
              
         - name: Upload Failed Tests
-          if: always()
-          uses: actions/upload-artifact@v3
+          if: failure()
+          uses: actions/upload-artifact@v4
           with:
             name: failed-tests-${{ matrix.test }}
             path: failed-tests.log
@@ -171,9 +188,9 @@ jobs:
       - rollapp-wasm
     steps:
       - name: Download All Failed Test Logs
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: failed-tests-*
+          pattern: my-artifact-*
 
       - name: Combine Failed Test Logs
         run: |
