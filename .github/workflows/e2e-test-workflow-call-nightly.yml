@@ -179,6 +179,7 @@ jobs:
     needs: 
       - rollapp-evm
       - rollapp-wasm
+    if: always()
     steps:
       - name: Download All Failed Test Logs
         uses: actions/download-artifact@v4
