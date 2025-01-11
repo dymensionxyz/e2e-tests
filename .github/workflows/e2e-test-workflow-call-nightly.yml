@@ -170,7 +170,7 @@ jobs:
           if: failure()
           uses: actions/upload-artifact@v4
           with:
-            name: failed-tests-${{ matrix.test }}
+            name: failed-tests-${{ matrix.test }}.log
             path: failed-tests.log
             if-no-files-found: ignore
 
@@ -190,7 +190,7 @@ jobs:
         run: |
           set +e
           touch combined-failed-tests.log
-          for file in failed-tests-*.log; do
+          for file in failed-tests-*; do
             cat "$file" >> combined-failed-tests.log
           done
           set -e
