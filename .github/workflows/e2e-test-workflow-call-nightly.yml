@@ -164,14 +164,14 @@ jobs:
         - name: Write failed test
           if: failure()
           run:
-            echo "${{ matrix.test }}" >> failed-tests.log
+            echo "${{ matrix.test }}" >> failed-tests-${{ matrix.test }}.log
 
         - name: Upload Failed Tests
           if: failure()
           uses: actions/upload-artifact@v4
           with:
-            name: failed-tests-${{ matrix.test }}.log
-            path: failed-tests.log
+            name: failed-tests-${{ matrix.test }}
+            path: failed-tests-${{ matrix.test }}.log
             if-no-files-found: ignore
 
   notify-slack:
@@ -185,6 +185,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: failed-tests-*
+          merge-multiple: true
 
       - name: Combine Failed Test Logs
         run: |
