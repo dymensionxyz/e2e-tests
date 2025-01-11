@@ -184,7 +184,7 @@ jobs:
       - name: Download All Failed Test Logs
         uses: actions/download-artifact@v4
         with:
-          pattern: my-artifact-*
+          pattern: failed-tests-*
 
       - name: Combine Failed Test Logs
         run: |
@@ -207,13 +207,13 @@ jobs:
           fi
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
           payload: |     
             channel: C088KMGDNHW,
-            text: "E2E Tests Report:\n- *Status*: ${{ env.FAILED_TESTS && 'Tests failed' || 'All tests passed!' }}\n${{ env.FAILED_TESTS && '- *Failed Tests:*\n' || '' }}${{ env.FAILED_TESTS || '' }}\n- *Run URL*: ${{ github.run_html_url }}"
+            text: "E2E Tests Report:\n- *Status*: ${{ env.FAILED_TESTS && 'Tests failed' || 'All tests passed!' }}\n${{ env.FAILED_TESTS && '- *Failed Tests:*\n' || '' }}${{ env.FAILED_TESTS || '' }}\n- *Run URL*: ${{ env.RUN_URL }}"
               
 
             
