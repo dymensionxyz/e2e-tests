@@ -196,16 +196,7 @@ jobs:
           done
           set -e
           echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-
-      - name: Aggregate Results
-        id: aggregate
-        run: |
-          if [ -s combined-failed-tests.log ]; then
-            FAILED_TESTS=$(awk '{print NR ". " $0}' combined-failed-tests.log | paste -sd '\n' -)
-            echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
-          else
-            echo "FAILED_TESTS=" >> $GITHUB_ENV
-          fi
+          cat combined-failed-tests.log
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
@@ -214,7 +205,4 @@ jobs:
           token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
           payload: |     
             channel: C088KMGDNHW,
-            text: "E2E Tests Report:\n- *Status*: ${{ env.FAILED_TESTS && 'Tests failed' || 'All tests passed!' }}\n${{ env.FAILED_TESTS && '- *Failed Tests:*\n' || '' }}${{ env.FAILED_TESTS || '' }}\n- *Run URL*: ${{ env.RUN_URL }}"
-              
-
-            
+            text: "$(if [ -s combined-failed-tests.log ]; then echo '*Some tests failed. Details:*\\n\\n'$(awk '{print NR ". " $0}' combined-failed-tests.log | paste -sd '\\n')'\\n\\n<${{ env.RUN_URL }}|View the full report here>'; else echo 'All tests passed!\\n\\n<${{ env.RUN_URL }}|View the full report here>'; fi)",
