@@ -114,14 +114,14 @@ jobs:
       - name: Write failed test
         if: failure()
         run:
-          echo "${{ matrix.test }}" >> failed-tests.log
+          echo "${{ matrix.test }}" >> failed-tests-${{ matrix.test }}.log
 
       - name: Upload Failed Tests
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: failed-tests-${{ matrix.test }}
-          path: failed-tests.log
+          path: failed-tests-${{ matrix.test }}.log
           if-no-files-found: ignore
 
   # e2e-tests-by runs the actual go test command to trigger the test.
@@ -192,6 +192,7 @@ jobs:
           set +e
           touch combined-failed-tests.log
           for file in failed-tests-*; do
+            echo "Adding $file to combined log"
             cat "$file" >> combined-failed-tests.log
           done
           set -e
