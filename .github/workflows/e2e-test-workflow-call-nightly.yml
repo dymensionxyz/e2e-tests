@@ -1,5 +1,8 @@
 on:
   workflow_call:
+    secrets:
+      SLACK_E2E_TEST_TOKEN: 
+        required: true
     inputs:
       dymension_ci:
         description: "CI run on Dymension Repo"
