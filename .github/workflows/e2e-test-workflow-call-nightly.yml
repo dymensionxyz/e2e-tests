@@ -202,18 +202,18 @@ jobs:
           echo "RUN_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           cat combined-failed-tests.log
 
-          - name: Generate Slack Message
-          id: slack_message
-          run: |
-            if [ -s combined-failed-tests.log ]; then
-              FAILED_TESTS=$(awk '{print NR ". " $0}' combined-failed-tests.log | paste -sd '\n')
-              MESSAGE="*Some tests failed. Details:*\n\n${FAILED_TESTS}\n\n<${{ env.RUN_URL }}|View the full report here>"
-            else
-              MESSAGE="All tests passed!\n\n<${{ env.RUN_URL }}|View the full report here>"
-            fi
-            # Replace newlines with \n for safe storage in environment variable
-            MESSAGE_ESCAPED=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
-            echo "SLACK_MESSAGE=$MESSAGE_ESCAPED" >> $GITHUB_ENV
+      - name: Generate Slack Message
+        id: slack_message
+        run: |
+          if [ -s combined-failed-tests.log ]; then
+            FAILED_TESTS=$(awk '{print NR ". " $0}' combined-failed-tests.log | paste -sd '\n')
+            MESSAGE="*Some tests failed. Details:*\n\n${FAILED_TESTS}\n\n<${{ env.RUN_URL }}|View the full report here>"
+          else
+            MESSAGE="All tests passed!\n\n<${{ env.RUN_URL }}|View the full report here>"
+          fi
+          # Replace newlines with \n for safe storage in environment variable
+          MESSAGE_ESCAPED=$(echo "$MESSAGE" | sed ':a;N;$!ba;s/\n/\\n/g')
+          echo "SLACK_MESSAGE=$MESSAGE_ESCAPED" >> $GITHUB_ENV
       
       - name: Notify Slack
         uses: slackapi/slack-github-action@v2.0.0
