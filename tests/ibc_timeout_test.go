@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
-	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
@@ -141,18 +140,11 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	for i := 0; i < 10; i++ {
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	if err != nil {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		if err == nil {
-			break
-		}
-		if i == 9 {
-			fmt.Println("Max retries reached. Exiting...")
-			break
-		}
-		time.Sleep(5 * time.Second)
+		require.NoError(t, err)
 	}
-	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
@@ -266,7 +258,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 
 	balance := zeroBal
 	// Assert funds were returned to the sender after the timeout has occured
-	for i:=1; i<30; i++ {
+	for i := 1; i < 30; i++ {
 		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
 		require.NoError(t, err)
 		if walletAmount.Sub(transferData.Amount).String() == balance.String() {
@@ -474,18 +466,11 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	for i := 0; i < 10; i++ {
+	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+	if err != nil {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		if err == nil {
-			break
-		}
-		if i == 9 {
-			fmt.Println("Max retries reached. Exiting...")
-			break
-		}
-		time.Sleep(5 * time.Second)
+		require.NoError(t, err)
 	}
-	require.NoError(t, err)
 
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 
