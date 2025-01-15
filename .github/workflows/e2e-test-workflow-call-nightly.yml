@@ -1,7 +1,7 @@
 on:
   workflow_call:
     secrets:
-      SLACK_E2E_TEST_TOKEN: 
+      SLACK_E2E_TEST_WEBHOOK_URL: 
         required: true
     inputs:
       dymension_ci:
@@ -216,10 +216,14 @@ jobs:
           echo "SLACK_MESSAGE=$MESSAGE_ESCAPED" >> $GITHUB_ENV
       
       - name: Notify Slack
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
-          payload: |     
-            channel: C088KMGDNHW,
-            text: "${{ env.SLACK_MESSAGE }}"
+        env:
+          SLACK_E2E_TEST_TOKEN: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
+        run: |
+          if [ -z "${SLACK_E2E_TEST_TOKEN}" ]; then
+            echo "SLACK_E2E_TEST_TOKEN is not set"
+            exit 1
+          else
+            echo "SLACK_E2E_TEST_TOKEN is set"
+          fi
+
+          curl -X POST -H 'Content-type: application/json' -d "{\"text\": \"${{ env.SLACK_MESSAGE }}\"}" $SLACK_E2E_TEST_TOKEN
