@@ -217,13 +217,13 @@ jobs:
       
       - name: Notify Slack
         env:
-          SLACK_E2E_TEST_TOKEN: ${{ secrets.SLACK_E2E_TEST_TOKEN }}
+          SLACK_E2E_TEST_WEBHOOK_URL: ${{ secrets.SLACK_E2E_TEST_WEBHOOK_URL }}
         run: |
-          if [ -z "${SLACK_E2E_TEST_TOKEN}" ]; then
-            echo "SLACK_E2E_TEST_TOKEN is not set"
+          if [ -z "${SLACK_E2E_TEST_WEBHOOK_URL}" ]; then
+            echo "SLACK_E2E_TEST_WEBHOOK_URL is not set"
             exit 1
           else
-            echo "SLACK_E2E_TEST_TOKEN is set"
+            echo "SLACK_E2E_TEST_WEBHOOK_URL is set"
           fi
 
           curl -X POST -H 'Content-type: application/json' -d "{\"text\": \"${{ env.SLACK_MESSAGE }}\"}" $SLACK_E2E_TEST_TOKEN
