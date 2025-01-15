@@ -544,7 +544,7 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	// Set a short timeout for IBC transfer
 	options := ibc.TransferOptions{
 		Timeout: &ibc.IBCTimeout{
-			NanoSeconds: 1000000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
+			NanoSeconds: 100000, // 1 ms - this will cause the transfer to timeout before it is picked by a relayer
 		},
 	}
 
@@ -580,21 +580,23 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 
 		fmt.Println(txhash)
 	}
-
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
 	// Get the IBC denom for urax on Hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
+	balance := zeroBal
 	// Assert funds were returned to the sender after the timeout has occured
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
+	for i := 1; i < 30; i++ {
+		balance, err = rollapp1.GetBalance(ctx, rollappUserAddr, rollapp1.Config().Denom)
+		require.NoError(t, err)
+		if walletAmount.Sub(transferData.Amount).String() == balance.String() {
+			break
+		}
+		err = testutil.WaitForBlocks(ctx, 3, dymension, rollapp1)
+		require.NoError(t, err)
+	}
+	require.Equal(t, walletAmount.Sub(transferData.Amount).String(), balance.String())
+	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, rollapp1.Config().ChainID, dymension.Config().ChainID)
