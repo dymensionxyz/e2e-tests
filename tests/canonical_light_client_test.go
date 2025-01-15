@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
@@ -430,7 +431,6 @@ func TestIBCTransferBetweenHub3rd_Wasm(t *testing.T) {
 	})
 }
 
-
 // TestIBCTransferRA3rdSameChainID_EVM create vanilla cosmos chain with the same chain-id as an existing rollapp and test IBC transfer between them
 func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	if testing.Short() {
@@ -566,11 +566,18 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -899,11 +906,18 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	//Update white listed relayers
-	_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-	if err != nil {
+	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
-		require.NoError(t, err)
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
 	}
+	require.NoError(t, err)
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
@@ -1505,4 +1519,3 @@ func TestIBCTransfer_NoLightClient_Wasm(t *testing.T) {
 		CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 	})
 }
-
