@@ -388,6 +388,9 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -771,6 +774,9 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -1162,6 +1168,9 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -1548,6 +1557,9 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -2101,6 +2113,9 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -2687,6 +2702,9 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -3227,6 +3245,9 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -3766,6 +3787,9 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -6156,6 +6180,9 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -6524,6 +6551,9 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -7014,6 +7044,9 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
@@ -7588,6 +7621,9 @@ func Test_SeqRotation_Forced_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
@@ -8119,6 +8155,9 @@ func Test_SeqRotation_Forced_DA_Wasm(t *testing.T) {
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
+
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
 
 	res, err = dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
