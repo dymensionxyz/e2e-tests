@@ -226,4 +226,4 @@ jobs:
             echo "SLACK_E2E_TEST_WEBHOOK_URL is set"
           fi
 
-          curl -X POST -H 'Content-type: application/json' -d "{\"text\": \"${{ env.SLACK_MESSAGE }}\"}" $SLACK_E2E_TEST_TOKEN
+          curl -X POST -H 'Content-type: application/json' -d "{\"text\": \"${{ env.SLACK_MESSAGE }}\"}" $SLACK_E2E_TEST_WEBHOOK_URL
