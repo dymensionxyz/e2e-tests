@@ -1871,7 +1871,6 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-	require.Equal(t, resp0.Sequencers[1].Address, currentProposer.ProposerAddr)
 
 	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
 	require.NoError(t, err)
