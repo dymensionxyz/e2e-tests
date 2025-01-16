@@ -30,7 +30,7 @@ func TestEIBC_3rd_Token_RolY_Live(t *testing.T) {
 	}
 	mocha := cosmos.CosmosChain{
 		RPCAddr:       "rpc.celestia.test-eu1.ccvalidators.com:443",
-		GrpcAddr:      "https://celestia-testnet-rpc.itrocket.net:443:9090",
+		GrpcAddr:      "mocha-4-consensus.mesa.newmetric.xyz:9090",
 		ChainID:       "mocha-4",
 		Bin:           "celestia-appd",
 		GasPrices:     "0utia",
@@ -212,7 +212,7 @@ func TestEIBC_3rd_Token_Timeout_RolY_Live(t *testing.T) {
 	}
 	mocha := cosmos.CosmosChain{
 		RPCAddr:       "rpc.celestia.test-eu1.ccvalidators.com:443",
-		GrpcAddr:      "https://celestia-testnet-rpc.itrocket.net:443:9090",
+		GrpcAddr:      "mocha-4-consensus.mesa.newmetric.xyz:9090",
 		ChainID:       "mocha-4",
 		Bin:           "celestia-appd",
 		GasPrices:     "0utia",
