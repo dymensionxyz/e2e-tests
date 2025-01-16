@@ -816,7 +816,17 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 	fmt.Printf("Sequencer check: %v\n", resp.Sequencers)
 
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
@@ -1258,7 +1268,17 @@ func TestZeroFee_RotatedSequencer_Wasm(t *testing.T) {
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 	fmt.Printf("Sequencer check: %v\n", resp.Sequencers)
 
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)

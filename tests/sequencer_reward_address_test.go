@@ -1256,7 +1256,17 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1823,7 +1833,17 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())

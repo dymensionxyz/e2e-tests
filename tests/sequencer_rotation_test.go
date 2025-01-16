@@ -307,7 +307,17 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -694,7 +704,17 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1040,7 +1060,17 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1430,7 +1460,17 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1903,7 +1943,17 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1925,7 +1975,17 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 
 	time.Sleep(200 * time.Second)
 
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
@@ -2491,7 +2551,17 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -2513,7 +2583,17 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 
 	time.Sleep(300 * time.Second)
 
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	queryGetSequencerResponse, err = dymension.QueryShowSequencer(ctx, seqAddr)
@@ -3121,7 +3201,17 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -3664,7 +3754,17 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -4252,7 +4352,17 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -4845,7 +4955,17 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -5334,7 +5454,17 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -5733,7 +5863,17 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -6105,7 +6245,17 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -6477,7 +6627,17 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -6926,7 +7086,17 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
