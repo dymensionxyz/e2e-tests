@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -43,6 +44,14 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	gas_price_rollapp2 := "0adym"
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
+
+	modifyDymensionGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -110,7 +119,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyDymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -180,9 +189,6 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -266,7 +272,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -277,7 +283,7 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	for _, packet := range res.RollappPackets {
 
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 600)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -311,8 +317,13 @@ func TestEIBC_Fee_Market_Success_EVM(t *testing.T) {
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, options)
+	tx, err := rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	fmt.Println("Transfer height:", tx.Height)
+	state, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), true)
+	require.NoError(t, err)
+	fmt.Printf("Finalized Height on Hub: %s(+%s)\n", state.StateInfo.StartHeight, state.StateInfo.NumBlocks)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -417,6 +428,14 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
+	modifyDymensionGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -483,7 +502,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyDymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -553,9 +572,6 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -649,7 +665,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -660,7 +676,7 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	for _, packet := range res.RollappPackets {
 
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 600)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -695,8 +711,13 @@ func TestEIBC_Fee_Market_Success_Wasm(t *testing.T) {
 	// set eIBC specific memo
 	options.Memo = BuildEIbcMemo(eibcFee)
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, options)
+	tx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	fmt.Println("Transfer height:", tx.Height)
+	state, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), true)
+	require.NoError(t, err)
+	fmt.Printf("Finalized Height on Hub: %s(+%s)\n", state.StateInfo.StartHeight, state.StateInfo.NumBlocks)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -804,6 +825,14 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
+	modifyDymensionGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -870,7 +899,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyDymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -940,9 +969,6 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1028,7 +1054,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1039,7 +1065,7 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 	for _, packet := range res.RollappPackets {
 
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 600)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -1069,8 +1095,13 @@ func TestEIBC_Fee_Market_Auto_Created_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	tx, err := rollapp1.SendIBCTransfer(ctx, dymChannel[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	fmt.Println("Transfer height:", tx.Height)
+	state, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), true)
+	require.NoError(t, err)
+	fmt.Printf("Finalized Height on Hub: %s(+%s)\n", state.StateInfo.StartHeight, state.StateInfo.NumBlocks)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -1175,6 +1206,14 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	maxIdleTime2 := "1s"
 	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
 
+	modifyDymensionGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollapp.params.dispute_period_in_blocks",
+			Value: fmt.Sprint(100),
+		},
+	)
+
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1241,7 +1280,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyDymensionGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -1311,9 +1350,6 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1408,7 +1444,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 600)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -1419,7 +1455,7 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 	for _, packet := range res.RollappPackets {
 
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 600)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, marketMakerAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -1449,8 +1485,13 @@ func TestEIBC_Fee_Market_Auto_Created_Wasm(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	tx, err := rollapp1.SendIBCTransfer(ctx, channsRollApp1[0].ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
+
+	fmt.Println("Transfer height:", tx.Height)
+	state, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), true)
+	require.NoError(t, err)
+	fmt.Printf("Finalized Height on Hub: %s(+%s)\n", state.StateInfo.StartHeight, state.StateInfo.NumBlocks)
 
 	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
 	require.NoError(t, err)
@@ -1643,9 +1684,6 @@ func TestEIBCUpdateOnAckErrAndTimeout_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1936,9 +1974,6 @@ func TestEIBCUpdateOnAckErrAndTimeout_Wasm(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {

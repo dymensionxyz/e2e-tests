@@ -192,9 +192,6 @@ func TestADMC_Hub_to_RA_reserved_EVM(t *testing.T) {
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
@@ -529,9 +526,6 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -870,9 +864,6 @@ func TestADMC_Hub_to_RA_reserved_Wasm(t *testing.T) {
 	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1255,9 +1246,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	keyPath2 := keyDir2 + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet1.FormattedAddress()})
@@ -1562,9 +1550,6 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1797,9 +1782,6 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {

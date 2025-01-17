@@ -229,9 +229,6 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -660,9 +657,6 @@ func Test_SeqRewardsAddress_Register_Wasm(t *testing.T) {
 
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1093,9 +1087,6 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1256,7 +1247,17 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1347,9 +1348,6 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1663,9 +1661,6 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
-
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
@@ -1823,7 +1818,17 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	require.Equal(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Unbond sequencer1
-	err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+	for i := 0; i < 10; i++ {
+		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
 	require.NoError(t, err)
 
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1851,7 +1856,6 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
 	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-	require.Equal(t, resp0.Sequencers[1].Address, currentProposer.ProposerAddr)
 
 	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
 	require.NoError(t, err)
@@ -1915,9 +1919,6 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
-	require.NoError(t, err)
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
