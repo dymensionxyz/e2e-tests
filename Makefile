@@ -281,6 +281,9 @@ e2e-test-admc-migrate-with-user-memo-evm: clean-e2e
 e2e-test-eibc-fee-market-success-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBC_Fee_Market_Success_EVM .
 	
+e2e-test-eibc-fee-market-auto-created-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBC_Fee_Market_Auto_Created_EVM .
+
 e2e-test-admc-metadata-not-found-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestADMC_MetaData_NotFound_EVM .
 
@@ -709,6 +712,9 @@ e2e-test-admc-migrate-with-user-memo-wasm: clean-e2e
 e2e-test-eibc-fee-market-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBC_Fee_Market_Success_Wasm .
 	
+e2e-test-eibc-fee-market-auto-created-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestEIBC_Fee_Market_Auto_Created_Wasm .
+
 e2e-test-admc-metadata-not-found-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestADMC_MetaData_NotFound_Wasm .
 
