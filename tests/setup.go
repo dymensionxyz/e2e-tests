@@ -184,7 +184,7 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 5,
+			Value: 7,
 		},
 		{
 			Key:   "consensus_params.block.max_gas",
