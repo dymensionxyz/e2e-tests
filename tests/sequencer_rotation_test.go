@@ -335,20 +335,16 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 
 	time.Sleep(300 * time.Second)
 
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	// currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	// require.NoError(t, err)
-	// println("checking new proposer: ", currentProposer.ProposerAddr)
-
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
 	_ = rollapp1.StartAllNodes(ctx)
 
 	time.Sleep(100 * time.Second)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
