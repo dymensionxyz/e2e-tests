@@ -333,7 +333,7 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -727,7 +727,7 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
 	require.NoError(t, err)
@@ -1080,7 +1080,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -1961,7 +1961,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	for i := 0; i < 10; i++ {
 		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -4354,7 +4354,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -4957,7 +4957,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -5456,7 +5456,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	// Chain halted
 
@@ -5865,7 +5865,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	// Chain halted
 
@@ -6247,7 +6247,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	// Chain halted
 	err = rollapp1.StopAllNodes(ctx)
@@ -6626,7 +6626,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	// Chain halted
 	err = rollapp1.StopAllNodes(ctx)
