@@ -602,7 +602,7 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          7,
+		"drs":          8,
 		"upgrade_time": upgradeTime,
 	}
 
