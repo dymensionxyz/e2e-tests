@@ -1273,7 +1273,7 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -1844,7 +1844,7 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(200 * time.Second)
+	time.Sleep(300 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
