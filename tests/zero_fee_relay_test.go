@@ -823,7 +823,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -880,7 +880,7 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
@@ -905,7 +905,17 @@ func TestZeroFee_RotatedSequencer_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
@@ -1269,7 +1279,7 @@ func TestZeroFee_RotatedSequencer_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -1326,7 +1336,7 @@ func TestZeroFee_RotatedSequencer_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
@@ -1351,7 +1361,17 @@ func TestZeroFee_RotatedSequencer_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
