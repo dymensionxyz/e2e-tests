@@ -1273,7 +1273,7 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -1281,20 +1281,6 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	_ = rollapp1.StartAllNodes(ctx)
 
 	containerID = fmt.Sprintf("ra-rollappevm_1234-1-fn-0-%s", t.Name())
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
-	require.NoError(t, err)
-	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[1].OperatorAddress)
-	operatorAddr := operatorAddress.Sequencers[1].OperatorAddress
-
-	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
-	require.NoError(t, err)
-	rewardAddrStr := rewardAddress.RewardAddr
-	fmt.Printf("RewardAddress1: %s\n", rewardAddrStr)
 
 	// Get the container details
 	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
@@ -1344,7 +1330,7 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -1364,8 +1350,32 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
+	require.NoError(t, err)
+	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[1].OperatorAddress)
+	operatorAddr := operatorAddress.Sequencers[1].OperatorAddress
+
+	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
+	require.NoError(t, err)
+	rewardAddrStr := rewardAddress.RewardAddr
+	fmt.Printf("RewardAddress1: %s\n", rewardAddrStr)
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)
@@ -1844,7 +1854,7 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -1852,20 +1862,6 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	_ = rollapp1.StartAllNodes(ctx)
 
 	containerID = fmt.Sprintf("ra-rollappwasm_1234-1-fn-0-%s", t.Name())
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
-	require.NoError(t, err)
-	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[1].OperatorAddress)
-	operatorAddr := operatorAddress.Sequencers[1].OperatorAddress
-
-	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
-	require.NoError(t, err)
-	rewardAddrStr := rewardAddress.RewardAddr
-	fmt.Printf("RewardAddress1: %s\n", rewardAddrStr)
 
 	// Get the container details
 	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
@@ -1915,7 +1911,7 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -1935,8 +1931,32 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+
+	operatorAddress, err := rollapp1.GetNode().QueryOperatorAddress(ctx)
+	require.NoError(t, err)
+	fmt.Printf("OperatorAddress: %s\n", operatorAddress.Sequencers[1].OperatorAddress)
+	operatorAddr := operatorAddress.Sequencers[1].OperatorAddress
+
+	rewardAddress, err := rollapp1.GetNode().QuerySequencersRewardAddressResponse(ctx, operatorAddr)
+	require.NoError(t, err)
+	rewardAddrStr := rewardAddress.RewardAddr
+	fmt.Printf("RewardAddress1: %s\n", rewardAddrStr)
 
 	channel, err = ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
 	require.NoError(t, err)

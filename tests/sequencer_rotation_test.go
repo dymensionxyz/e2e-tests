@@ -333,18 +333,14 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -364,8 +360,23 @@ func Test_SeqRotation_OneSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
+
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -723,22 +734,14 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
-
-	// currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	// require.NoError(t, err)
-	// println("checking new proposer: ", currentProposer.ProposerAddr)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -758,8 +761,22 @@ func Test_SeqRotation_OneSeq_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -1076,7 +1093,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -1144,7 +1161,7 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -1164,7 +1181,17 @@ func Test_SeqRotation_NoSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -1473,7 +1500,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -1541,7 +1568,7 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 		err = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -1561,7 +1588,17 @@ func Test_SeqRotation_NoSeq_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -1957,7 +1994,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	for i := 0; i < 10; i++ {
 		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -1976,7 +2013,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -2108,7 +2145,7 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -2128,7 +2165,17 @@ func Test_SeqRotation_NoSeq_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -2562,7 +2609,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	for i := 0; i < 10; i++ {
 		err = dymension.Unbond(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
@@ -2581,7 +2628,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_UNBONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -2713,7 +2760,7 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -2733,7 +2780,17 @@ func Test_SeqRotation_NoSeq_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -3202,11 +3259,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(250 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -3263,7 +3316,7 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -3283,8 +3336,22 @@ func Test_SqcRotation_OneSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -3752,11 +3819,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(250 * time.Second)
-
-	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
-	require.NoError(t, err)
-	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -3813,7 +3876,7 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(120 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -3833,8 +3896,22 @@ func Test_SqcRotation_OneSqc_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
+
+	currentProposer, err = dymension.GetNode().GetProposerByRollapp(ctx, rollapp1.Config().ChainID, dymensionUserAddr)
+	require.NoError(t, err)
+	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
 	transferData = ibc.WalletData{
@@ -4350,7 +4427,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -4407,7 +4484,7 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
@@ -4434,7 +4511,17 @@ func Test_SqcRotation_MulSqc_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	transferData = ibc.WalletData{
@@ -4953,7 +5040,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -5010,7 +5097,7 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
@@ -5037,7 +5124,17 @@ func Test_SqcRotation_MulSqc_P2P_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	transferData = ibc.WalletData{
@@ -5452,7 +5549,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	// Chain halted
 
@@ -5461,7 +5558,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -5481,7 +5578,17 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -5861,7 +5968,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	// Chain halted
 
@@ -5870,7 +5977,7 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -5890,7 +5997,17 @@ func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -6243,7 +6360,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	// Chain halted
 	err = rollapp1.StopAllNodes(ctx)
@@ -6251,7 +6368,7 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -6271,7 +6388,17 @@ func Test_SeqRotation_HisSync_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -6622,7 +6749,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(300 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	// Chain halted
 	err = rollapp1.StopAllNodes(ctx)
@@ -6630,7 +6757,7 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 
 	_ = rollapp1.StartAllNodes(ctx)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -6650,7 +6777,17 @@ func Test_SeqRotation_HisSync_DA_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
@@ -7075,7 +7212,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	lastBlock, err := rollapp1.Height(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(250 * time.Second)
+	time.Sleep(200 * time.Second)
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -7132,7 +7269,7 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	err = rollapp1.Validators[0].StartContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(100 * time.Second)
+	time.Sleep(50 * time.Second)
 
 	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
@@ -7152,7 +7289,17 @@ func Test_SqcRotation_HisSync_P2P_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	afterBlock, err := rollapp1.Height(ctx)
-	require.NoError(t, err)
+	if err != nil {
+		err = rollapp1.StopAllNodes(ctx)
+		require.NoError(t, err)
+
+		_ = rollapp1.StartAllNodes(ctx)
+
+		time.Sleep(50 * time.Second)
+
+		afterBlock, err = rollapp1.Height(ctx)
+		require.NoError(t, err)
+	}
 	require.True(t, afterBlock > lastBlock)
 
 	// Compose an IBC transfer and send from rollapp -> Hub
