@@ -5249,7 +5249,8 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	numRollAppVals := 1
 	numRollAppFn := 2
 
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+	logger := zaptest.NewLogger(t)
+	cf := test.NewBuiltinChainFactory(logger, []*test.ChainSpec{
 		{
 			Name: "rollapp1",
 			ChainConfig: ibc.ChainConfig{
@@ -5385,38 +5386,20 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	// Compose an IBC transfer and send from rollapp -> Hub
 	_, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	require.NoError(t, err)
-
-	rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	require.NoError(t, err)
-
-	// Assert balance was updated on the hub
+	// Assert balance was updated on the rollapp
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
-	// wait until the packet is finalized
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
-	require.NoError(t, err)
-
 	res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	fmt.Println(res)
 	require.NoError(t, err)
+	fmt.Println("waiting for packets", "number of packets", len(res.RollappPackets))
 
 	for _, packet := range res.RollappPackets {
-
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
-		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
+		_, err = dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
 		require.NoError(t, err)
-
-		fmt.Println(txhash)
 	}
 
 	// Get the IBC denom for urax on Hub
@@ -5485,7 +5468,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	cmd = append([]string{rollapp1.FullNodes[1].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[1].HomeDir())
-	pub1, _, err = rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
+	pub2, _, err := rollapp1.FullNodes[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
 	err = dymension.FullNodes[0].CreateKeyWithKeyDir(ctx, "sequencer", rollapp1.FullNodes[1].HomeDir())
@@ -5506,7 +5489,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+	command = []string{"sequencer", "create-sequencer", string(pub2), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
 		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
@@ -5539,11 +5522,12 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	seqAddr, err := dymension.AccountKeyBech32WithKeyDir(ctx, "sequencer", rollapp1.GetSequencerKeyDir())
 	require.NoError(t, err)
 
+	// wait for sequencer to be unbonded (FIXME)
 	queryGetSequencerResponse, err := dymension.QueryShowSequencer(ctx, seqAddr)
 	require.NoError(t, err)
 	require.Equal(t, "OPERATING_STATUS_BONDED", queryGetSequencerResponse.Sequencer.Status)
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension)
 	require.NoError(t, err)
 
 	lastBlock, err := rollapp1.Height(ctx)
@@ -5552,6 +5536,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	time.Sleep(200 * time.Second)
 
 	// Chain halted
+	logger.Info("*********** closing down the chains **************")
 
 	err = rollapp1.StopAllNodes(ctx)
 	require.NoError(t, err)
@@ -5603,29 +5588,17 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	// Check IBC after switch
-	rollappHeight, err = rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	require.NoError(t, err)
-	require.True(t, isFinalized)
-
-	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
-	require.NoError(t, err)
-
 	res, err = dymension.FullNodes[0].QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
 	fmt.Println(res)
 	require.NoError(t, err)
 
 	for _, packet := range res.RollappPackets {
-
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -5640,6 +5613,7 @@ func Test_SeqRotation_MulSeq_DA_EVM(t *testing.T) {
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, (transferAmount.Sub(bridgingFee)).MulRaw(2))
 }
+
 func Test_SeqRotation_MulSeq_DA_Wasm(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
