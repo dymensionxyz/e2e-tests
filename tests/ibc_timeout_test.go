@@ -520,9 +520,6 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	hubHeight, err := dymension.GetNode().Height(ctx)
-	require.NoError(t, err)
-
 	transferData = ibc.WalletData{
 		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
