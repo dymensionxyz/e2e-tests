@@ -1642,41 +1642,14 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
+
 	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	for i := 0; i < 10; i++ {
+		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
+		err = testutil.WaitForBlocks(ctx, 8, celestia)
+		require.NoError(t, err)
+	}
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -2140,41 +2113,14 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 	validator, err := celestia.GetNode().AccountKeyBech32(ctx, "validator")
 	require.NoError(t, err)
+
 	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
+	for i := 0; i < 10; i++ {
+		GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
 
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
-
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	err = testutil.WaitForBlocks(ctx, 8, celestia)
-	require.NoError(t, err)
+		err = testutil.WaitForBlocks(ctx, 8, celestia)
+		require.NoError(t, err)
+	}
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)

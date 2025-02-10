@@ -316,6 +316,12 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
+	require.NoError(t, err)
+
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
@@ -905,6 +911,12 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -1498,6 +1510,12 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
+	require.NoError(t, err)
+
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
@@ -2087,6 +2105,12 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -2684,6 +2708,12 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
+	require.NoError(t, err)
+
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
@@ -3133,6 +3163,12 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
@@ -3590,6 +3626,12 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
+	require.NoError(t, err)
+
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
@@ -4038,6 +4080,12 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
+	require.NoError(t, err)
+
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
 
 	// Get the container details
@@ -4484,6 +4532,12 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
@@ -4990,6 +5044,12 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
 		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/members.json", "members.json")
+	require.NoError(t, err)
+
+	err = dymension.Validators[0].CopyFile(ctx, "data/policy.json", "policy.json")
 	require.NoError(t, err)
 
 	containerID := fmt.Sprintf("ra-rollappwasm_1234-1-val-0-%s", t.Name())
