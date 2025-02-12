@@ -373,12 +373,6 @@ e2e-test-sequencer-rotation-accumdata-p2p-evm: clean-e2e
 
 e2e-test-sequencer-rotation-accumdata-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_AccumData_P2P_Wasm .
-	
-e2e-test-sequencer-rotation-state-update-fail-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_StateUpd_Fail_EVM .
-
-e2e-test-sequencer-rotation-state-update-fail-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run Test_SqcRotation_StateUpd_Fail_Wasm .
 
 e2e-test-sequencer-rotation-history-sync-da-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_SeqRotation_HisSync_DA_EVM .
@@ -765,6 +759,9 @@ e2e-test-full-node-sync-mul-forks-wasm: clean-e2e
 
 e2e-test-tokenfactory-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestTokenFactoryRollAppToHub_Wasm .
+
+e2e-test-fullnode-sync-avail-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestFullnodeSync_Avail_EVM .
 
 # Executes all tests via rollup-e2e-testing
 e2e-test-all: e2e-test-ibc-success-evm \
