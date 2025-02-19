@@ -331,7 +331,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		if strings.HasPrefix(line, "namespace_id =") {
 			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
 		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
+			lines[i] = fmt.Sprintf("da_config = [\"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"]", t.Name(), celestia_namespace_id, celestia_token)
 		}
 	}
 
@@ -677,7 +677,7 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 		if strings.HasPrefix(line, "namespace_id =") {
 			lines[i] = fmt.Sprintf("namespace_id = \"%s\"", celestia_namespace_id)
 		} else if strings.HasPrefix(line, "da_config =") {
-			lines[i] = fmt.Sprintf("da_config = \"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"", t.Name(), celestia_namespace_id, celestia_token)
+			lines[i] = fmt.Sprintf("da_config = [\"{\\\"base_url\\\": \\\"http://test-val-0-%s:26658\\\", \\\"timeout\\\": 60000000000, \\\"gas_prices\\\":1.0, \\\"gas_adjustment\\\": 1.3, \\\"namespace_id\\\": \\\"%s\\\", \\\"auth_token\\\":\\\"%s\\\"}\"]", t.Name(), celestia_namespace_id, celestia_token)
 		}
 	}
 
