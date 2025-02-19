@@ -785,8 +785,8 @@ func Test_RollAppStateUpdateFail_EVM(t *testing.T) {
 	dymintTomlOverrides2["batch_submit_time"] = "50s"
 	dymintTomlOverrides2["max_skew_time"] = "70s"
 	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides2["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides2["da_layer"] = []string{"grpc"}
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1175,8 +1175,8 @@ func Test_RollAppStateUpdateFail_Wasm(t *testing.T) {
 	dymintTomlOverrides2["batch_submit_time"] = "50s"
 	dymintTomlOverrides2["max_skew_time"] = "70s"
 	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides2["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides2["da_layer"] = []string{"grpc"}
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides
 
