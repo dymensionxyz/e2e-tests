@@ -1,14 +1,14 @@
 package tests
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"testing"
-	"time"
 	"os"
 	"strings"
-	"bufio"
+	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -351,7 +351,8 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -490,12 +491,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -504,12 +505,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 		}
 	}
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -539,12 +540,12 @@ func TestFraudDetectionDA_P2P_EVM(t *testing.T) {
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -570,7 +571,8 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -709,12 +711,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -723,12 +725,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 		}
 	}
 
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
@@ -758,12 +760,12 @@ func TestFraudDetectionDA_P2P_Wasm(t *testing.T) {
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	for i := 0; i<10; i++{
+	for i := 0; i < 10; i++ {
 		testutil.WaitForBlocks(ctx, 1, dymension, rollapp1)
-		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight + 1)}
+		cmd := []string{"curl", "-X", "GET", fmt.Sprintf("http://%s:26657/block_validated?height=%v", rollapp1.FullNodes[0].Name(), valHeight+1)}
 		sdtout, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
 		require.NoError(t, err)
-	
+
 		var resp BlockValidatedResponse
 		err = json.Unmarshal([]byte(sdtout), &resp)
 		require.NoError(t, err)
