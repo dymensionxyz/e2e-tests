@@ -37,9 +37,9 @@ import (
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
-	// out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:arm", types.ImagePullOptions{})
-	// require.NoError(t, err)
-	// defer out.Close()
+	out, err := client.ImagePull(ctx, "ghcr.io/dymensionxyz/dymint:latest", types.ImagePullOptions{})
+	require.NoError(t, err)
+	defer out.Close()
 
 	networkConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
@@ -61,14 +61,14 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 		DNS:             []string{},
 		ExtraHosts:      []string{"host.docker.internal:host-gateway"},
 	}
-	// time.Sleep(2 * time.Minute)
+	time.Sleep(2 * time.Minute)
 	// Create the container
 	fmt.Println("Creating container ...")
 	resp, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: "ghcr.io/decentrio/dymint:arm", // Image to run
-			Tty:   true,                           // Attach to a TTY
+			Image: "ghcr.io/dymensionxyz/dymint:latest", // Image to run
+			Tty:   true,                                 // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
@@ -228,8 +228,7 @@ func TestFullnodeSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -536,11 +535,10 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
+	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
-	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -814,11 +812,10 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
+	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
-	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -918,8 +915,7 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -1346,8 +1342,7 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
