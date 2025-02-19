@@ -40,6 +40,8 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -49,6 +51,7 @@ func TestIBCTransferTimeout_EVM(t *testing.T) {
 	numRollAppFn := 0
 	numRollAppVals := 1
 	logger := zaptest.NewLogger(t)
+
 	cf := test.NewBuiltinChainFactory(logger, []*test.ChainSpec{
 		{
 			Name: "rollapp1",
@@ -353,6 +356,8 @@ func TestIBCTransferTimeout_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

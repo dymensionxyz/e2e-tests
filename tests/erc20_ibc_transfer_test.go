@@ -40,6 +40,8 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -342,6 +344,8 @@ func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -597,6 +601,8 @@ func TestTokenFactoryRollAppToHub_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

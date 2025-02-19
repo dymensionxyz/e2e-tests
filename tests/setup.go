@@ -184,7 +184,7 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 5,
+			Value: 6,
 		},
 		{
 			Key:   "consensus_params.block.max_gas",
@@ -272,7 +272,7 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 8,
+			Value: 9,
 		},
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
@@ -679,7 +679,11 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	}
 
 	if includeDaGrpcLayer {
-		dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+		dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+		dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	} else {
+		dymintTomlOverrides["da_config"] = []string{""}
+		dymintTomlOverrides["da_layer"] = []string{"mock"}
 	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer
