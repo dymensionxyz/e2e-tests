@@ -681,6 +681,9 @@ func overridesDymintToml(settlemenLayer, nodeAddress, rollappId, gasPrices, maxI
 	if includeDaGrpcLayer {
 		dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
 		dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	} else {
+		dymintTomlOverrides["da_config"] = []string{""}
+		dymintTomlOverrides["da_layer"] = []string{"mock"}
 	}
 
 	dymintTomlOverrides["settlement_layer"] = settlemenLayer

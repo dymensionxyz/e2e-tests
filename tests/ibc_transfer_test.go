@@ -37,6 +37,8 @@ func TestSpinUp(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -122,6 +124,8 @@ func TestIBCTransferSuccess_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -340,6 +344,8 @@ func TestIBCTransferSuccess_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
