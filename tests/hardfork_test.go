@@ -43,7 +43,8 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -496,7 +497,8 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1835,7 +1837,8 @@ func Test_HardFork_KickProposer_Wasm(t *testing.T) {
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
 // 	dymintTomlOverrides["batch_submit_time"] = "50s"
 // 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-// 	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+// 	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+//  dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension
@@ -2254,7 +2257,8 @@ func Test_HardFork_KickProposer_Wasm(t *testing.T) {
 // 	dymintTomlOverrides["max_proof_time"] = "500ms"
 // 	dymintTomlOverrides["batch_submit_time"] = "50s"
 // 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-// 	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+// 	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+//  dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 // 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 // 	// Create chain factory with dymension

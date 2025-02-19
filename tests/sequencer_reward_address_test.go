@@ -43,7 +43,8 @@ func Test_SeqRewardsAddress_Register_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -472,7 +473,8 @@ func Test_SeqRewardsAddress_Register_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -901,7 +903,8 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1340,7 +1343,8 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

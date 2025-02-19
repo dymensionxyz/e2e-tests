@@ -41,7 +41,8 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -264,7 +265,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":          5,
+		"drs":          6,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -379,7 +380,8 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -602,7 +604,7 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          8,
+		"drs":          9,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -717,7 +719,8 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -942,7 +945,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":          5,
+		"drs":          6,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -1005,7 +1008,8 @@ func Test_TimeBaseUpgradeInPast_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
-	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1230,7 +1234,7 @@ func Test_TimeBaseUpgradeInPast_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          5,
+		"drs":          9,
 		"upgrade_time": upgradeTime,
 	}
 

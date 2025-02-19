@@ -212,10 +212,11 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -537,10 +538,11 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -871,10 +873,11 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1222,10 +1225,11 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1573,10 +1577,11 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
@@ -1925,10 +1930,11 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	celestia_namespace_id, err := RandomHex(10)
 	require.NoError(t, err)
 	println("check namespace: ", celestia_namespace_id)
-	da_config := fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)
+	da_config := []string{fmt.Sprintf("{\"base_url\": \"http://test-val-0-%s:26658\", \"timeout\": 60000000000, \"gas_prices\":1.0, \"gas_adjustment\": 1.3, \"namespace_id\": \"%s\", \"auth_token\":\"%s\"}", t.Name(), celestia_namespace_id, celestia_token)}
 
 	configFileOverrides := make(map[string]any)
 	dymintTomlOverrides["namespace_id"] = celestia_namespace_id
+	dymintTomlOverrides["da_layer"] = []string{"celestia"}
 	dymintTomlOverrides["da_config"] = da_config
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 

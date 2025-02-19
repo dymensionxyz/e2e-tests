@@ -41,6 +41,8 @@ func TestGenesisTransferBridgeBlocking_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -214,6 +216,8 @@ func TestGenesisTransferBridgeBlocking_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -387,6 +391,8 @@ func TestGenesisTransferConnectionBlock_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -591,6 +597,8 @@ func TestGenesisTransferConnectionBlock_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -796,6 +804,8 @@ func TestGenesisBridgeInvalid_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -904,6 +914,8 @@ func TestGenesisBridgeInvalid_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1012,6 +1024,8 @@ func TestGenesisBridgeNoRelayAck_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1175,6 +1189,8 @@ func TestGenesisBridgeNoRelayAck_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1347,6 +1363,8 @@ func TestGenesisBridgeBeforeChannelSet_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1575,6 +1593,8 @@ func TestGenesisBridgeBeforeChannelSet_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1795,6 +1815,8 @@ func TestGenesisBridgeWithoutGenesisAcc_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -1964,6 +1986,8 @@ func TestGenesisBridgeWithoutGenesisAcc_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -2133,6 +2157,8 @@ func TestGenesisTransferBridgeUnBond_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
@@ -2320,6 +2346,8 @@ func TestGenesisTransferBridgeUnBond_Wasm(t *testing.T) {
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
 
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 	// Create chain factory with dymension
