@@ -196,7 +196,7 @@ func TestRollapp_EVM_Upgrade(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
 	prop, _ := rollapp1.QueryProposal(ctx, upgradeTx.ProposalID)
 	fmt.Println("prop: ", prop)
-	require.Equal(t, prop.Status, cosmos.ProposalStatusPassed)
+	require.Equal(t, prop.ProposalInfo.Status, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
@@ -495,7 +495,7 @@ func TestRollapp_Wasm_Upgrade(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, rollapp1.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
 	prop, _ := rollapp1.QueryProposal(ctx, upgradeTx.ProposalID)
 	fmt.Println("prop: ", prop)
-	require.Equal(t, prop.Status, cosmos.ProposalStatusPassed)
+	require.Equal(t, prop.ProposalInfo.Status, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)

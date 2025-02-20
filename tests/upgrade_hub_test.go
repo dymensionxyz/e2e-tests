@@ -253,7 +253,7 @@ func TestHubUpgrade(t *testing.T) {
 	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
 	prop, _ := dymension.QueryProposal(ctx, upgradeTx.ProposalID)
 	fmt.Println("prop: ", prop)
-	require.Equal(t, prop.Status, cosmos.ProposalStatusPassed)
+	require.Equal(t, prop.ProposalInfo.Status, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)

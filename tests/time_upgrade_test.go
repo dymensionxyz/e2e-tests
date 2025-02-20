@@ -300,7 +300,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	fmt.Println("prop: ", prop)
 
-	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
+	require.Equal(t, cosmos.ProposalStatusPassed, prop.ProposalInfo.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*90)
@@ -639,7 +639,7 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 
 	fmt.Println("prop: ", prop)
 
-	require.Equal(t, cosmos.ProposalStatusPassed, prop.Status)
+	require.Equal(t, cosmos.ProposalStatusPassed, prop.ProposalInfo.Status)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*90)
