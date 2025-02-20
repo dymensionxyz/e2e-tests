@@ -1669,10 +1669,10 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, math.NewInt(1000000000000))
 
 	// Rollapp record on the hub updated with new token metadata (”adym”)
-	_, err = dymension.Validators[0].QueryDenomMetadata(ctx, "adym")
+	_, err = dymension.Validators[0].QueryDenomMetadataHub(ctx, "adym")
 	require.NoError(t, err)
 	// On the rollapp, the new denom should have hash value instead of “adym”
-	_, err = rollapp1.Validators[0].QueryDenomMetadata(ctx, dymensionIBCDenom)
+	_, err = rollapp1.Validators[0].QueryDenomMetadataRA(ctx, dymensionIBCDenom)
 	require.NoError(t, err)
 	t.Cleanup(
 		func() {
@@ -1901,10 +1901,10 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(1000000000000))
 
 	// Rollapp record on the hub updated with new token metadata (”adym”)
-	_, err = dymension.Validators[0].QueryDenomMetadata(ctx, "adym")
+	_, err = dymension.Validators[0].QueryDenomMetadataHub(ctx, "adym")
 	require.NoError(t, err)
 	// On the rollapp, the new denom should have hash value instead of “adym”
-	_, err = rollapp1.Validators[0].QueryDenomMetadata(ctx, dymensionIBCDenom)
+	_, err = rollapp1.Validators[0].QueryDenomMetadataRA(ctx, dymensionIBCDenom)
 	require.NoError(t, err)
 	t.Cleanup(
 		func() {

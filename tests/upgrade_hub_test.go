@@ -250,8 +250,8 @@ func TestHubUpgrade(t *testing.T) {
 	err = dymension.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
-	prop, _ := dymension.QueryProposal(ctx, upgradeTx.ProposalID)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, haltHeight, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	prop, _ := dymension.QueryProposalV50(ctx, upgradeTx.ProposalID)
 	fmt.Println("prop: ", prop)
 	require.Equal(t, prop.ProposalInfo.Status, cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")

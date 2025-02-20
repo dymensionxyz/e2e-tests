@@ -331,7 +331,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.NoError(t, err, "error fetching height")
 	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	command = []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
@@ -782,7 +782,7 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	require.NoError(t, err, "error fetching height")
 	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	command = []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}

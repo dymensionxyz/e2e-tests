@@ -602,7 +602,7 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 	//
 
@@ -947,7 +947,7 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 	//
 
