@@ -670,6 +670,8 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides1["max_proof_time"] = "500ms"
 	dymintTomlOverrides1["batch_submit_time"] = "50s"
 	dymintTomlOverrides1["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides1["da_config"] = []string{""}
+	dymintTomlOverrides1["da_layer"] = []string{"mock"}
 
 	configFileOverrides1["config/dymint.toml"] = dymintTomlOverrides1
 
@@ -684,6 +686,8 @@ func TestEIBCTimeoutFulFillDymToRollapp_EVM(t *testing.T) {
 	dymintTomlOverrides2["max_proof_time"] = "500ms"
 	dymintTomlOverrides2["batch_submit_time"] = "50s"
 	dymintTomlOverrides2["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides2["da_config"] = []string{""}
+	dymintTomlOverrides2["da_layer"] = []string{"mock"}
 
 	configFileOverrides2["config/dymint.toml"] = dymintTomlOverrides2
 
