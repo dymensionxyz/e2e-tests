@@ -570,18 +570,32 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// Change the bridge fee param using gov
-	//
-	newBridgeFeeParam := json.RawMessage(`"0"`)
-	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
-		&utils.ParamChangeProposalJSON{
-			Title:       "Change bridge fee params",
-			Description: "Change bridge fee params",
-			Changes: utils.ParamChangesJSON{
-				utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
-			},
-			Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-		})
-	require.NoError(t, err)
+	newBridgeFeeParam := json.RawMessage(`"\"0\""`)
+
+	msg := map[string]interface{}{
+		"@type":     "/cosmos.gov.v1.MsgExecLegacyContent",
+		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"content": utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
+		},
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + rollapp1.Config().Denom,
+		Title:       "Change bridge fee params",
+		Summary:     "Change bridge fee params",
+		Description: "Change bridge fee params",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   true,
+	}
+
+	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -901,18 +915,32 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// Change the bridge fee param using gov
-	//
-	newBridgeFeeParam := json.RawMessage(`"0"`)
-	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
-		&utils.ParamChangeProposalJSON{
-			Title:       "Change bridge fee params",
-			Description: "Change bridge fee params",
-			Changes: utils.ParamChangesJSON{
-				utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
-			},
-			Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-		})
-	require.NoError(t, err)
+	newBridgeFeeParam := json.RawMessage(`"\"0\""`)
+
+	msg := map[string]interface{}{
+		"@type":     "/cosmos.gov.v1.MsgExecLegacyContent",
+		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"content": utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
+		},
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + rollapp1.Config().Denom,
+		Title:       "Change bridge fee params",
+		Summary:     "Change bridge fee params",
+		Description: "Change bridge fee params",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   true,
+	}
+
+	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
