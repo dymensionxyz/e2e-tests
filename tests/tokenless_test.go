@@ -1390,7 +1390,7 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
@@ -1751,7 +1751,7 @@ func TestUpdateMinGasPrice_Wasm(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)

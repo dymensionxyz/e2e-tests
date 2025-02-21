@@ -586,7 +586,7 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	}
 
 	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom,
+		Deposit:     "500000000000" + dymension.Config().Denom,
 		Title:       "Change bridge fee params",
 		Summary:     "Change bridge fee params",
 		Description: "Change bridge fee params",
@@ -594,7 +594,7 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = dymension.GetNode().SubmitProposal(ctx, dymensionUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
@@ -931,7 +931,7 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 	}
 
 	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom,
+		Deposit:     "500000000000" + dymension.Config().Denom,
 		Title:       "Change bridge fee params",
 		Summary:     "Change bridge fee params",
 		Description: "Change bridge fee params",
@@ -939,7 +939,7 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 		Expedited:   true,
 	}
 
-	_, err = dymension.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
+	_, err = dymension.GetNode().SubmitProposal(ctx, dymensionUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
