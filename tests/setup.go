@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: DymensionMainRepo,
-		Version:    dymensionVersion,
+		Repository: "ghcr.io/decentrio/dymension",
+		Version:    "v50",
 		UidGid:     "1025:1025",
 	}
 
@@ -382,11 +382,11 @@ var (
 		// MaxBytes: 4194304 - four megabytes
 		// MaxGas:   10000000
 		{
-			Key:   "consensus_params.block.max_bytes",
+			Key:   "consensus.params.block.max_bytes",
 			Value: "4194304",
 		},
 		{
-			Key:   "consensus_params.block.max_gas",
+			Key:   "consensus.params.block.max_gas",
 			Value: "10000000",
 		},
 		// EVM params
