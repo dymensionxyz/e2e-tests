@@ -223,7 +223,7 @@ func TestADMC_Originates_HubtoRA_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 	require.Equal(t, "urax", resp.Metadatas[0].Base)
@@ -369,7 +369,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -415,7 +415,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -446,7 +446,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -465,7 +465,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -513,7 +513,7 @@ func TestADMC_Migrate_Empty_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -659,7 +659,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -705,7 +705,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -745,7 +745,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -765,7 +765,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -812,7 +812,7 @@ func TestADMC_Migrate_With_User_Memo_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1021,7 +1021,7 @@ func TestADMC_Originates_HubtoRA_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 	require.Equal(t, "urax", resp.Metadatas[0].Base)
@@ -1167,7 +1167,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1213,7 +1213,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1244,7 +1244,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -1260,7 +1260,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -1308,7 +1308,7 @@ func TestADMC_Migrate_Empty_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1454,7 +1454,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1504,7 +1504,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1539,7 +1539,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -1554,7 +1554,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 	require.Equal(t, dymensionIBCDenom, resp.Metadatas[0].Base)
@@ -1602,7 +1602,7 @@ func TestADMC_Migrate_With_User_Memo_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	resp, err = dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(resp.Metadatas))
 
@@ -1831,7 +1831,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 		Amount:  transferAmount.Sub(bridgingFee),
 	}
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 	require.Equal(t, rollappIBCDenom, resp.Metadatas[0].Base)
@@ -1843,7 +1843,7 @@ func TestADMC_MetaData_NotFound_EVM(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 
@@ -2073,7 +2073,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 		Amount:  transferAmount.Sub(bridgingFee),
 	}
 
-	resp, err := dymension.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err := dymension.GetNode().QueryAllDenomMetadataHub(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 	require.Equal(t, rollappIBCDenom, resp.Metadatas[0].Base)
@@ -2085,7 +2085,7 @@ func TestADMC_MetaData_NotFound_Wasm(t *testing.T) {
 	// Assert balance was updated on the hub
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, zeroBal)
 
-	resp, err = rollapp1.GetNode().QueryAllDenomMetadata(ctx)
+	resp, err = rollapp1.GetNode().QueryAllDenomMetadataRA(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(resp.Metadatas))
 
