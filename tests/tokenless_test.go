@@ -1368,30 +1368,16 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 			}
 		]`)
 
-	msg := map[string]interface{}{
-		"@type":     "/cosmos.gov.v1.MsgExecLegacyContent",
-		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
-		"content": utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollappparams", "minGasPrices", newMinGasPriceParam),
-		},
-	}
-
-	rawMsg, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "Change min gas price param",
-		Summary:     "Change min gas price param",
-		Description: "Change min gas price param",
-		Messages:    []json.RawMessage{rawMsg},
-		Expedited:   true,
-	}
-
-	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
-	require.NoError(t, err, "error submitting change param proposal tx")
+	_, err = rollapp1.GetNode().ParamChangeProposal(ctx, rollappUser.KeyName(),
+		&utils.ParamChangeProposalJSON{
+			Title:       "Change min gas price param",
+			Description: "Change min gas price param",
+			Changes: utils.ParamChangesJSON{
+				utils.NewParamChangeJSON("rollappparams", "minGasPrices", newMinGasPriceParam),
+			},
+			Deposit: "500000000000" + rollapp1.Config().Denom, // greater than min deposit
+		})
+	require.NoError(t, err)
 
 	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -1729,30 +1715,16 @@ func TestUpdateMinGasPrice_Wasm(t *testing.T) {
 				"amount": "1"
 			}
 		]`)
-	msg := map[string]interface{}{
-		"@type":     "/cosmos.gov.v1.MsgExecLegacyContent",
-		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
-		"content": utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("rollappparams", "minGasPrices", newMinGasPriceParam),
-		},
-	}
-
-	rawMsg, err := json.Marshal(msg)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	proposal := cosmos.TxProposalV1{
-		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "Change min gas price param",
-		Summary:     "Change min gas price param",
-		Description: "Change min gas price param",
-		Messages:    []json.RawMessage{rawMsg},
-		Expedited:   true,
-	}
-
-	_, err = rollapp1.GetNode().SubmitProposal(ctx, rollappUser.KeyName(), proposal)
-	require.NoError(t, err, "error submitting change param proposal tx")
+	_, err = rollapp1.GetNode().ParamChangeProposal(ctx, rollappUser.KeyName(),
+		&utils.ParamChangeProposalJSON{
+			Title:       "Change min gas price param",
+			Description: "Change min gas price param",
+			Changes: utils.ParamChangesJSON{
+				utils.NewParamChangeJSON("rollappparams", "minGasPrices", newMinGasPriceParam),
+			},
+			Deposit: "500000000000" + rollapp1.Config().Denom, // greater than min deposit
+		})
+	require.NoError(t, err)
 
 	err = rollapp1.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
