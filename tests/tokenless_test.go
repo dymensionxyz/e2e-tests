@@ -1392,7 +1392,7 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 
 	paramsChange, err := rollapp1.GetNode().QueryParam(ctx, "rollappparams", "minGasPrices")
 	require.NoError(t, err)
-	require.Equal(t, `[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Param.Value)
+	require.Equal(t, `[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Value)
 
 	// Send a  ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
@@ -1739,7 +1739,7 @@ func TestUpdateMinGasPrice_Wasm(t *testing.T) {
 
 	paramsChange, err := rollapp1.GetNode().QueryParam(ctx, "rollappparams", "minGasPrices")
 	require.NoError(t, err)
-	require.Equal(t, `[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Param.Value)
+	require.Equal(t, `[{"denom":"ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D","amount":"1.000000000000000000"}]`, paramsChange.Value)
 
 	// Send a  ibc tx from RA -> Hub
 	transferData = ibc.WalletData{
