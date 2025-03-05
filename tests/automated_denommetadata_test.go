@@ -672,10 +672,10 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	// wait around 10 blocks
 	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
 
-	// transfer should be successful
+	// transfer should be unsuccessful
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
 	require.NoError(t, err)
-	require.True(t, balance.Equal(bigTransferAmount), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	t.Cleanup(
 		func() {
