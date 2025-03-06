@@ -71,12 +71,12 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -417,12 +417,12 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -763,12 +763,12 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1142,12 +1142,12 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{

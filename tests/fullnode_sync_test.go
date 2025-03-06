@@ -391,14 +391,14 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -667,14 +667,14 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-testnet-rpc.itrocket.net:443"
+	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-testnet-consensus.itrocket.net:26657"
+	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
