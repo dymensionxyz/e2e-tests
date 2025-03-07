@@ -672,10 +672,10 @@ func TestADMC_Hub_to_RA_3rd_Party_EVM(t *testing.T) {
 	// wait around 10 blocks
 	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
 
-	// transfer should be successful
+	// transfer should be unsuccessful
 	balance, err = rollapp1.GetBalance(ctx, rollapp1UserAddr, secondHopIBCDenom)
 	require.NoError(t, err)
-	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", bigTransferAmount, balance))
+	require.True(t, balance.Equal(zeroBal), fmt.Sprintf("Value mismatch. Expected %s, actual %s", zeroBal, balance))
 
 	t.Cleanup(
 		func() {
@@ -1094,13 +1094,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	maxProofTime := "500ms"
 	configFileOverrides1 := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s")
 
-	// setup config for rollapp 2
-	settlement_layer_rollapp2 := "dymension"
-	rollapp2_id := "decentrio_12345-1"
-	gas_price_rollapp2 := "0adym"
-	maxIdleTime2 := "3s"
-	configFileOverrides2 := overridesDymintToml(settlement_layer_rollapp2, settlement_node_address, rollapp2_id, gas_price_rollapp2, maxIdleTime2, maxProofTime, "50s")
-
 	// Create chain factory with dymension
 	numHubVals := 1
 	numHubFullNodes := 1
@@ -1132,28 +1125,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 			NumFullNodes:  &numRollAppFn,
 		},
 		{
-			Name: "rollapp2",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp2",
-				ChainID:             "decentrio_12345-1",
-				Images:              []ibc.DockerImage{rollappWasmImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "rol",
-				Denom:               "urax",
-				CoinType:            "118",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappWasmGenesis(rollappWasmGenesisKV),
-				ConfigFileOverrides: configFileOverrides2,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
 			Name:          "dymension-hub",
 			ChainConfig:   dymensionConfig,
 			NumValidators: &numHubVals,
@@ -1173,9 +1144,8 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	rollapp2 := chains[1].(*dym_rollapp.DymRollApp)
-	dymension := chains[2].(*dym_hub.DymHub)
-	gaia := chains[3].(*cosmos.CosmosChain)
+	dymension := chains[1].(*dym_hub.DymHub)
+	gaia := chains[2].(*cosmos.CosmosChain)
 
 	// Relayer Factory
 	client, network := test.DockerSetup(t)
@@ -1183,10 +1153,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	r1 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
 		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
 	).Build(t, client, "relayer1", network)
-	// relayer for rollapp 2
-	r2 := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
-		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
-	).Build(t, client, "relayer2", network)
 
 	r3 := test.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
@@ -1195,21 +1161,14 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	).Build(t, client, "relayer3", network)
 
 	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1, rollapp2).
+		AddRollUp(dymension, rollapp1).
 		AddChain(gaia).
 		AddRelayer(r1, "relayer1").
-		AddRelayer(r2, "relayer2").
 		AddRelayer(r3, "relayer3").
 		AddLink(test.InterchainLink{
 			Chain1:  dymension,
 			Chain2:  rollapp1,
 			Relayer: r1,
-			Path:    ibcPath,
-		}).
-		AddLink(test.InterchainLink{
-			Chain1:  dymension,
-			Chain2:  rollapp2,
-			Relayer: r2,
 			Path:    ibcPath,
 		}).
 		AddLink(test.InterchainLink{
@@ -1236,15 +1195,8 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
 
-	wallet2, found := r2.GetWallet(rollapp2.Config().ChainID)
-	require.True(t, found)
-
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
-
-	keyDir2 := dymension.GetRollApps()[1].GetSequencerKeyDir()
-	require.NoError(t, err)
-	keyPath2 := keyDir2 + "/sequencer_keys"
 
 	//Update white listed relayers
 	for i := 0; i < 10; i++ {
@@ -1260,23 +1212,7 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	}
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, dymension)
-	require.NoError(t, err)
-
-	for i := 0; i < 10; i++ {
-		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath2, []string{wallet2.FormattedAddress()})
-		if err == nil {
-			break
-		}
-		if i == 9 {
-			fmt.Println("Max retries reached. Exiting...")
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
-
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
 
 	// Create some user accounts on both chains
@@ -1298,20 +1234,16 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 
 	dymChannels, err := r1.GetChannels(ctx, eRep, dymension.Config().ChainID)
 	require.NoError(t, err)
-	require.Equal(t, 3, len(dymChannels))
+	require.Equal(t, 2, len(dymChannels))
 
 	channsRollApp1, err := r1.GetChannels(ctx, eRep, rollapp1.GetChainID())
 	require.NoError(t, err)
 	require.Len(t, channsRollApp1, 1)
 
-	channsRollApp2, err := r2.GetChannels(ctx, eRep, rollapp2.GetChainID())
-	require.NoError(t, err)
-	require.Len(t, channsRollApp2, 1)
-
 	gaiaChannels, err := r3.GetChannels(ctx, eRep, gaia.GetChainID())
 	require.NoError(t, err)
 
-	require.Len(t, dymChannels, 3)
+	require.Len(t, dymChannels, 2)
 	require.Len(t, gaiaChannels, 1)
 
 	channDymGaia := gaiaChannels[0].Counterparty
@@ -1322,8 +1254,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 
 	// Start relayer
 	err = r1.StartRelayer(ctx, eRep, ibcPath)
-	require.NoError(t, err)
-	err = r2.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 	err = r3.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
@@ -1424,11 +1354,6 @@ func TestADMC_Hub_to_RA_3rd_Party_Wasm(t *testing.T) {
 	t.Cleanup(
 		func() {
 			err := r1.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-
-			err = r2.StopRelayer(ctx, eRep)
 			if err != nil {
 				t.Logf("an error occurred while stopping the relayer: %s", err)
 			}
@@ -1669,10 +1594,10 @@ func TestADMC_Hub_to_RA_Migrate_Dym_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, math.NewInt(1000000000000))
 
 	// Rollapp record on the hub updated with new token metadata (”adym”)
-	_, err = dymension.Validators[0].QueryDenomMetadata(ctx, "adym")
+	_, err = dymension.Validators[0].QueryDenomMetadataHub(ctx, "adym")
 	require.NoError(t, err)
 	// On the rollapp, the new denom should have hash value instead of “adym”
-	_, err = rollapp1.Validators[0].QueryDenomMetadata(ctx, dymensionIBCDenom)
+	_, err = rollapp1.Validators[0].QueryDenomMetadataRA(ctx, dymensionIBCDenom)
 	require.NoError(t, err)
 	t.Cleanup(
 		func() {
@@ -1901,10 +1826,10 @@ func TestADMC_Hub_to_RA_Migrate_Dym_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, dymensionIBCDenom, math.NewInt(1000000000000))
 
 	// Rollapp record on the hub updated with new token metadata (”adym”)
-	_, err = dymension.Validators[0].QueryDenomMetadata(ctx, "adym")
+	_, err = dymension.Validators[0].QueryDenomMetadataHub(ctx, "adym")
 	require.NoError(t, err)
 	// On the rollapp, the new denom should have hash value instead of “adym”
-	_, err = rollapp1.Validators[0].QueryDenomMetadata(ctx, dymensionIBCDenom)
+	_, err = rollapp1.Validators[0].QueryDenomMetadataRA(ctx, dymensionIBCDenom)
 	require.NoError(t, err)
 	t.Cleanup(
 		func() {

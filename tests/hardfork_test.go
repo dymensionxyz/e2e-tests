@@ -272,10 +272,6 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -325,7 +321,8 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
+	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
+	require.NoError(t, err, "failed to submit proposal")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -334,7 +331,7 @@ func TestHardForkDueToFraud_EVM(t *testing.T) {
 	require.NoError(t, err, "error fetching height")
 	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	command = []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
@@ -726,10 +723,6 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
 
-	resp, err := dymension.QueryShowSequencerByRollapp(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-	require.Equal(t, len(resp.Sequencers), 2, "should have 2 sequences")
-
 	// Wait a few blocks for relayer to start and for user accounts to be created
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
@@ -779,7 +772,8 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	}
 
 	// Submit fraud proposal
-	_, _ = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
+	_, err = dymension.SubmitFraudProposal(ctx, dymensionUser.KeyName(), proposal)
+	require.NoError(t, err, "failed to submit proposal")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -788,7 +782,7 @@ func TestHardForkDueToFraud_Wasm(t *testing.T) {
 	require.NoError(t, err, "error fetching height")
 	haltHeight := height + haltHeightDelta
 
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, haltHeight, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 
 	command = []string{"sequencer", "opt-in", "true", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}

@@ -1367,6 +1367,7 @@ func TestUpdateMinGasPrice_EVM(t *testing.T) {
 				"amount": "1"
 			}
 		]`)
+
 	_, err = rollapp1.GetNode().ParamChangeProposal(ctx, rollappUser.KeyName(),
 		&utils.ParamChangeProposalJSON{
 			Title:       "Change min gas price param",

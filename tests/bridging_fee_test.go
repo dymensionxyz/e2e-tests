@@ -570,7 +570,6 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// Change the bridge fee param using gov
-	//
 	newBridgeFeeParam := json.RawMessage(`"0"`)
 	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
 		&utils.ParamChangeProposalJSON{
@@ -588,7 +587,7 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 	//
 
@@ -901,7 +900,6 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// Change the bridge fee param using gov
-	//
 	newBridgeFeeParam := json.RawMessage(`"0"`)
 	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
 		&utils.ParamChangeProposalJSON{
@@ -919,7 +917,7 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 
 	height, err := dymension.Height(ctx)
 	require.NoError(t, err, "error fetching height")
-	_, err = cosmos.PollForProposalStatus(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed")
 	//
 
