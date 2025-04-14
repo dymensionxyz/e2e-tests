@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "v50",
+		Repository: "ghcr.io/dymensionxyz/dymension",
+		Version:    "latest",
 		UidGid:     "1025:1025",
 	}
 
@@ -197,10 +197,6 @@ var (
 		{
 			Key:   "app_state.feemarket.params.min_gas_price",
 			Value: "0.0",
-		},
-		{
-			Key:   "app_state.mint.params.mint_denom",
-			Value: "urax",
 		},
 		{
 			Key:   "app_state.staking.params.bond_denom",
