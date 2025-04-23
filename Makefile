@@ -545,6 +545,9 @@ e2e-test-hardfork-before-submitted-evm: clean-e2e
 e2e-test-hardfork-before-canonical-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_HardFork_BeforeCanonicalClient_EVM .
 
+e2e-test-hardfork-before-genesis-bridge-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_BeforeGenesisBridge_EVM .
+
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .

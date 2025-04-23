@@ -35,7 +35,7 @@ import (
 )
 
 // StartDA start grpc DALC server
-func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) {
+func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) container.CreateResponse {
 	fmt.Println("Starting pull image ...")
 	// out, err := client.ImagePull(ctx, "ghcr.io/dymensionxyz/dymint:latest", types.ImagePullOptions{})
 	// require.NoError(t, err)
@@ -79,6 +79,8 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 	// Start the container
 	err = client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	require.NoError(t, err)
+
+	return resp
 }
 
 func TestFullnodeSync_EVM(t *testing.T) {
