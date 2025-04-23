@@ -87,13 +87,13 @@ var (
 
 	bigBridgingFee = math.NewInt(1_000_000)
 
-	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
+	DymensionMainRepo = "ghcr.io/decentrio/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
+	RelayerMainRepo = "ghcr.io/decentrio/relayer"
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion = GetDockerImageVersion()
 
@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/dymensionxyz/dymension",
-		Version:    "latest",
+		Repository: "ghcr.io/decentrio/dymension",
+		Version:    "debug",
 		UidGid:     "1025:1025",
 	}
 
@@ -469,7 +469,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
-		relayerVersion = "main-dym"
+		relayerVersion = "debug"
 	}
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
@@ -713,6 +713,9 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = r.GenesisBridge(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 }
 
