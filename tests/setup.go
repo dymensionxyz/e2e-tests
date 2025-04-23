@@ -87,7 +87,7 @@ var (
 
 	bigBridgingFee = math.NewInt(1_000_000)
 
-	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
+	DymensionMainRepo = "ghcr.io/decentrio/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/dymensionxyz/dymension",
-		Version:    "latest",
+		Repository: DymensionMainRepo,
+		Version:    "hardfork",
 		UidGid:     "1025:1025",
 	}
 
