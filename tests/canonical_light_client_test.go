@@ -133,7 +133,6 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	})
 
 	// create ibc path between dymension and gaia
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
 	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
 	require.NoError(t, err)
 
@@ -1274,22 +1273,22 @@ func TestIBCTransfer_NoLightClient_EVM(t *testing.T) {
 	})
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
 	require.NoError(t, err)
 
-	err = r.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, anotherIbcPath)
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
 	require.NoError(t, err)
 
-	err = r.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	// Get gaia -> dym channel
@@ -1498,22 +1497,22 @@ func TestIBCTransfer_NoLightClient_Wasm(t *testing.T) {
 	})
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
-	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
 	require.NoError(t, err)
 
-	err = r.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
-	require.NoError(t, err)
-
-	err = r.CreateConnections(ctx, eRep, anotherIbcPath)
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
 	require.NoError(t, err)
 
-	err = r.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
 	// Get gaia -> dym channel

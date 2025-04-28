@@ -176,9 +176,6 @@ e2e-test-dym-finalize-block-on-timeout-packet-evm: clean-e2e
 e2e-test-dym-finalize-block-on-ack-packet-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestDymFinalizeBlock_OnAckPacket_EVM .
 
-e2e-test-delayedack-pending-packets-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_NoFinalizedStates_EVM .
-
 e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCFulfillment_ThirdParty_EVM .
 
@@ -646,9 +643,6 @@ e2e-test-dym-finalize-block-on-ack-packet-wasm: clean-e2e
 
 e2e-test-pfm-gaia-to-rollapp-wasm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferGaiaToRollApp_Wasm .	
-
-e2e-test-delayedack-pending-packets-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_NoFinalizedStates_Wasm .
   
 e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_RelayerDown_Wasm .
