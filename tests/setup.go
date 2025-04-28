@@ -87,13 +87,13 @@ var (
 
 	bigBridgingFee = math.NewInt(1_000_000)
 
-	DymensionMainRepo = "ghcr.io/decentrio/dymension"
+	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
 	RollappWasmMainRepo = "ghcr.io/dymensionxyz/rollapp-wasm"
 
-	RelayerMainRepo = "ghcr.io/decentrio/relayer"
+	RelayerMainRepo = "ghcr.io/dymensionxyz/go-relayer"
 
 	dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion = GetDockerImageVersion()
 
@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/decentrio/dymension",
-		Version:    "debug",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -469,7 +469,7 @@ func GetDockerImageVersion() (dymensionVersion, rollappEVMVersion, rollappWasmVe
 	}
 	relayerVersion, found = os.LookupEnv("RELAYER_CI")
 	if !found {
-		relayerVersion = "debug"
+		relayerVersion = "main-dym"
 	}
 	return dymensionVersion, rollappEVMVersion, rollappWasmVersion, relayerVersion
 }
