@@ -2870,7 +2870,24 @@ func TestEIBCFulfillment_ThirdParty_EVM(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
+
+	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r3.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, gaia)
@@ -3364,7 +3381,23 @@ func TestEIBCFulfillment_ThirdParty_Wasm(t *testing.T) {
 
 	CreateChannel(ctx, t, r1, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
 	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, rollapp2.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r3, eRep, dymension.CosmosChain, gaia, ibcPath)
+	err = r3.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r3.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r3.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r3.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, rollapp1, gaia)

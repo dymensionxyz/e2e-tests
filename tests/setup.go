@@ -102,8 +102,8 @@ var (
 	pullRelayerImage = GetPullRelayerImage()
 
 	dymensionImage = ibc.DockerImage{
-		Repository: "ghcr.io/dymensionxyz/dymension",
-		Version:    "latest",
+		Repository: DymensionMainRepo,
+		Version:    dymensionVersion,
 		UidGid:     "1025:1025",
 	}
 
@@ -713,6 +713,9 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = r.GenesisBridge(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 }
 
