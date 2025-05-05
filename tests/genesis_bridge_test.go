@@ -2122,13 +2122,6 @@ func TestKickProposerBeforeGenBridge_EVM(t *testing.T) {
 
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
-		// cosmos.GenesisKV{
-		// 	Key: "app_state.sequencer.params.kick_threshold",
-		// 	Value: map[string]interface{}{
-		// 		"denom":  "adym",
-		// 		"amount": "99999999999999999999",
-		// 	},
-		// },
 		cosmos.GenesisKV{
 			Key:   "app_state.sequencer.params.dishonor_kick_threshold",
 			Value: "1",
