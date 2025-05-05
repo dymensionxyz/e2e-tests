@@ -714,6 +714,9 @@ func CreateChannel(ctx context.Context, t *testing.T, r ibc.Relayer, eRep *testr
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
+
+	err = r.GenesisBridge(ctx, eRep, ibcPath)
+	require.NoError(t, err)
 }
 
 func customEpochConfig(epochDuration string) ibc.ChainConfig {

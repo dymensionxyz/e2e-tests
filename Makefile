@@ -176,9 +176,6 @@ e2e-test-dym-finalize-block-on-timeout-packet-evm: clean-e2e
 e2e-test-dym-finalize-block-on-ack-packet-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestDymFinalizeBlock_OnAckPacket_EVM .
 
-e2e-test-delayedack-pending-packets-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_NoFinalizedStates_EVM .
-
 e2e-test-eibc-fulfillment-thirdparty-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestEIBCFulfillment_ThirdParty_EVM .
 
@@ -247,9 +244,6 @@ e2e-test-rollapp-hardforkduetofraud-evm: clean-e2e
 
 e2e-test-rollapp-hardforkduetofraud-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardForkDueToFraud_Wasm .
-
-e2e-test-rollapp-genesis-transfer-bridge-blocking-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeBlocking_EVM .
 
 e2e-test-rollapp-genesis-transfer-connection-blocking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferConnectionBlock_EVM .
@@ -488,8 +482,8 @@ e2e-test-rollapp-state-update-fail-celes-evm: clean-e2e
 e2e-test-genesis-bridge-unbond-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
 
-e2e-test-genesis-bridge-kick-proposer-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_EVM
+e2e-test-kick-proposer-before-gen-bridge-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_EVM
 
 e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_EVM .
@@ -658,9 +652,6 @@ e2e-test-dym-finalize-block-on-ack-packet-wasm: clean-e2e
 
 e2e-test-pfm-gaia-to-rollapp-wasm:  clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferGaiaToRollApp_Wasm .	
-
-e2e-test-delayedack-pending-packets-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_NoFinalizedStates_Wasm .
   
 e2e-test-delayedack-relayer-down-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestDelayedAck_RelayerDown_Wasm .
@@ -706,9 +697,6 @@ e2e-test-rollapp-freeze-state-not-progressing-wasm: clean-e2e
 
 e2e-test-rollapp-hardfork-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestHardFork_Wasm .
-
-e2e-test-rollapp-genesis-transfer-bridge-blocking-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeBlocking_Wasm .
 
 e2e-test-admc-originates-hub-to-rollapp-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestADMC_Originates_HubtoRA_Wasm .
@@ -763,8 +751,8 @@ e2e-test-rollapp-state-update-fail-celes-wasm: clean-e2e
 e2e-test-genesis-bridge-unbond-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
 
-e2e-test-genesis-bridge-kick-proposer-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestGenTransferBridgeKickProposer_Wasm
+e2e-test-kick-proposer-before-gen-bridge-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_Wasm
 
 e2e-test-fraud-detection-da-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_Wasm .
