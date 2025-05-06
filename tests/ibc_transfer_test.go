@@ -804,7 +804,7 @@ func TestIBCTransferRAToRA_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, bigTransferAmount.Sub(bigBridgingFee))
 
 	transferData = ibc.WalletData{
-		Address: rollappUserAddr2,
+		Address: dymensionUserAddr,
 		Denom:   rollapp1.Config().Denom,
 		Amount:  transferAmount,
 	}
