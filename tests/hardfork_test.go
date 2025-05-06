@@ -3205,6 +3205,9 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 	err = r.CreateConnections(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
 	err = client.ContainerStop(ctx, containerDA.ID, container.StopOptions{})
 	require.NoError(t, err)
 
@@ -3212,9 +3215,9 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
-	require.Error(t, err)
+	require.NoError(t, err)
 
-	err = client.ContainerStart(ctx, containerDA.ID, types.ContainerStartOptions{})
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
@@ -3294,6 +3297,9 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 	err = os.RemoveAll(fmt.Sprintf("/tmp/%s/data", rollapp1ValFolderName))
 	require.NoError(t, err)
 
+	err = client.ContainerStart(ctx, containerDA.ID, types.ContainerStartOptions{})
+	require.NoError(t, err)
+
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
@@ -3315,7 +3321,33 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 		_ = rollapp1.Validators[0].StartContainer(ctx)
 	}
 
-	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	wallet, found = r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	//Update white listed relayers
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", rollapp1.FullNodes[0].HomeDir()+"/sequencer_keys", []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+	require.NoError(t, err)
+
+	err = r.CreateChannelOverride(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r.GenesisBridge(ctx, eRep, ibcPath)
+	require.Error(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)

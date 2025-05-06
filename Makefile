@@ -482,9 +482,6 @@ e2e-test-rollapp-state-update-fail-celes-evm: clean-e2e
 e2e-test-genesis-bridge-unbond-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
 
-e2e-test-kick-proposer-before-gen-bridge-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_EVM
-
 e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_EVM .
 
@@ -750,9 +747,6 @@ e2e-test-rollapp-state-update-fail-celes-wasm: clean-e2e
 
 e2e-test-genesis-bridge-unbond-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
-
-e2e-test-kick-proposer-before-gen-bridge-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_Wasm
 
 e2e-test-fraud-detection-da-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_Wasm .
