@@ -813,7 +813,7 @@ func TestIBCTransferRAToRA_EVM(t *testing.T) {
 	eibcFee := transferAmount.Quo(multiplier) // transferAmount * 0.1
 	var options ibc.TransferOptions
 	// set eIBC specific memo
-	memo, err := dymension.GetNode().GetMemo(ctx, eibcFee.String(), channelRA1.ChannelID, rollappUserAddr2, "5m")
+	memo, err := dymension.GetNode().GetMemo(ctx, eibcFee.String(), channelRA2.Counterparty.ChannelID, rollappUserAddr2, "5m")
 	require.NoError(t, err)
 
 	memo = strings.ReplaceAll(memo, "\n", "")
@@ -866,8 +866,16 @@ func TestIBCTransferRAToRA_EVM(t *testing.T) {
 	rollappHeight, err = rollapp1.GetNode().Height(ctx)
 	require.NoError(t, err)
 
+	rollappHeight2, err := rollapp2.GetNode().Height(ctx)
+	require.NoError(t, err)
+
 	// wait until the packet is finalized on Rollapps
 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	require.NoError(t, err)
+	require.True(t, isFinalized)
+
+	// wait until the packet is finalized on Rollapps
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight2, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -892,6 +900,21 @@ func TestIBCTransferRAToRA_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(resp.Commitments) > 0, false, "packet commitments exist")
 
+	expMmBalanceRollappDenom := (bigTransferAmount.Sub(bigBridgingFee))
+	// verify correct funds were deducted from market maker's wallet address
+	balance, err = dymension.GetBalance(ctx, dymensionUserAddr, rollappIBCDenom)
+	require.NoError(t, err)
+	fmt.Println("Balance of marketMakerAddr after fulfilling the order:", balance)
+	expMmBalanceRollappDenom = expMmBalanceRollappDenom.Add(eibcFee)
+	require.True(t, balance.Equal(expMmBalanceRollappDenom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollappDenom, balance))
+
+	rollappTokenDenom2 := transfertypes.GetPrefixedDenom(channelRA2.PortID, channelRA2.ChannelID, rollappTokenDenom)
+	rollappIBCDenom2 := transfertypes.ParseDenomTrace(rollappTokenDenom2).IBCDenom()
+
+	erc20MAcc, err := rollapp2.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
+	testutil.AssertBalance(t, ctx, rollapp2, erc20MAccAddr, rollappIBCDenom2, transferData.Amount.Sub(eibcFee).Sub(bridgingFee))
 }
 
 // // TestGenesisIBCTransferWithReservedMemo_EVM ensure that after the genesis transfer phase for rollapp is completed, transfer memo contain a reserved name field cannot be used.
