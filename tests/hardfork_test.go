@@ -3042,7 +3042,7 @@ func Test_HardFork_BeforeCanonicalClient_EVM(t *testing.T) {
 	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 }
 
-func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
+func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -3050,13 +3050,20 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 	ctx := context.Background()
 
 	// setup config for rollapp 1
-	settlement_layer_rollapp1 := "dymension"
-	settlement_node_address := fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	rollapp1_id := "rollappevm_1234-1"
-	gas_price_rollapp1 := "0adym"
-	maxIdleTime1 := "3s"
-	maxProofTime := "500ms"
-	configFileOverrides := overridesDymintToml(settlement_layer_rollapp1, settlement_node_address, rollapp1_id, gas_price_rollapp1, maxIdleTime1, maxProofTime, "50s", true)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
+	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
+	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
 
 	modifyHubGenesisKV := append(
 		dymensionGenesisKV,
@@ -3170,7 +3177,76 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
+	}, nil, "", nil, true, 1179360, true)
+	require.NoError(t, err)
+
+	containerID := fmt.Sprintf("ra-rollappevm_1234-1-val-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err := client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
+
+	// Extract the IP address from the network settings
+	// If the container is using a custom network, the IP might be under a specific network name
+	var ipAddress string
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
+
+	nodeId, err := rollapp1.Validators[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node := fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
+	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output := strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
+
+	// Start full node
+	err = rollapp1.FullNodes[0].StopContainer(ctx)
+	require.NoError(t, err)
+
+	err = rollapp1.FullNodes[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	addrDym, _ := r.GetWallet(dymension.GetChainID())
+	err = dymension.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrDym.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	addrRA, _ := r.GetWallet(rollapp1.GetChainID())
+	err = rollapp1.GetNode().SendFunds(ctx, "faucet", ibc.WalletData{
+		Address: addrRA.FormattedAddress(),
+		Amount:  math.NewInt(10_000_000_000_000),
+		Denom:   rollapp1.Config().Denom,
+	})
 	require.NoError(t, err)
 
 	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
@@ -3284,9 +3360,6 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, resp0.Sequencers[0].Address, currentProposer.ProposerAddr)
 
-	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
-	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
-
 	// check client was frozen after kicked
 	rollapp1ValHomeDir := strings.Split(rollapp1.Validators[0].HomeDir(), "/")
 	rollapp1ValFolderName := rollapp1ValHomeDir[len(rollapp1ValHomeDir)-1]
@@ -3312,6 +3385,49 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 		require.NoError(t, err)
 		_ = rollapp1.FullNodes[0].StartContainer(ctx)
 	}
+
+	containerID = fmt.Sprintf("ra-rollappevm_1234-1-fn-0-%s", t.Name())
+
+	// Get the container details
+	containerJSON, err = client.ContainerInspect(context.Background(), containerID)
+	require.NoError(t, err)
+
+	for _, network := range containerJSON.NetworkSettings.Networks {
+		ipAddress = network.IPAddress
+		break // Assuming we only need the IP from the first network
+	}
+
+	nodeId, err = rollapp1.FullNodes[0].GetNodeId(ctx)
+	require.NoError(t, err)
+	nodeId = strings.TrimRight(nodeId, "\n")
+	p2p_bootstrap_node = fmt.Sprintf("/ip4/%s/tcp/26656/p2p/%s", ipAddress, nodeId)
+
+	rollapp1HomeDir = strings.Split(rollapp1.Validators[0].HomeDir(), "/")
+	rollapp1FolderName = rollapp1HomeDir[len(rollapp1HomeDir)-1]
+
+	file, err = os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	lines = []string{}
+	scanner = bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	for i, line := range lines {
+		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+		}
+	}
+
+	output = strings.Join(lines, "\n")
+	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	require.NoError(t, err)
+	defer file.Close()
+
+	_, err = file.Write([]byte(output))
+	require.NoError(t, err)
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
 
@@ -3364,7 +3480,7 @@ func Test_HardFork_BeforeGenesisBridge_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, err = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, _ = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
