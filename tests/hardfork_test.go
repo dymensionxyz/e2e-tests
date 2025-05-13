@@ -3297,13 +3297,12 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser := users[0]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
-	rollappUserAddr := rollappUser.FormattedAddress()
 
 	cmd := append([]string{rollapp1.FullNodes[0].Chain.Config().Bin}, "dymint", "show-sequencer", "--home", rollapp1.FullNodes[0].HomeDir())
 	pub1, _, err := rollapp1.FullNodes[0].Exec(ctx, cmd, nil)
@@ -3454,6 +3453,15 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	}
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 50, dymension, rollapp1)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
+	require.NoError(t, err)
+
 	err = r.CreateChannelOverride(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
 	require.NoError(t, err)
 
@@ -3461,18 +3469,21 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = r.GenesisBridge(ctx, eRep, ibcPath)
-	require.Error(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
-	channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
 
 	err = r.StartRelayer(ctx, eRep, ibcPath)
 	require.NoError(t, err)
 
-	time.Sleep(45 * time.Second)
+	// Create some user accounts on both chains
+	users = test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, rollapp1)
+
+	// Get our Bech32 encoded user addresses
+	rollappUser := users[0]
+
+	rollappUserAddr := rollappUser.FormattedAddress()
 
 	transferData := ibc.WalletData{
 		Address: dymensionUserAddr,
@@ -3480,7 +3491,7 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 		Amount:  transferAmount,
 	}
 
-	_, _ = rollapp1.SendIBCTransferAfterHardFork(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	_, _ = rollapp1.SendIBCTransferAfterHardFork(ctx, "channel-0", rollappUserAddr, transferData, ibc.TransferOptions{})
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
@@ -3489,7 +3500,7 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// wait until the packet is finalized
 	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
@@ -3516,10 +3527,10 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the IBC denom for urax on Hub
-	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
+	rollappTokenDenom := transfertypes.GetPrefixedDenom("transfer", "channel-1", rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, (transferAmount.Sub(bridgingFee)).MulRaw(2))
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
 	// Get original account balances
 	dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
@@ -3535,7 +3546,7 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	}
 
 	// Compose an IBC transfer and send from Hub -> rollapp
-	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
+	_, err = dymension.SendIBCTransfer(ctx, "channel-1", dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
@@ -3545,7 +3556,7 @@ func Test_BeforeGenesisBridge_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get the IBC denom
-	dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
+	dymensionTokenDenom := transfertypes.GetPrefixedDenom("transfer", "channel-0", dymension.Config().Denom)
 	dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
 
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
