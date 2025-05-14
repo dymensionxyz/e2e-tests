@@ -1174,6 +1174,7 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 		err = rollapp1.Validators[0].StopContainer(ctx)
 		require.NoError(t, err)
 		err = rollapp1.Validators[0].StartContainer(ctx)
+		require.NoError(t, err)
 	}
 
 	// check client was frozen after kicked
