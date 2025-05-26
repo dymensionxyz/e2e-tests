@@ -87,7 +87,7 @@ var (
 
 	bigBridgingFee = math.NewInt(1_000_000)
 
-	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
+	DymensionMainRepo = "ghcr.io/decentrio/dymension"
 
 	RollappEVMMainRepo = "ghcr.io/dymensionxyz/rollapp-evm"
 
@@ -103,7 +103,7 @@ var (
 
 	dymensionImage = ibc.DockerImage{
 		Repository: DymensionMainRepo,
-		Version:    dymensionVersion,
+		Version:    "ibc-extend",
 		UidGid:     "1025:1025",
 	}
 
@@ -134,6 +134,24 @@ var (
 	eibcClientImage = ibc.DockerImage{
 		Repository: "ghcr.io/decentrio/eibc-client",
 		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
+	anvilImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/anvil",
+		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/hyperlane",
+		Version:    "arm",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneAgentImage = ibc.DockerImage{
+		Repository: "gcr.io/abacus-labs-dev/hyperlane-agent",
+		Version:    "f009a0e-20250524-021447",
 		UidGid:     "1025:1025",
 	}
 

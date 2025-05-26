@@ -12,7 +12,7 @@ replace (
 
 require (
 	github.com/decentrio/e2e-testing-live v0.0.0-20240718080249-ee255229c869
-	github.com/decentrio/rollup-e2e-testing v0.0.0-20250506043534-3a7de7a49852
+	github.com/decentrio/rollup-e2e-testing v0.0.0-20250521045143-e38e0cad838b
 	github.com/dymensionxyz/dymension/v3 v3.1.0-rc03.0.20241224113003-12bfcad722ac
 )
 
@@ -63,7 +63,7 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.25.0 // indirect
 )
