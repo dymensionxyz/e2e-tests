@@ -92,6 +92,31 @@ Detailed steps
 TEST 2: ROL <-> SOL https://www.notion.so/dymension/IBC-Extended-Interop-1e0a4a51f86a8042934cef9adbdb56be with SOL SYNTHETIC / FINALIZE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Tools needed:
+    Hub (latest)
+    Rollapp (e.g. evm, latest)
+    Rust
+    Solana tooling: NOTE!! Seperate solana cli versions are required to be used for different stages of the setup
+        See https://github.com/dymensionxyz/hyperlane-monorepo/blob/986fe8825d827d52c76b7f5f7849d854c4754492/dymension/dymension.readme.txt#L53-L62
+        Building programs requires v1.14.20
+        Launching a node requires v2
+        Deploying contracts requires v.18
+
+~~~~~~~~~~~~
+
+Gist:
+
+It's like a mirror of the test you did for ethereum, except
+    - now its solana
+    - use collateral on hub and synthetic on solana
+    - the transfer goes first from rol->sol and then from sol->rol
+    - there is no need to deploy erc20
+    - do not fulfill eibc but rather just wait for it to finalize
+
+so the steps are
+    - Setup local Solana test node + Hub + Rol
+    - Deploy core contracts to Solana + Hub. Deploy collateral warp route to Hub. Deploy synthetic warp route to Solana. Configure remote router objects
+    - Setup and configure local 
+    TODO: finish writing these instructions after configuring relayer steps
 
 
-        
