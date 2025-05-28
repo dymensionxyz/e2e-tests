@@ -1,3 +1,7 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TEST 1: ROL <-> ETH https://www.notion.so/dymension/IBC-Extended-Interop-1e0a4a51f86a8042934cef9adbdb56be with ETH COLLATERAL / FULFILL
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Gist:
 Setup local Anvil + Hub + Rol. Deploy core contracts to Anvil + Hub. Deploy synthetic warp route to Hub. Deploy collateral warp route to Anvil. Configure remote router objects. 
 Setup and configure local validator and relayer.
@@ -83,7 +87,10 @@ Detailed steps
                     check it makes sense
 
 
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TEST 2: ROL <-> SOL https://www.notion.so/dymension/IBC-Extended-Interop-1e0a4a51f86a8042934cef9adbdb56be with SOL SYNTHETIC / FINALIZE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
