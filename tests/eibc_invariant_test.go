@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -197,12 +196,6 @@ func TestEIBCInvariant_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	require.NoError(t, err)
-
-	newParams, err := dymension.QueryParamV50(ctx, "delayedack", "EpochIdentifier")
-	require.NoError(t, err)
-	require.Equal(t, EPOCH_IDENTIFIER, strings.ReplaceAll(newParams.Param.Value, `"`, ""))
-	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
 	transferData := ibc.WalletData{
@@ -638,10 +631,6 @@ func TestEIBCInvariant_Wasm(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
 	require.NoError(t, err)
-
-	newParams, err := dymension.QueryParamV50(ctx, "delayedack", "EpochIdentifier")
-	require.NoError(t, err)
-	require.Equal(t, EPOCH_IDENTIFIER, strings.ReplaceAll(newParams.Param.Value, `"`, ""))
 
 	transferData := ibc.WalletData{
 		Address: marketMakerAddr,

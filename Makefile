@@ -482,9 +482,6 @@ e2e-test-rollapp-state-update-fail-celes-evm: clean-e2e
 e2e-test-genesis-bridge-unbond-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_EVM
 
-e2e-test-kick-proposer-before-gen-bridge-evm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_EVM
-
 e2e-test-fraud-detection-da-p2p-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_EVM .
 
@@ -532,6 +529,15 @@ e2e-test-full-node-sync-mul-forks-evm: clean-e2e
 
 e2e-test-erc20-staking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestERC20StakingAndIBC_EVM .
+
+e2e-test-hardfork-before-submitted-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_BeforeSubmitted_EVM .
+
+e2e-test-hardfork-before-canonical-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_HardFork_BeforeCanonicalClient_EVM .
+
+e2e-test-hardfork-before-genesis-bridge-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run Test_BeforeGenesisBridge_EVM .
 
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
@@ -741,9 +747,6 @@ e2e-test-rollapp-state-update-fail-celes-wasm: clean-e2e
 
 e2e-test-genesis-bridge-unbond-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestGenesisTransferBridgeUnBond_Wasm
-
-e2e-test-kick-proposer-before-gen-bridge-wasm: clean-e2e
-	cd tests && go test -timeout=45m -race -v -run TestKickProposerBeforeGenBridge_Wasm
 
 e2e-test-fraud-detection-da-p2p-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestFraudDetectionDA_P2P_Wasm .
