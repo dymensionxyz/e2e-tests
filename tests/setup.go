@@ -137,6 +137,24 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	anvilImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/anvil",
+		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/hyperlane",
+		Version:    "arm",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneAgentImage = ibc.DockerImage{
+		Repository: "gcr.io/abacus-labs-dev/hyperlane-agent",
+		Version:    "f009a0e-20250524-021447",
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dym",
 		Name:                "dymension",
