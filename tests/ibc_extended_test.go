@@ -30,8 +30,6 @@ import (
 )
 
 const HYP_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-const COLLAT_TOKEN_CONTRACT = "0x00000000000000000000000084eA74d481Ee0A5332c457a4d796187F6Ba67fEB"
-const COLLAT_TOKEN_CONTRACT_RAW = "84eA74d481Ee0A5332c457a4d796187F6Ba67fEB"
 
 type TransactionData struct {
 	Transactions []struct {
@@ -356,7 +354,24 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	_, err = dymension.GetNode().EnrollRemoteRouter(ctx, "faucet", strings.TrimRight(string(tokenID), "\n"), "31337", COLLAT_TOKEN_CONTRACT)
+	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/anvil0-config.yaml")
+	require.NoError(t, err)
+
+	// Define a struct to match the YAML structure
+	var config struct {
+		Tokens []struct {
+			AddressOrDenom string `yaml:"addressOrDenom"`
+		} `yaml:"tokens"`
+	}
+
+	// Unmarshal the YAML data
+	err = yaml.Unmarshal(anvil_config, &config)
+	require.NoError(t, err)
+
+	collateral_token_contract_raw := strings.TrimRight(config.Tokens[0].AddressOrDenom, "\n")
+	collateral_token_contract := "0x000000000000000000000000" + strings.TrimPrefix(collateral_token_contract_raw, "0x")
+
+	_, err = dymension.GetNode().EnrollRemoteRouter(ctx, "faucet", strings.TrimRight(string(tokenID), "\n"), "31337", collateral_token_contract)
 	require.NoError(t, err)
 
 	// Create some user accounts on both chains
@@ -393,8 +408,19 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	cmd = []string{"cast", "send", COLLAT_TOKEN_CONTRACT_RAW, "transferRemote(uint32,bytes32,uint256)", "1260813472",
-		dymensionUser1Addr, "5", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
+	recipient, err := dymension.GetNode().QueryHyperlaneEthRecipient(ctx, dymensionUser1Addr)
+	require.NoError(t, err)
+
+	fmt.Println(recipient)
+
+	cmd = []string{"cast", "send", "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
+	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	fmt.Println(string(stdout))
+
+	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemote(uint32,bytes32,uint256)", "1260813472",
+		strings.TrimRight(recipient, "\n"), "5", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
 	}
 
 	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
@@ -402,96 +428,15 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	// channel, err := ibc.GetTransferChannel(ctx, r, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
-	// require.NoError(t, err)
+	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemoteMemo(uint32,bytes32,uint256,bytes)", "1260813472",
+		strings.TrimRight(recipient, "\n"), "5", "0x68656c6c6f", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
+	}
 
-	// err = r.StartRelayer(ctx, eRep, ibcPath)
-	// require.NoError(t, err)
+	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
 
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
+	fmt.Println(string(stdout))
 
-	// // Send a normal ibc tx from RA -> Hub
-	// transferData := ibc.WalletData{
-	// 	Address: dymensionUserAddr,
-	// 	Denom:   rollapp1.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
-	// _, err = rollapp1.SendIBCTransfer(ctx, channel.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
-
-	// rollappHeight, err := rollapp1.GetNode().Height(ctx)
-	// require.NoError(t, err)
-
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount))
-
-	// // wait until the packet is finalized
-	// isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
-	// require.NoError(t, err)
-	// require.True(t, isFinalized)
-
-	// res, err := dymension.GetNode().QueryPendingPacketsByAddress(ctx, dymensionUserAddr)
-	// fmt.Println(res)
-	// require.NoError(t, err)
-
-	// for _, packet := range res.RollappPackets {
-
-	// 	proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-	// 	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
-	// 	require.NoError(t, err)
-	// 	require.True(t, isFinalized)
-	// 	txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
-	// 	require.NoError(t, err)
-
-	// 	fmt.Println(txhash)
-	// }
-
-	// err = testutil.WaitForBlocks(ctx, 5, dymension, rollapp1)
-	// require.NoError(t, err)
-
-	// // Get the IBC denom for urax on Hub
-	// rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
-	// rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
-
-	// // Minus 0.1% of transfer amount for bridge fee
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
-
-	// // Get original account balances
-	// dymensionOrigBal, err := dymension.GetBalance(ctx, dymensionUserAddr, dymension.Config().Denom)
-	// require.NoError(t, err)
-
-	// // Compose an IBC transfer and send from dymension -> rollapp
-	// transferData = ibc.WalletData{
-	// 	Address: rollappUserAddr,
-	// 	Denom:   dymension.Config().Denom,
-	// 	Amount:  transferAmount,
-	// }
-
-	// // Compose an IBC transfer and send from Hub -> rollapp
-	// _, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
-	// require.NoError(t, err)
-
-	// // Assert balance was updated on the hub
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-
-	// err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
-	// require.NoError(t, err)
-
-	// // Get the IBC denom
-	// dymensionTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, dymension.Config().Denom)
-	// dymensionIBCDenom := transfertypes.ParseDenomTrace(dymensionTokenDenom).IBCDenom()
-
-	// testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, dymensionOrigBal.Sub(transferData.Amount))
-	// erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
-	// require.NoError(t, err)
-	// erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
-	// testutil.AssertBalance(t, ctx, rollapp1, erc20MAccAddr, dymensionIBCDenom, transferData.Amount)
-
-	// // Run invariant check
 	// CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
 }
 
