@@ -1200,8 +1200,12 @@ func TestERC20StakingAndIBC_EVM(t *testing.T) {
 	_, err = rollapp1.GetNode().WithdrawAllRewards(ctx, rollappUser.KeyName())
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 20, dymension, rollapp1)
+	require.NoError(t, err)
+
 	erc20Bal, err := rollapp1.GetBalance(ctx, erc20MAccAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
+
 	require.True(t, erc20Bal.GT(raOrigBal.Add((transferAmount.Sub(bridgingFee)))))
 	_, err = rollapp1.GetNode().WithdrawCommission(ctx, "validator", response.Validators[0].OperatorAddress)
 	require.NoError(t, err)
