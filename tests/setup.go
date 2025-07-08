@@ -288,7 +288,7 @@ var (
 		// },
 		// {
 		{
-			Key:   "app_state.mint.params.mint_denom",
+			Key:   "app_state.mint.minter.mint_denom",
 			Value: "urax",
 		},
 		{
