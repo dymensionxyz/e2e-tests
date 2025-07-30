@@ -1,0 +1,114 @@
+{
+  "chains": {
+    "dymension": {
+      "bech32Prefix": "dym",
+      "blocks": {
+        "confirmations": 1,
+        "estimateBlockTime": 6,
+        "reorgPeriod": 1
+      },
+      "canonicalAsset": "adym",
+      "chainId": "dymension_100-1",
+      "contractAddressBytes": 32,
+      "deployer": {
+        "name": "DYMENSION",
+        "url": "https://example.com"
+      },
+      "displayName": "Dymension Hub Local",
+      "domainId": 1260813472,
+      "gasCurrencyCoinGeckoId": "dymension",
+      "gasPrice": {
+        "amount": "100000000000.0",
+        "denom": "adym"
+      },
+      "grpcUrls": [
+        {
+          "http": "http://dymension_100-1-val-0-TestIBCHubToKaspa_EVM:9090"
+        }
+      ],
+      "index": {
+        "from": 10
+      },
+      "interchainGasPaymaster": "0x726f757465725f706f73745f6469737061746368000000000000000000000000",
+      "interchainSecurityModule": "0x726f757465725f69736d00000000000000000000000000000000000000000000",
+      "isTestnet": true,
+      "mailbox": "0x68797065726c616e650000000000000000000000000000000000000000000000",
+      "merkleTreeHook": "0x726f757465725f706f73745f6469737061746368000000030000000000000001",
+      "name": "dymension",
+      "nativeToken": {
+        "decimals": 18,
+        "denom": "adym",
+        "name": "ADYM",
+        "symbol": "ADYM"
+      },
+      "protocol": "cosmosnative",
+      "restUrls": [
+        {
+          "http": "http://dymension_100-1-val-0-TestIBCHubToKaspa_EVM:1318"
+        }
+      ],
+      "rpcUrls": [
+        {
+          "http": "http://dymension_100-1-val-0-TestIBCHubToKaspa_EVM:26657"
+        }
+      ],
+      "signer": {
+        "key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        "prefix": "dym",
+        "type": "cosmosKey"
+      },
+      "slip44": 118,
+      "technicalStack": "other",
+      "validatorAnnounce": "0x68797065726c616e650000000000000000000000000000000000000000000000"
+    },
+    "kaspatest10": {
+      "bypassBatchSimulation": false,
+      "depositLookBackMins": 3,
+      "domainId": 80808082,
+      "escrowAddress": "kaspatest:pzrvetjfzx42qpkq89h3puzcm6k4xna4j6ygex08lxupprdte20yzc3arddu2",
+      "grpcUrls": [
+        {
+          "http": "http://dymension_100-1-val-0-TestIBCHubToKaspa_EVM:9090"
+        }
+      ],
+      "hubDomain": 1260813472,
+      "hubMailboxId": "0x68797065726c616e650000000000000000000000000000000000000000000000",
+      "hubTokenId": "0x726f757465725f61707000000000000000000000000000020000000000000000",
+      "interchainGasPaymaster": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "kasDomain": 80808082,
+      "kasTokenId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "kaspaEscrowPrivateKey": "\"3377efcf3b2e0ecc7ba340a29e0215cbfc7fb0b08881fed6d63146201719e835\"",
+      "kaspaMultisigThresholdEscrow": 1,
+      "kaspaMultisigThresholdHubIsm": 1,
+      "kaspaRestUrl": "https://api-tn10.kaspa.org/",
+      "kaspaRpcUrl": "185.69.54.99:17210",
+      "mailbox": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "maxBatchSize": 100,
+      "maxSubmitQueueLength": 100,
+      "merkleTreeHook": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "name": "kaspatest10",
+      "protocol": "kaspa",
+      "rpcUrls": [
+        {
+          "http": "https://www.google.com"
+        }
+      ],
+      "validateDeposit": true,
+      "validateWithdrawal": true,
+      "validateWithdrawalConfirmation": false,
+      "validatorAnnounce": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "validatorHosts": "http://localhost:9090",
+      "validatorPubsKaspa": "03657408719942e2bb1c684d781b226b18c49021468abdc67438eae2b6671b7ee8",
+      "walletSecret": "lkjsdf"
+    }
+  },
+  "defaultRpcConsensusType": "fallback",
+  "destination_chains": [
+    "kaspatest10",
+    "dymension"
+  ],
+  "origin_chains": [
+    "kaspatest10",
+    "dymension"
+  ]
+}
