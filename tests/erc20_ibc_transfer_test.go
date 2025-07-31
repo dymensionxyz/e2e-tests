@@ -131,9 +131,6 @@ func TestERC20RollAppToHubWithRegister_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
@@ -435,9 +432,6 @@ func TestERC20RollAppToHubNewRegister_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
@@ -692,9 +686,6 @@ func TestTokenFactoryRollAppToHub_Wasm(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
@@ -1043,11 +1034,27 @@ func TestERC20StakingAndIBC_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-
-		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
-		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
-	}, nil, "", nil, false, 1179360, true)
+	}, nil, "", nil, true, 1179360, true) // we skip relayer funding as we will fund it manually
 	require.NoError(t, err)
+
+	// Fund the relayer on the hub, as we skipped automatic funding
+	hubRelayerWallet, found := r1.GetWallet(dymension.GetChainID())
+	require.True(t, found)
+
+	err = dymension.GetNode().SendFunds(ctx, test.FaucetAccountKeyName, ibc.WalletData{
+		Address: hubRelayerWallet.FormattedAddress(),
+		Amount:  math.NewInt(101_000_000_000_000_000),
+		Denom:   dymension.Config().Denom,
+	})
+	require.NoError(t, err)
+
+	// Convert the rollapp's faucet ERC20 balance to bank tokens
+	rollappTokenPair, err := rollapp1.GetNode().QueryErc20TokenPair(ctx, rollapp1.Config().Denom)
+	require.NoError(t, err)
+	faucetAddr, err := rollapp1.GetNode().AccountKeyBech32(ctx, test.FaucetAccountKeyName)
+	require.NoError(t, err)
+	_, err = rollapp1.GetNode().ConvertErc20(ctx, test.FaucetAccountKeyName, rollappTokenPair.Erc20Address, walletAmount.String(), faucetAddr, faucetAddr, rollapp1.Config().ChainID)
+	require.NoError(t, err, "can not convert erc20 to cosmos coin")
 
 	wallet, found := r1.GetWallet(rollapp1.Config().ChainID)
 	require.True(t, found)
