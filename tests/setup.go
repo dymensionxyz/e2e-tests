@@ -149,9 +149,21 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	validatorImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/validator",
+		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
 	hyperlaneAgentImage = ibc.DockerImage{
 		Repository: "gcr.io/abacus-labs-dev/hyperlane-agent",
 		Version:    "f009a0e-20250524-021447",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneAgentKaspaImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/hyperlane-agent",
+		Version:    "kaspa",
 		UidGid:     "1025:1025",
 	}
 
