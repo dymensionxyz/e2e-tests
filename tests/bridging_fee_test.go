@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -90,7 +89,23 @@ func Test_Non_Rollappchain_Unaffected_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, gaia1, ibcPath)
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia1)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia1)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia1)
@@ -229,7 +244,23 @@ func Test_Non_Rollappchain_Unaffected_Wasm(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
-	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, gaia1, ibcPath)
+	err = r.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia1.Config().ChainID, ibcPath)
+	require.NoError(t, err)
+
+	err = r.CreateClients(ctx, eRep, ibcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia1)
+	require.NoError(t, err)
+
+	err = r.CreateConnections(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia1)
+	require.NoError(t, err)
+
+	err = r.CreateChannel(ctx, eRep, ibcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, gaia1)
@@ -569,18 +600,32 @@ func TestChangeBridgeFeeParam_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// Change the bridge fee param using gov
-	newBridgeFeeParam := json.RawMessage(`"0"`)
-	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
-		&utils.ParamChangeProposalJSON{
-			Title:       "Change bridge fee params",
-			Description: "Change bridge fee params",
-			Changes: utils.ParamChangesJSON{
-				utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
-			},
-			Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-		})
-	require.NoError(t, err)
+	msg := map[string]interface{}{
+		"@type":     "/dymensionxyz.dymension.delayedack.MsgUpdateParams",
+		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"params": map[string]interface{}{
+			"epoch_identifier":           "hour",
+			"bridging_fee":               "0.000000000000000000",
+			"delete_packets_epoch_limit": 0,
+		},
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + dymension.Config().Denom,
+		Title:       "Change bridge fee params",
+		Summary:     "Change bridge fee params",
+		Description: "Change bridge fee params",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   false,
+	}
+
+	_, err = dymension.GetNode().SubmitProposal(ctx, dymensionUser.KeyName(), proposal)
+	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
@@ -899,18 +944,32 @@ func TestChangeBridgeFeeParam_Wasm(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// Change the bridge fee param using gov
-	newBridgeFeeParam := json.RawMessage(`"0"`)
-	_, err = dymension.GetNode().ParamChangeProposal(ctx, dymensionUser.KeyName(),
-		&utils.ParamChangeProposalJSON{
-			Title:       "Change bridge fee params",
-			Description: "Change bridge fee params",
-			Changes: utils.ParamChangesJSON{
-				utils.NewParamChangeJSON("delayedack", "BridgeFee", newBridgeFeeParam),
-			},
-			Deposit: "500000000000" + dymension.Config().Denom, // greater than min deposit
-		})
-	require.NoError(t, err)
+	msg := map[string]interface{}{
+		"@type":     "/dymensionxyz.dymension.delayedack.MsgUpdateParams",
+		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"params": map[string]interface{}{
+			"epoch_identifier":           "hour",
+			"bridging_fee":               "0.000000000000000000",
+			"delete_packets_epoch_limit": 0,
+		},
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + dymension.Config().Denom,
+		Title:       "Change bridge fee params",
+		Summary:     "Change bridge fee params",
+		Description: "Change bridge fee params",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   false,
+	}
+
+	_, err = dymension.GetNode().SubmitProposal(ctx, dymensionUser.KeyName(), proposal)
+	require.NoError(t, err, "error submitting change param proposal tx")
 
 	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
