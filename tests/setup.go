@@ -137,6 +137,24 @@ var (
 		UidGid:     "1025:1025",
 	}
 
+	anvilImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/anvil",
+		Version:    "latest",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneImage = ibc.DockerImage{
+		Repository: "ghcr.io/decentrio/hyperlane",
+		Version:    "arm",
+		UidGid:     "1025:1025",
+	}
+
+	hyperlaneAgentImage = ibc.DockerImage{
+		Repository: "gcr.io/abacus-labs-dev/hyperlane-agent",
+		Version:    "f009a0e-20250524-021447",
+		UidGid:     "1025:1025",
+	}
+
 	dymensionConfig = ibc.ChainConfig{
 		Type:                "hub-dym",
 		Name:                "dymension",
@@ -184,7 +202,7 @@ var (
 	rollappEVMGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 6,
+			Value: 7,
 		},
 		{
 			Key:   "consensus_params.block.max_gas",
@@ -268,7 +286,7 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 9,
+			Value: 10,
 		},
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
@@ -288,7 +306,7 @@ var (
 		// },
 		// {
 		{
-			Key:   "app_state.mint.params.mint_denom",
+			Key:   "app_state.mint.minter.mint_denom",
 			Value: "urax",
 		},
 		{

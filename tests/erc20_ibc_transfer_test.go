@@ -1187,6 +1187,7 @@ func TestERC20StakingAndIBC_EVM(t *testing.T) {
 	// Get original account balances
 	raOrigBal, err := rollapp1.GetBalance(ctx, erc20MAccAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)
+
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)

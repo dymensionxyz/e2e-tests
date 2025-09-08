@@ -265,7 +265,7 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":          6,
+		"drs":          7,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -604,7 +604,7 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          9,
+		"drs":          10,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -945,7 +945,7 @@ func Test_TimeBaseUpgradeInPast_EVM(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "ethm10d07y265gmmuvt4z0w9aw880jnsr700jpva843",
-		"drs":          6,
+		"drs":          7,
 		"upgrade_time": upgradeTime,
 	}
 
@@ -1234,7 +1234,7 @@ func Test_TimeBaseUpgradeInPast_Wasm(t *testing.T) {
 	msg := map[string]interface{}{
 		"@type":        "/rollapp.timeupgrade.types.MsgSoftwareUpgrade",
 		"authority":    "rol10d07y265gmmuvt4z0w9aw880jnsr700juke5cz",
-		"drs":          9,
+		"drs":          10,
 		"upgrade_time": upgradeTime,
 	}
 
