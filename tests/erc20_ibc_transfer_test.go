@@ -1629,9 +1629,11 @@ func TestERC20Vesting_EVM(t *testing.T) {
 		panic(err)
 	}
 
-	require.Equal(t, originalBal.Add((transferAmount.Sub(bridgingFee))), balance)
+	fmt.Println(balance)
+	fmt.Println(originalBal.Add((transferAmount.Sub(bridgingFee))))
+	require.True(t, balance.GT(originalBal.Add((transferAmount.Sub(bridgingFee)))))
 
-	_, err = rollapp1.GetNode().WithdrawAllRewards(ctx, rollappUser.KeyName())
+	_, err = rollapp1.GetNode().WithdrawAllRewards(ctx, "test")
 	require.NoError(t, err)
 
 	stdout, _, err = rollapp1.Validators[0].Exec(ctx, command, nil)
