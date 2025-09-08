@@ -1202,7 +1202,10 @@ func TestERC20StakingAndIBC_EVM(t *testing.T) {
 	// Get original account balances
 	stdout, _, err = rollapp1.Validators[0].Exec(ctx, command, nil)
 	require.NoError(t, err)
-
+	raOrigBal, err := parseRawERC20Balance(stdout)
+	if err != nil {
+		panic(err)
+	}
 	// Compose an IBC transfer and send from Hub -> rollapp
 	_, err = dymension.SendIBCTransfer(ctx, channel.ChannelID, dymensionUserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
@@ -1220,13 +1223,17 @@ func TestERC20StakingAndIBC_EVM(t *testing.T) {
 		panic(err)
 	}
 
-	require.Equal(t, originalBal.Add((transferAmount.Sub(bridgingFee))), balance)
+	require.Equal(t, raOrigBal.Add((transferAmount.Sub(bridgingFee))), balance)
 
 	_, err = rollapp1.GetNode().WithdrawAllRewards(ctx, rollappUser.KeyName())
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
+
+	erc20MAcc, err := rollapp1.Validators[0].QueryModuleAccount(ctx, "erc20")
+	require.NoError(t, err)
+	erc20MAccAddr := erc20MAcc.Account.BaseAccount.Address
 
 	erc20Bal, err := rollapp1.GetBalance(ctx, erc20MAccAddr, rollapp1.Config().Denom)
 	require.NoError(t, err)

@@ -593,7 +593,7 @@ func TestTokenlessTransferSuccess_Wasm(t *testing.T) {
 			},
 		},
 		cosmos.GenesisKV{
-			Key:   "app_state.mint.params.mint_denom",
+			Key:   "app_state.mint.minter.mint_denom",
 			Value: "ibc/FECACB927EB3102CCCB240FFB3B6FCCEEB8D944C6FEA8DFF079650FEFF59781D",
 		},
 		cosmos.GenesisKV{
