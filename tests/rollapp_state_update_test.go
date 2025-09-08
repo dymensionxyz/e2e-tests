@@ -2536,6 +2536,13 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 			Value: "300s",
 		},
 	)
+	modifyHubGenesisKV := append(
+		dymensionGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.staking.params.unbonding_time",
+			Value: "300s",
+		},
+	)
 
 	// Create chain factory with dymension
 	numHubVals := 1
@@ -2604,7 +2611,7 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 				GasAdjustment:       1.1,
 				TrustingPeriod:      "112h",
 				NoHostMount:         false,
-				ModifyGenesis:       modifyDymensionGenesis(dymensionGenesisKV),
+				ModifyGenesis:       modifyDymensionGenesis(modifyHubGenesisKV),
 				ConfigFileOverrides: nil,
 			},
 			NumValidators: &numHubVals,
@@ -2656,7 +2663,7 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 		Client:           client,
 		NetworkID:        network,
 		SkipPathCreation: true,
-	}, nil, "", nil, false, 180, true)
+	}, nil, "", nil, false, 195, true)
 	require.NoError(t, err)
 
 	wallet1, found := r1.GetWallet(rollapp1.Config().ChainID)
@@ -2722,17 +2729,30 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 	err = rollapp2.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
 
-	time.Sleep(1000000 * time.Second)
+	time.Sleep(300 * time.Second)
+
+	err = rollapp2.Validators[0].StartContainer(ctx)
+	require.NoError(t, err)
+
+	err = r1.StartRelayer(ctx, eRep, ibcPath)
+	require.NoError(t, err)
+
+	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
 	// Create some user accounts on both chains
-	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1, rollapp2)
 
 	// Get our Bech32 encoded user addresses
-	dymensionUser, rollappUser := users[0], users[1]
+	dymensionUser, rollappUser, rollapp2User := users[0], users[1], users[2]
 
 	dymensionUserAddr := dymensionUser.FormattedAddress()
 	rollappUserAddr := rollappUser.FormattedAddress()
+	rollapp2UserAddr := rollapp2User.FormattedAddress()
 
 	channel, err := ibc.GetTransferChannel(ctx, r1, eRep, dymension.Config().ChainID, rollapp1.Config().ChainID)
+	require.NoError(t, err)
+
+	channel2, err := ibc.GetTransferChannel(ctx, r2, eRep, dymension.Config().ChainID, rollapp2.Config().ChainID)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
@@ -2741,6 +2761,9 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 	// Get ibc denom of rollapp on hub
 	rollappTokenDenom := transfertypes.GetPrefixedDenom(channel.Counterparty.PortID, channel.Counterparty.ChannelID, rollapp1.Config().Denom)
 	rollappIBCDenom := transfertypes.ParseDenomTrace(rollappTokenDenom).IBCDenom()
+
+	rollapp2TokenDenom := transfertypes.GetPrefixedDenom(channel2.Counterparty.PortID, channel2.Counterparty.ChannelID, rollapp2.Config().Denom)
+	rollapp2IBCDenom := transfertypes.ParseDenomTrace(rollapp2TokenDenom).IBCDenom()
 
 	// Send a normal ibc tx from RA -> Hub
 	transferData := ibc.WalletData{
@@ -2787,21 +2810,26 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee))
 
-	// send from rollapp to hub again and make sure new bridge fee is applied
-	_, err = rollapp1.SendIBCTransfer(ctx, channel.Counterparty.ChannelID, rollappUserAddr, transferData, ibc.TransferOptions{})
+	transferData = ibc.WalletData{
+		Address: dymensionUserAddr,
+		Denom:   rollapp2.Config().Denom,
+		Amount:  transferAmount,
+	}
+
+	_, err = rollapp2.SendIBCTransfer(ctx, channel2.Counterparty.ChannelID, rollapp2UserAddr, transferData, ibc.TransferOptions{})
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
 	require.NoError(t, err)
 
-	rollappHeight, err = rollapp1.GetNode().Height(ctx)
+	rollappHeight, err = rollapp2.GetNode().Height(ctx)
 	require.NoError(t, err)
 
 	// Assert balance was updated on the hub
-	testutil.AssertBalance(t, ctx, rollapp1, rollappUserAddr, rollapp1.Config().Denom, walletAmount.Sub(transferData.Amount).Sub(transferData.Amount))
+	testutil.AssertBalance(t, ctx, rollapp2, rollapp2UserAddr, rollapp2.Config().Denom, walletAmount.Sub(transferData.Amount))
 
 	// wait until the packet is finalized
-	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), rollappHeight, 300)
 	require.NoError(t, err)
 	require.True(t, isFinalized)
 
@@ -2812,7 +2840,7 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 	for _, packet := range res.RollappPackets {
 
 		proofHeight, _ := strconv.ParseInt(packet.ProofHeight, 10, 64)
-		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), proofHeight, 300)
+		isFinalized, err = dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp2.GetChainID(), proofHeight, 300)
 		require.NoError(t, err)
 		require.True(t, isFinalized)
 		txhash, err := dymension.GetNode().FinalizePacket(ctx, dymensionUserAddr, packet.RollappId, fmt.Sprint(packet.ProofHeight), fmt.Sprint(packet.Type), packet.Packet.SourceChannel, fmt.Sprint(packet.Packet.Sequence))
@@ -2821,58 +2849,10 @@ func TestRAStateUpdatingIBCHeaders_EVM(t *testing.T) {
 		fmt.Println(txhash)
 	}
 
-	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 10, dymension, rollapp2)
 	require.NoError(t, err)
 
-	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, transferAmount.Sub(bridgingFee).Sub(bridgingFee).Add(transferAmount))
-
-	oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	// Access the index value
-	index := oldLatestIndex.StateIndex.Index
-	uintIndex, err := strconv.ParseUint(index, 10, 64)
-	require.NoError(t, err)
-
-	targetIndex := uintIndex + 1
-
-	// Loop until the latest index updates
-	for {
-		oldLatestIndex, err := dymension.GetNode().QueryLatestStateIndex(ctx, rollapp1.Config().ChainID)
-		require.NoError(t, err)
-
-		index := oldLatestIndex.StateIndex.Index
-		uintIndex, err := strconv.ParseUint(index, 10, 64)
-
-		require.NoError(t, err)
-		if uintIndex >= targetIndex {
-			break
-		}
-	}
-
-	oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-	require.NoError(t, err)
-
-	// Access the height value
-	height := oldLatestHeight.Height
-	uintHeight, err := strconv.ParseUint(height, 10, 64)
-	require.NoError(t, err)
-
-	targetHeight := uintHeight + 1
-
-	// Loop until the latest height updates
-	for {
-		oldLatestHeight, err := dymension.GetNode().QueryLatestHeight(ctx, rollapp1.Config().ChainID)
-		require.NoError(t, err)
-
-		height := oldLatestHeight.Height
-		uintHeight, err := strconv.ParseUint(height, 10, 64)
-
-		require.NoError(t, err)
-		if uintHeight >= targetHeight {
-			break
-		}
-	}
+	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollapp2IBCDenom, zeroBal)
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
