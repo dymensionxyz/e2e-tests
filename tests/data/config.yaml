@@ -1,0 +1,37 @@
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
+gas:
+    prices: ""
+    fees: 100adym
+order_polling:
+    indexer_url: ""
+    interval: 30s
+    enabled: false
+rollapps:
+    rollappevm_1234-1:
+        full_nodes:
+            - http://ra-rollappevm_1234-1-fn-0-Test_EIBC_Client_Success_EVM:26657
+        min_confirmations: 1
+operator:
+    account_name: operator
+    keyring_backend: test
+    keyring_dir: /root/dymension-hub-2a0f22c46319467458914bedc6c0edf044c1cc66d73ce871f9df168d34a3b24e1
+    group_id: 1
+    min_fee_share: "0.1"
+fulfillers:
+    scale: 10
+    operator_address: ""
+    policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
+    keyring_backend: test
+    keyring_dir: /root/dymension-hub-2a0f22c46319467458914bedc6c0edf044c1cc66d73ce871f9df168d34a3b24e1
+    batch_size: 0
+    max_orders_per_tx: 5
+validation:
+    fallback_level: p2p
+    wait_time: 5m0s
+    interval: 10s
+slack:
+    enabled: false
+    bot_token: ""
+    app_token: ""
+    channel_id: ""
+log_level: debug
