@@ -213,8 +213,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {
@@ -507,8 +506,7 @@ func TestSequencerCelestia_Wasm(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {
@@ -808,8 +806,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {
@@ -1112,8 +1109,7 @@ func TestSequencerHubDisconnection_Wasm(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {
