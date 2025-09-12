@@ -14,7 +14,7 @@ rollapps:
 operator:
     account_name: operator
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-25f0c272703308536b6a76ea36ce1d2081fb5fb2cd0870853691bbbe3fedbe2cf
+    keyring_dir: /root/dymension-hub-24167a8a325b89df92ea90ee4c97b453ac826d6a701bab5abc0e9a27ec86f151d
     group_id: 1
     min_fee_share: "0.1"
 fulfillers:
@@ -22,7 +22,7 @@ fulfillers:
     operator_address: ""
     policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-25f0c272703308536b6a76ea36ce1d2081fb5fb2cd0870853691bbbe3fedbe2cf
+    keyring_dir: /root/dymension-hub-24167a8a325b89df92ea90ee4c97b453ac826d6a701bab5abc0e9a27ec86f151d
     batch_size: 0
     max_orders_per_tx: 5
 validation:

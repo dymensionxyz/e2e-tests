@@ -545,6 +545,8 @@ e2e-test-hardfork-before-genesis-bridge-evm: clean-e2e
 e2e-test-ibc-rol-eth-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCRAToETH_EVM .
 
+e2e-test-ibc-rol-eth-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCRAToETH_Wasm .
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .

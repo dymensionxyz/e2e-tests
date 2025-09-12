@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -205,15 +206,21 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
+
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
 	}
-
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -493,15 +500,21 @@ func TestSequencerCelestia_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
+
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
 	}
-
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -788,15 +801,21 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
+
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
 	}
-
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -1086,15 +1105,21 @@ func TestSequencerHubDisconnection_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
+
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
 	}
-
-	// _ = celestia.GetNode().StartCelestiaDaLightNode(ctx, nodeStore, coreIp, p2pNetwork, nil)
-	// require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
