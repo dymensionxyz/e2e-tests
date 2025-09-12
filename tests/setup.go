@@ -145,8 +145,9 @@ var (
 
 	hyperlaneImage = ibc.DockerImage{
 		Repository: "ghcr.io/decentrio/hyperlane",
-		Version:    "arm",
-		UidGid:     "1025:1025",
+		// Version:    "arm",
+		Version: "latest",
+		UidGid:  "1025:1025",
 	}
 
 	hyperlaneAgentImage = ibc.DockerImage{

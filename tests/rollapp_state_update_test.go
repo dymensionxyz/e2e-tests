@@ -1720,12 +1720,21 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -1946,12 +1955,21 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	// Rollapp resume produce blocks
 	err = testutil.WaitForBlocks(ctx, 2, rollapp1)
@@ -2193,12 +2211,21 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -2419,12 +2446,21 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	// Rollapp resume produce blocks
 	err = testutil.WaitForBlocks(ctx, 2, rollapp1)

@@ -200,12 +200,22 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	// Poll until curl returns 400 status code (max 10 attempts)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -546,12 +556,21 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	// Poll until curl returns 400 status code (max 10 attempts)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
+		time.Sleep(30 * time.Second)
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -892,12 +911,22 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	// Poll until curl returns 400 status code (max 10 attempts)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -1271,12 +1300,22 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 		Tty: false,
 	}
 
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
+	// Poll until curl returns 400 status code (max 10 attempts)
+	for i := 0; i < 10; i++ {
+		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+			fmt.Println("Err:", err)
+		}
 
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+		time.Sleep(30 * time.Second)
+
+		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
+		require.NoError(t, err)
+
+		// Check if stdout contains "400"
+		if strings.Contains(string(stdout), "400") {
+			break
+		}
+	}
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)

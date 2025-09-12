@@ -276,9 +276,9 @@ func Test_TimeBaseUpgrade_EVM(t *testing.T) {
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "Update Dymension to DRS-5",
-		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 5, implementing new features and improvements, with a scheduled upgrade time.",
-		Description: "Upgrade Dymension to DRS-5 version with scheduled upgrade time",
+		Title:       "Update Dymension to DRS",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
@@ -615,9 +615,9 @@ func Test_TimeBaseUpgrade_Wasm(t *testing.T) {
 
 	proposal := cosmos.TxProposalV1{
 		Deposit:     "500000000000" + rollapp1.Config().Denom,
-		Title:       "Update Dymension to DRS-5",
-		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS 5, implementing new features and improvements, with a scheduled upgrade time.",
-		Description: "Upgrade Dymension to DRS-5 version with scheduled upgrade time",
+		Title:       "Update Dymension to DRS",
+		Summary:     "This proposal aims to upgrade the Dymension rollapp to DRS, implementing new features and improvements, with a scheduled upgrade time.",
+		Description: "Upgrade Dymension to DRS version with scheduled upgrade time",
 		Messages:    []json.RawMessage{rawMsg},
 		Expedited:   true,
 	}
