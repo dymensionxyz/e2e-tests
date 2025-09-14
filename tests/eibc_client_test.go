@@ -3032,7 +3032,7 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -3490,7 +3490,7 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -3949,7 +3949,7 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -4404,7 +4404,7 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
