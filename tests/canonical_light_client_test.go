@@ -972,7 +972,24 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// get rollapp -> dym channel
 	rollappChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())

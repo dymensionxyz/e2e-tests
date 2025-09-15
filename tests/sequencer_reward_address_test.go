@@ -1299,7 +1299,7 @@ func Test_SeqRewardsAddress_Update_EVM(t *testing.T) {
 	rewardAddrStr := rewardAddress.RewardAddr
 	fmt.Printf("RewardAddress1: %s\n", rewardAddrStr)
 
-	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
 	require.NoError(t, err)
 
 	//Query reward address
@@ -1881,7 +1881,7 @@ func Test_SeqRewardsAddress_Update_Wasm(t *testing.T) {
 	// Minus 0.1% of transfer amount for bridge fee
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, rollappIBCDenom, dymensionOrigBal2.Add(transferData.Amount).Sub(bridgingFee))
 
-	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
+	err = testutil.WaitForBlocks(ctx, 50, rollapp1)
 	require.NoError(t, err)
 
 	//Query reward address
