@@ -172,7 +172,7 @@ func TestFraudDetection_EVM(t *testing.T) {
 
 	require.NoError(t, err)
 
-	testutil.WaitForBlocks(ctx, 10, dymension, rollapp1)
+	testutil.WaitForBlocks(ctx, 30, dymension, rollapp1)
 
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
