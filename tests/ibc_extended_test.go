@@ -348,7 +348,9 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
-	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY, "--yes"}
+	// Remove --yes flag to avoid config file requirement
+	// The CLI will use defaults for non-interactive values
+	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
@@ -747,7 +749,9 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
-	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY, "--yes"}
+	// Remove --yes flag to avoid config file requirement
+	// The CLI will use defaults for non-interactive values
+	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
