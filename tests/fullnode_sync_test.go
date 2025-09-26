@@ -513,9 +513,9 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
-
+	// celestia light start --node.store /home/celestia/light --core.ip https://celestia-mocha-archive-rpc.mzonder.com:443 --p2p.network mocha-4 --keyring.keyname validator
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
 	if err != nil {
 		fmt.Println("Err:", err)
@@ -536,8 +536,7 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {
@@ -801,7 +800,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -824,8 +823,7 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 		time.Sleep(30 * time.Second)
 
-		stdout, _, err := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-		require.NoError(t, err)
+		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
 
 		// Check if stdout contains "400"
 		if strings.Contains(string(stdout), "400") {

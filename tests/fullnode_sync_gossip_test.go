@@ -184,7 +184,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -519,7 +519,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -863,7 +863,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1224,7 +1224,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1584,7 +1584,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
@@ -1946,7 +1946,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 
 	// Create an exec instance
 	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
+		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
 	}
 
 	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
