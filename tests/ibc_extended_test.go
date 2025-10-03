@@ -353,7 +353,6 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
 		"--config", "/root/configs/warp-route-deployment.yaml",
 		"--registry", "/root/.hyperlane",
-		"--warpRouteId", "FOO",
 		"--yes",
 	}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
@@ -762,7 +761,6 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
 		"--config", "/root/configs/warp-route-deployment.yaml",
 		"--registry", "/root/.hyperlane",
-		"--warpRouteId", "FOO",
 		"--yes",
 	}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
