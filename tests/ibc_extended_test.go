@@ -349,7 +349,12 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
-	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY, "--yes"}
+	cmd = []string{
+		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
+		"--config", "/tmp/configs/warp-route-deployment.yaml",
+		"--registry", "/tmp/.hyperlane",
+		"--yes",
+	}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
