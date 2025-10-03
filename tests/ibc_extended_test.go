@@ -336,6 +336,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		fmt.Println("No transactions found")
 	}
 
+	fooTokenAddress := txData.Transactions[0].ContractAddress
+
 	yamlData1, err := os.ReadFile("/tmp/configs/warp-route-deployment.yaml")
 	if err != nil {
 		panic(fmt.Errorf("cannot read: %w", err))
@@ -349,13 +351,39 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
-	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY, "--yes"}
+	cmd = []string{
+		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--yes",
+	}
+	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	cmd = []string{
+		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--yes",
+	}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
 	fmt.Println(string(stdout))
 
-	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/anvil0-config.yaml")
+	cmd = []string{
+		"hyperlane", "warp", "apply", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--warp", "/root/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml",
+		"--yes",
+	}
+	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	fmt.Println(string(stdout))
+
+	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml")
 	require.NoError(t, err)
 
 	// Define a struct to match the YAML structure
@@ -410,12 +438,14 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	recipient, err := dymension.GetNode().QueryHyperlaneEthRecipient(ctx, dymensionUser1Addr)
+	command := []string{"dymd", "q", "forward", "cosmos-addr-to-hl-addr", dymensionUser1Addr}
+	recipientRaw, _, err := dymension.GetNode().Exec(ctx, command, nil)
+	recipient := string(recipientRaw)
 	require.NoError(t, err)
 
 	fmt.Println(recipient)
 
-	cmd = []string{"cast", "send", "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
+	cmd = []string{"cast", "send", fooTokenAddress, "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
 	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
@@ -739,6 +769,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		fmt.Println("No transactions found")
 	}
 
+	fooTokenAddress := txData.Transactions[0].ContractAddress
+
 	yamlData1, err := os.ReadFile("/tmp/configs/warp-route-deployment.yaml")
 	if err != nil {
 		panic(fmt.Errorf("cannot read: %w", err))
@@ -752,13 +784,30 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
-	cmd = []string{"hyperlane", "warp", "deploy", "--key", HYP_KEY, "--yes"}
+	cmd = []string{
+		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--yes",
+	}
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
 	fmt.Println(string(stdout))
 
-	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/anvil0-config.yaml")
+	cmd = []string{
+		"hyperlane", "warp", "apply", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--warp", "/root/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml",
+		"--yes",
+	}
+	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	fmt.Println(string(stdout))
+
+	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml")
 	require.NoError(t, err)
 
 	// Define a struct to match the YAML structure
@@ -818,7 +867,7 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 
 	fmt.Println(recipient)
 
-	cmd = []string{"cast", "send", "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
+	cmd = []string{"cast", "send", fooTokenAddress, "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
 	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
