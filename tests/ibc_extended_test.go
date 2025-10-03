@@ -336,6 +336,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		fmt.Println("No transactions found")
 	}
 
+	fooTokenAddress := txData.Transactions[0].ContractAddress
+
 	yamlData1, err := os.ReadFile("/tmp/configs/warp-route-deployment.yaml")
 	if err != nil {
 		panic(fmt.Errorf("cannot read: %w", err))
@@ -443,7 +445,7 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(recipient)
 
-	cmd = []string{"cast", "send", "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
+	cmd = []string{"cast", "send", fooTokenAddress, "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
 	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
@@ -767,6 +769,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		fmt.Println("No transactions found")
 	}
 
+	fooTokenAddress := txData.Transactions[0].ContractAddress
+
 	yamlData1, err := os.ReadFile("/tmp/configs/warp-route-deployment.yaml")
 	if err != nil {
 		panic(fmt.Errorf("cannot read: %w", err))
@@ -863,7 +867,7 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 
 	fmt.Println(recipient)
 
-	cmd = []string{"cast", "send", "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
+	cmd = []string{"cast", "send", fooTokenAddress, "approve(address,uint256)", collateral_token_contract_raw, "1000000000000000000", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name())}
 	stdout, _, err = rollapp1.Sidecars[0].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
