@@ -436,7 +436,9 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	recipient, err := dymension.GetNode().QueryHyperlaneEthRecipient(ctx, dymensionUser1Addr)
+	command := []string{"dymd", "q", "forward", "cosmos-addr-to-hl-addr", dymensionUser1Addr}
+	recipientRaw, _, err := dymension.GetNode().Exec(ctx, command, nil)
+	recipient := string(recipientRaw)
 	require.NoError(t, err)
 
 	fmt.Println(recipient)
