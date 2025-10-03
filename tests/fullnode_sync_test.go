@@ -14,7 +14,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/require"
@@ -395,7 +394,6 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
@@ -511,38 +509,9 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-	// celestia light start --node.store /home/celestia/light --core.ip https://celestia-mocha-archive-rpc.mzonder.com:443 --p2p.network mocha-4 --keyring.keyname validator
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	// Poll until curl returns 400 status code (max 10 attempts)
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -681,7 +650,6 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
@@ -798,38 +766,9 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	// Poll until curl returns 400 status code (max 10 attempts)
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)

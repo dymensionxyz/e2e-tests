@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,6 +25,9 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/strslice"
+	client "github.com/docker/docker/client"
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 
@@ -73,6 +77,11 @@ const (
 	EventDemandOrderFulfilled           = "dymensionxyz.dymension.eibc.EventDemandOrderFulfilled"
 	EventDemandOrderFeeUpdated          = "dymensionxyz.dymension.eibc.EventDemandOrderFeeUpdated"
 	EventDemandOrderPacketStatusUpdated = "dymensionxyz.dymension.eibc.EventDemandOrderPacketStatusUpdated"
+	CelestiaCoreIP                      = "https://celestia-mocha-archive-rpc.mzonder.com:443"
+	CelestiaCoreIPBackup1               = "https://rpc-mocha.pops.one:443"
+	CelestiaCoreIPBackup2               = "https://public-celestia-mocha4-consensus.numia.xyz:443"
+	CelestiaCoreIPBackup3               = "celestia-mocha-archive-rpc.mzonder.com:443"
+	CelestiaCoreIPBackup4               = "https://celestia-testnet-consensus.itrocket.net:26657"
 )
 
 var (
@@ -1057,4 +1066,62 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 
 	_, err = dymension.GetNode().CrisisInvariant(ctx, keyName, "rollapp", "rollapp-finalized-state")
 	require.NoError(t, err)
+}
+
+// StartCelestiaLightNodeWithRetry attempts to start Celestia light node with multiple RPC endpoints
+// It tries each endpoint 5 times before moving to the next one
+func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *client.Client, containerID, nodeStore, p2pNetwork, curlEndpoint string, celestiaNode interface {
+	Exec(context.Context, []string, []string) ([]byte, []byte, error)
+}) error {
+	coreIPs := []string{CelestiaCoreIP, CelestiaCoreIPBackup1, CelestiaCoreIPBackup2, CelestiaCoreIPBackup3, CelestiaCoreIPBackup4}
+
+	for _, coreIP := range coreIPs {
+		fmt.Printf("Trying Celestia light node with core IP: %s\n", coreIP)
+
+		// Create an exec instance
+		execConfig := types.ExecConfig{
+			Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIP, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}),
+		}
+
+		execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
+		if err != nil {
+			fmt.Println("Err creating exec:", err)
+			continue
+		}
+
+		execID := execIDResp.ID
+
+		// Start the exec instance
+		execStartCheck := types.ExecStartCheck{
+			Tty: false,
+		}
+
+		// Poll until curl returns 400 status code (max 5 attempts)
+		success := false
+		for i := 0; i < 5; i++ {
+			if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
+				fmt.Println("Err starting exec:", err)
+			}
+
+			time.Sleep(30 * time.Second)
+
+			stdout, _, _ := celestiaNode.Exec(ctx, []string{"curl", "-I", curlEndpoint}, []string{})
+
+			// Check if stdout contains "400"
+			if strings.Contains(string(stdout), "400") {
+				fmt.Printf("Successfully started Celestia light node with core IP: %s\n", coreIP)
+				success = true
+				break
+			}
+			fmt.Printf("Attempt %d/%d failed, retrying...\n", i+1, 5)
+		}
+
+		if success {
+			return nil
+		}
+
+		fmt.Printf("Failed to start with %s after 5 attempts, trying next endpoint...\n", coreIP)
+	}
+
+	return fmt.Errorf("failed to start Celestia light node with all available core IPs")
 }

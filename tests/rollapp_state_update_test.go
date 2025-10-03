@@ -14,8 +14,6 @@ import (
 
 	// "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/strslice"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -1575,7 +1573,6 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 
 	modifyEVMGenesisKV := append(
 		rollappEVMGenesisKV,
@@ -1703,37 +1700,9 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -1942,32 +1911,9 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	err = celestia.StartAllNodes(ctx)
 	require.NoError(t, err)
 
-	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID = execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck = types.ExecStartCheck{
-		Tty: false,
-	}
-
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Restart Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	// Rollapp resume produce blocks
 	err = testutil.WaitForBlocks(ctx, 2, rollapp1)
@@ -2062,7 +2008,6 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"017428B113893E854767E626BC9CF860BDF49C2AC2DF56F3C1B6582B2597AC6E\""
 	// sampleFrom := 2423882
 
@@ -2192,37 +2137,9 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -2431,32 +2348,9 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	err = celestia.StartAllNodes(ctx)
 	require.NoError(t, err)
 
-	execIDResp, err = client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID = execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck = types.ExecStartCheck{
-		Tty: false,
-	}
-
-	for i := 0; i < 10; i++ {
-		if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-			fmt.Println("Err:", err)
-		}
-
-		time.Sleep(30 * time.Second)
-
-		stdout, _, _ := celestia.GetNode().Exec(ctx, []string{"curl", "-I", fmt.Sprintf("http://test-val-0-%s:26658", t.Name())}, []string{})
-
-		// Check if stdout contains "400"
-		if strings.Contains(string(stdout), "400") {
-			break
-		}
-	}
+	// Restart Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	// Rollapp resume produce blocks
 	err = testutil.WaitForBlocks(ctx, 2, rollapp1)
