@@ -358,9 +358,30 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
 	require.NoError(t, err)
 
+	cmd = []string{
+		"hyperlane", "warp", "deploy", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--yes",
+	}
+	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
 	fmt.Println(string(stdout))
 
-	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/anvil0-config.yaml")
+	cmd = []string{
+		"hyperlane", "warp", "apply", "--key", HYP_KEY,
+		"--config", "/root/configs/warp-route-deployment.yaml",
+		"--registry", "/root/.hyperlane",
+		"--warp", "/root/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml",
+		"--yes",
+	}
+	stdout, _, err = rollapp1.Sidecars[1].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	fmt.Println(string(stdout))
+
+	anvil_config, err := os.ReadFile("/root/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml")
 	require.NoError(t, err)
 
 	// Define a struct to match the YAML structure
