@@ -287,7 +287,7 @@ var (
 	rollappWasmGenesisKV = []cosmos.GenesisKV{
 		{
 			Key:   "app_state.rollappparams.params.drs_version",
-			Value: 10,
+			Value: 9,
 		},
 		{
 			Key:   "app_state.gov.voting_params.voting_period",
@@ -307,7 +307,7 @@ var (
 		// },
 		// {
 		{
-			Key:   "app_state.mint.minter.mint_denom",
+			Key:   "app_state.mint.params.mint_denom",
 			Value: "urax",
 		},
 		{
