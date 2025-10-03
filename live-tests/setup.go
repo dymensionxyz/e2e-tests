@@ -58,6 +58,7 @@ type ForwardMetadata struct {
 func BuildEIbcMemo(eibcFee sdkmath.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
 }
+
 func GetERC20Balance(ctx context.Context, denom, grpcAddr string) (sdkmath.Int, error) {
 	params := &bankTypes.QueryBalanceRequest{Address: erc20Addr, Denom: denom}
 	conn, err := grpc.Dial(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -68,7 +69,6 @@ func GetERC20Balance(ctx context.Context, denom, grpcAddr string) (sdkmath.Int, 
 
 	queryClient := bankTypes.NewQueryClient(conn)
 	res, err := queryClient.Balance(ctx, params)
-
 	if err != nil {
 		return sdkmath.Int{}, err
 	}
@@ -103,7 +103,7 @@ func getEibcEventFromTx(t *testing.T, dymension *cosmos.CosmosChain, txResp type
 	eibcEvent.OrderId = id
 	eibcEvent.Price = price
 	eibcEvent.Fee = fee
-	checkFulfilled, err := strconv.ParseBool(isFulfilled)         
+	checkFulfilled, err := strconv.ParseBool(isFulfilled)
 	if err != nil {
 		require.NoError(t, err)
 		return nil

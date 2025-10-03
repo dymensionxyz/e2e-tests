@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -21,8 +22,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-
-	"strconv"
 )
 
 // TestSync_Celes_Rt_Gossip_EVM tests the synchronization of a fullnode using Celestia as DA.
@@ -309,7 +308,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -927,7 +926,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -956,7 +955,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1258,7 +1257,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1287,7 +1286,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1590,7 +1589,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1619,7 +1618,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1922,7 +1921,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1951,7 +1950,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds

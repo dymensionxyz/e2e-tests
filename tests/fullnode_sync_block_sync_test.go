@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -20,8 +21,6 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/ibc"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-
-	"strconv"
 )
 
 func TestSync_BlockSync_EVM(t *testing.T) {
@@ -330,7 +329,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -655,7 +654,7 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -982,7 +981,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1013,7 +1012,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1340,7 +1339,7 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds
@@ -1371,7 +1370,7 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	valHeight, err = rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
 
-	//Poll until full node is sync
+	// Poll until full node is sync
 	err = testutil.WaitForCondition(
 		time.Minute*50,
 		time.Second*5, // each epoch is 5 seconds

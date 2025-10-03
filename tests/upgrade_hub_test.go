@@ -27,14 +27,12 @@ const (
 	blocksAfterUpgrade = int64(10)
 )
 
-var (
-	// baseChain is the current version of the chain that will be upgraded from
-	baseChain = ibc.DockerImage{
-		Repository: "ghcr.io/dymensionxyz/dymension",
-		Version:    "latest",
-		UidGid:     "1025:1025",
-	}
-)
+// baseChain is the current version of the chain that will be upgraded from
+var baseChain = ibc.DockerImage{
+	Repository: "ghcr.io/dymensionxyz/dymension",
+	Version:    "latest",
+	UidGid:     "1025:1025",
+}
 
 func TestHubUpgrade(t *testing.T) {
 	if testing.Short() {
@@ -201,7 +199,7 @@ func TestHubUpgrade(t *testing.T) {
 
 	// _ = dymension.StartAllNodes(ctx)
 
-	//Create some user accounts on both chains
+	// Create some user accounts on both chains
 	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, dymension, dymension, dymension, rollapp1, rollapp2)
 
 	// Get our Bech32 encoded user addresses
@@ -336,7 +334,7 @@ func TestHubUpgrade(t *testing.T) {
 	err = r2.StartRelayer(ctx, eRep, anotherIbcPath)
 	require.NoError(t, err)
 
-	//SET UP TEST FOR ROLLAPP 1
+	// SET UP TEST FOR ROLLAPP 1
 	// ibc transfer from hub to rollapp1
 	transferData := ibc.WalletData{
 		Address: rollappUser1Addr,
@@ -506,7 +504,7 @@ func TestHubUpgrade(t *testing.T) {
 	expMmBalanceRollapp1Denom = expMmBalanceRollapp1Denom.Add(transferData.Amount)
 	require.True(t, balance.Equal(expMmBalanceRollapp1Denom), fmt.Sprintf("Value mismatch. Expected %s, actual %s", expMmBalanceRollapp1Denom, balance))
 
-	//SET UP TEST FOR ROLLAPP 2
+	// SET UP TEST FOR ROLLAPP 2
 	// ibc transfer from hub to rollapp2
 	transferData = ibc.WalletData{
 		Address: rollappUser2Addr,

@@ -139,7 +139,6 @@ func TestDelayackRollappToHubNoFinalizedRolX_Live(t *testing.T) {
 
 	// TODO: sub bridging fee on new version
 	testutil.AssertBalance(t, ctx, dymensionUser, rollappXIBCDenom, hub.GrpcAddr, transferAmount)
-
 }
 
 // TestDelayackRollappToHub_Live test delayack, rollapp token transfer should only be recieved on the hub upon rollapp finalized state (assume no elBC packet, i.e no memo)
