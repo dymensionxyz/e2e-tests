@@ -3,6 +3,8 @@ package tests
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,9 +14,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"crypto/rand"
-	"encoding/hex"
 
 	"cosmossdk.io/math"
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -1048,6 +1047,7 @@ func getEibcEventsOfType(chain *cosmos.CosmosChain, startHeight int64, endHeight
 func BuildEIbcMemo(eibcFee math.Int) string {
 	return fmt.Sprintf(`{"eibc": {"fee": "%s"}}`, eibcFee.String())
 }
+
 func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub, keyName string) {
 	_, err := dymension.GetNode().CrisisInvariant(ctx, keyName, "eibc", "demand-order-count")
 	require.NoError(t, err)
@@ -1072,7 +1072,8 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 // It tries each endpoint 5 times before moving to the next one
 func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *client.Client, containerID, nodeStore, p2pNetwork, curlEndpoint string, celestiaNode interface {
 	Exec(context.Context, []string, []string) ([]byte, []byte, error)
-}) error {
+},
+) error {
 	coreIPs := []string{CelestiaCoreIP, CelestiaCoreIPBackup1, CelestiaCoreIPBackup2, CelestiaCoreIPBackup3, CelestiaCoreIPBackup4}
 
 	for _, coreIP := range coreIPs {
