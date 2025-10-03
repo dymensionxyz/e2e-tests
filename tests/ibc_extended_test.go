@@ -164,7 +164,7 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -198,7 +198,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	err = copyDir("data/configs/", "/tmp/configs/")
 	require.NoError(t, err)
 
-	cmd := []string{"hyperlane", "core", "deploy", "--key", HYP_KEY,
+	cmd := []string{
+		"hyperlane", "core", "deploy", "--key", HYP_KEY,
 		"--yes", "--chain", "anvil0",
 	}
 
@@ -274,7 +275,7 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 		return
 	}
 
-	err = os.WriteFile("/tmp/.hyperlane/chains/dymension/addresses.yaml", yamlData, 0644)
+	err = os.WriteFile("/tmp/.hyperlane/chains/dymension/addresses.yaml", yamlData, 0o644)
 	if err != nil {
 		fmt.Println("write error:", err)
 		return
@@ -344,7 +345,7 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	reAnvil := regexp.MustCompile(`(?m)^(\s*anvil0:\n(?:.*\n)*?\s*token:\s*)".*?"`)
 	content = reAnvil.ReplaceAllString(content, fmt.Sprintf("${1}\"%s\"", txData.Transactions[0].ContractAddress))
 
-	if err := os.WriteFile("/tmp/configs/warp-route-deployment.yaml", []byte(content), 0644); err != nil {
+	if err := os.WriteFile("/tmp/configs/warp-route-deployment.yaml", []byte(content), 0o644); err != nil {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
@@ -388,7 +389,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	err = rollapp1.Sidecars[2].CreateContainer(ctx)
 	require.NoError(t, err)
 
-	cmd = []string{"./relayer",
+	cmd = []string{
+		"./relayer",
 		"--db", "/root/.hyperlane/",
 		"--relayChains", "anvil0,dymension",
 		"--allowLocalCheckpointSyncers", "true",
@@ -419,7 +421,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemote(uint32,bytes32,uint256)", "1260813472",
+	cmd = []string{
+		"cast", "send", collateral_token_contract_raw, "transferRemote(uint32,bytes32,uint256)", "1260813472",
 		strings.TrimRight(recipient, "\n"), "5", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
 	}
 
@@ -428,7 +431,8 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemoteMemo(uint32,bytes32,uint256,bytes)", "1260813472",
+	cmd = []string{
+		"cast", "send", collateral_token_contract_raw, "transferRemoteMemo(uint32,bytes32,uint256,bytes)", "1260813472",
 		strings.TrimRight(recipient, "\n"), "5", "0x68656c6c6f", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
 	}
 
@@ -563,7 +567,7 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -597,7 +601,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	err = copyDir("data/configs/", "/tmp/configs/")
 	require.NoError(t, err)
 
-	cmd := []string{"hyperlane", "core", "deploy", "--key", HYP_KEY,
+	cmd := []string{
+		"hyperlane", "core", "deploy", "--key", HYP_KEY,
 		"--yes", "--chain", "anvil0",
 	}
 
@@ -673,7 +678,7 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 		return
 	}
 
-	err = os.WriteFile("/tmp/.hyperlane/chains/dymension/addresses.yaml", yamlData, 0644)
+	err = os.WriteFile("/tmp/.hyperlane/chains/dymension/addresses.yaml", yamlData, 0o644)
 	if err != nil {
 		fmt.Println("write error:", err)
 		return
@@ -743,7 +748,7 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	reAnvil := regexp.MustCompile(`(?m)^(\s*anvil0:\n(?:.*\n)*?\s*token:\s*)".*?"`)
 	content = reAnvil.ReplaceAllString(content, fmt.Sprintf("${1}\"%s\"", txData.Transactions[0].ContractAddress))
 
-	if err := os.WriteFile("/tmp/configs/warp-route-deployment.yaml", []byte(content), 0644); err != nil {
+	if err := os.WriteFile("/tmp/configs/warp-route-deployment.yaml", []byte(content), 0o644); err != nil {
 		panic(fmt.Errorf("cannot write /tmp/configs/warp-route-deployment.yaml: %w", err))
 	}
 
@@ -787,7 +792,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	err = rollapp1.Sidecars[2].CreateContainer(ctx)
 	require.NoError(t, err)
 
-	cmd = []string{"./relayer",
+	cmd = []string{
+		"./relayer",
 		"--db", "/root/.hyperlane/",
 		"--relayChains", "anvil0,dymension",
 		"--allowLocalCheckpointSyncers", "true",
@@ -818,7 +824,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemote(uint32,bytes32,uint256)", "1260813472",
+	cmd = []string{
+		"cast", "send", collateral_token_contract_raw, "transferRemote(uint32,bytes32,uint256)", "1260813472",
 		strings.TrimRight(recipient, "\n"), "5", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
 	}
 
@@ -827,7 +834,8 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	cmd = []string{"cast", "send", collateral_token_contract_raw, "transferRemoteMemo(uint32,bytes32,uint256,bytes)", "1260813472",
+	cmd = []string{
+		"cast", "send", collateral_token_contract_raw, "transferRemoteMemo(uint32,bytes32,uint256,bytes)", "1260813472",
 		strings.TrimRight(recipient, "\n"), "5", "0x68656c6c6f", "--private-key", HYP_KEY, "--rpc-url", fmt.Sprintf("http://%s:8545", rollapp1.Sidecars[0].Name()),
 	}
 
