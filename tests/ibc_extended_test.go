@@ -381,7 +381,7 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 
 	fmt.Println(string(stdout))
 
-	anvil_config, err := os.ReadFile("/root/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml")
+	anvil_config, err := os.ReadFile("/tmp/.hyperlane/deployments/warp_routes/FOO/warp-route-deployment-config.yaml")
 	require.NoError(t, err)
 
 	// Define a struct to match the YAML structure
