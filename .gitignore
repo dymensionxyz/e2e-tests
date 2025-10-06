@@ -1,1 +1,3 @@
 /tests/db/*
+/tests/data/.hyperlane/*
+/tests/data/configs/*

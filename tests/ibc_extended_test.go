@@ -192,6 +192,20 @@ func TestIBCRAToETH_EVM(t *testing.T) {
 	err = rollapp1.Sidecars[1].StartContainer(ctx)
 	require.NoError(t, err)
 
+	// Update metadata.yaml with correct test name for EVM test BEFORE copying
+	metadataPath := "data/.hyperlane/chains/anvil0/metadata.yaml"
+	metadataContent, err := os.ReadFile(metadataPath)
+	require.NoError(t, err)
+
+	// Replace the hardcoded test name with current test name
+	updatedMetadata := regexp.MustCompile(`rollappevm_1234-1-anvil-0-TestIBCRAToETH_EVM`).ReplaceAllString(
+		string(metadataContent),
+		fmt.Sprintf("rollappevm_1234-1-anvil-0-%s", t.Name()),
+	)
+
+	err = os.WriteFile(metadataPath, []byte(updatedMetadata), 0o644)
+	require.NoError(t, err)
+
 	err = copyDir("data/.hyperlane/", "/tmp/.hyperlane/")
 	require.NoError(t, err)
 
@@ -625,6 +639,20 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	err = rollapp1.Sidecars[1].StartContainer(ctx)
 	require.NoError(t, err)
 
+	// Update metadata.yaml with correct test name for Wasm test BEFORE copying
+	metadataPath := "data/.hyperlane/chains/anvil0/metadata.yaml"
+	metadataContent, err := os.ReadFile(metadataPath)
+	require.NoError(t, err)
+
+	// Replace the hardcoded test name with current test name
+	updatedMetadata := regexp.MustCompile(`rollappevm_1234-1-anvil-0-TestIBCRAToETH_EVM`).ReplaceAllString(
+		string(metadataContent),
+		fmt.Sprintf("rollappwasm_1234-1-anvil-0-%s", t.Name()),
+	)
+
+	err = os.WriteFile(metadataPath, []byte(updatedMetadata), 0o644)
+	require.NoError(t, err)
+
 	err = copyDir("data/.hyperlane/", "/tmp/.hyperlane/")
 	require.NoError(t, err)
 
@@ -862,7 +890,9 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	recipient, err := dymension.GetNode().QueryHyperlaneEthRecipient(ctx, dymensionUser1Addr)
+	command := []string{"dymd", "q", "forward", "cosmos-addr-to-hl-addr", dymensionUser1Addr}
+	recipientRaw, _, err := dymension.GetNode().Exec(ctx, command, nil)
+	recipient := string(recipientRaw)
 	require.NoError(t, err)
 
 	fmt.Println(recipient)
