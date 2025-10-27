@@ -1,0 +1,10 @@
+# frpc.server.toml
+
+bindPort = 7000
+auth.token = "dym-blockchain-tunnel-2024"
+
+# Only allow the blockchain ports
+allowPorts = [
+  { start = 36657, end = 36657 },
+  { start = 1318, end = 1318 }
+]

@@ -1,0 +1,17 @@
+serverAddr = "35.205.204.56"
+serverPort = 7000
+auth.token = "dym-blockchain-tunnel-2024"
+
+[[proxies]]
+name = "dym-rpc"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 36657
+remotePort = 36657
+
+[[proxies]]
+name = "dym-api"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 1318
+remotePort = 1318
