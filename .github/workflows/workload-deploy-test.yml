@@ -1,0 +1,32 @@
+name: TEE Workload Deploy Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run-workload-deploy:
+    runs-on: e2e-tests-gh-runners
+    steps:
+      - uses: actions/checkout@v4
+
+      # - name: Authenticate to Google Cloud
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      #     service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      # - name: Set up gcloud CLI
+      #   uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Run workload deploy script
+        shell: bash
+        run: |
+          cd tests/data/tee/artifacts/scripts
+          chmod +x workload_deploy.sh
+          ./workload_deploy.sh
