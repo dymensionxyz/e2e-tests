@@ -76,3 +76,14 @@ sleep 60
 EXTERNAL_IP=$(get_instance_external_ip "tee-e2e-fullnode" "${PROJECT_ZONE}")
 
 echo "Finished: TEE Fullnode External IP: ${EXTERNAL_IP}"
+
+echo "Waiting 10 minutes before checking node status..."
+sleep 600
+
+STATUS_URL="http://${EXTERNAL_IP}:26657/status"
+echo "Checking node status at ${STATUS_URL}"
+if command -v curl >/dev/null 2>&1; then
+  curl -sSf "${STATUS_URL}" || echo "Status check failed for ${STATUS_URL}"
+else
+  echo "curl not available; please verify ${STATUS_URL} manually."
+fi
