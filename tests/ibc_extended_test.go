@@ -4,9 +4,13 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,6 +25,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	test "github.com/decentrio/rollup-e2e-testing"
+	"github.com/decentrio/rollup-e2e-testing/cosmos"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/rollapp/dym_rollapp"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -30,6 +35,7 @@ import (
 )
 
 const HYP_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+const REMOTE_ROUTER_ADDRESS = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
 type TransactionData struct {
 	Transactions []struct {
@@ -39,6 +45,53 @@ type TransactionData struct {
 		ContractAddress string   `json:"contractAddress"`
 		Arguments       []string `json:"arguments"`
 	} `json:"transactions"`
+}
+
+type KaspaUtxo struct {
+	Address  string `json:"address"`
+	Outpoint struct {
+		TransactionId string `json:"transactionId"`
+		Index         int    `json:"index"`
+	} `json:"outpoint"`
+	UtxoEntry struct {
+		Amount          string `json:"amount"`
+		ScriptPublicKey struct {
+			ScriptPublicKey string `json:"scriptPublicKey"`
+		} `json:"scriptPublicKey"`
+		BlockDaaScore string `json:"blockDaaScore"`
+		IsCoinbase    bool   `json:"isCoinbase"`
+	} `json:"utxoEntry"`
+}
+
+func GetKaspaUtxos(address string) ([]KaspaUtxo, error) {
+	url := "https://api-tn10.kaspa.org/addresses/" + address + "/utxos"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Kaspa API error: %s", string(body))
+	}
+
+	var utxos []KaspaUtxo
+	err = json.Unmarshal(body, &utxos)
+	if err != nil {
+		return nil, err
+	}
+	return utxos, nil
 }
 
 func TestIBCRAToETH_EVM(t *testing.T) {
@@ -924,6 +977,413 @@ func TestIBCRAToETH_Wasm(t *testing.T) {
 	fmt.Println(string(stdout))
 
 	// CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
+}
+
+type ValidatorInfo struct {
+	ValidatorISMAddr      string `json:"validator_ism_addr"`
+	ValidatorISMPrivKey   string `json:"validator_ism_priv_key"`
+	ValidatorEscrowSecret string `json:"validator_escrow_secret"`
+	ValidatorEscrowPubKey string `json:"validator_escrow_pub_key"`
+	MultisigEscrowAddr    string `json:"multisig_escrow_addr"`
+}
+
+type Token struct {
+	ID string `json:"id"`
+}
+
+type TokenResponse struct {
+	Tokens []Token `json:"tokens"`
+}
+
+type Ism struct {
+	ID string `json:"id"`
+}
+
+type IsmResponse struct {
+	Isms []Ism `json:"isms"`
+}
+
+func TestIBCHubToKaspa_EVM(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	configFileOverrides := make(map[string]any)
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	dymintTomlOverrides["da_config"] = []string{""}
+	dymintTomlOverrides["da_layer"] = []string{"mock"}
+
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+	// Create chain factory with dymension
+	numHubVals := 1
+	numHubFullNodes := 1
+	numRollAppFn := 0
+	numRollAppVals := 1
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(rollappEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+				SidecarConfigs: []ibc.SidecarConfig{
+					{
+						ProcessName:      "hyperlane",
+						Image:            hyperlaneImage,
+						ValidatorProcess: false,
+					},
+					{
+						ProcessName:      "rust-relayer",
+						Image:            hyperlaneAgentKaspaImage,
+						ValidatorProcess: false,
+					},
+					{
+						ProcessName:      "kaspa",
+						Image:            validatorImage,
+						ValidatorProcess: false,
+					},
+				},
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Relayer Factory
+	client, network := test.DockerSetup(t)
+
+	r := test.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t),
+		relayer.CustomDockerImage(RelayerMainRepo, relayerVersion, "100:1000"), relayer.ImagePull(pullRelayerImage),
+	).Build(t, client, "relayer", network)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1).
+		AddRelayer(r, "relayer").
+		AddLink(test.InterchainLink{
+			Chain1:  dymension,
+			Chain2:  rollapp1,
+			Relayer: r,
+			Path:    ibcPath,
+		})
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+
+		// This can be used to write to the block database which will index all block data e.g. txs, msgs, events, etc.
+		// BlockDatabaseFile: test.DefaultBlockDatabaseFilepath(),
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	wallet, found := r.GetWallet(rollapp1.Config().ChainID)
+	require.True(t, found)
+
+	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
+	keyPath := keyDir + "/sequencer_keys"
+
+	//Update white listed relayers
+	for i := 0; i < 10; i++ {
+		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
+		if err == nil {
+			break
+		}
+		if i == 9 {
+			fmt.Println("Max retries reached. Exiting...")
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+	require.NoError(t, err)
+
+	// CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
+
+	// err = rollapp1.Sidecars[1].CreateContainer(ctx)
+	// require.NoError(t, err)
+
+	// err = rollapp1.Sidecars[1].StartContainer(ctx)
+	// require.NoError(t, err)
+
+	err = rollapp1.Sidecars[2].CreateContainer(ctx)
+	require.NoError(t, err)
+
+	// err = rollapp1.Sidecars[2].StartContainer(ctx)
+	// require.NoError(t, err)
+
+	cmd := []string{"cargo", "run", "validator-with-escrow"}
+
+	stdout, _, err := rollapp1.Sidecars[2].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	// Extract JSON from stdout
+	jsonStart := bytes.IndexByte(stdout, '{')
+	jsonEnd := bytes.LastIndexByte(stdout, '}')
+	if jsonStart == -1 || jsonEnd == -1 || jsonEnd < jsonStart {
+		t.Fatalf("Could not find JSON object in stdout: %s", string(stdout))
+	}
+	jsonBytes := stdout[jsonStart : jsonEnd+1]
+
+	var info ValidatorInfo
+	err = json.Unmarshal(jsonBytes, &info)
+	require.NoError(t, err)
+	fmt.Println(info.ValidatorISMAddr)
+	fmt.Println(info.ValidatorISMPrivKey)
+	fmt.Println(info.ValidatorEscrowSecret)
+	fmt.Println(info.ValidatorEscrowPubKey)
+	fmt.Println(info.MultisigEscrowAddr)
+
+	// Always trim quotes from ismAddr
+	ismAddr := strings.Trim(info.ValidatorISMAddr, "\"")
+
+	err = copyDir("data/kaspa/.kaspa/", "/tmp/.kaspa/")
+	require.NoError(t, err)
+
+	cmd = []string{"cargo", "run", "--", "deposit",
+		"--escrow-address", info.MultisigEscrowAddr,
+		"--amount", "100000000",
+		"--wrpc-url", "185.69.54.99:17210",
+		"--network-id", "testnet-10",
+		"--wallet-secret", "lkjsdf"}
+
+	_, _, err = rollapp1.Sidecars[2].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	_, _ = dymension.GetNode().SetupKaspaBridge(ctx, "faucet", ismAddr, REMOTE_ROUTER_ADDRESS)
+
+	tokenIDs, err := dymension.GetNode().QueryTokenID(ctx)
+	require.NoError(t, err)
+
+	var resp TokenResponse
+	err = json.Unmarshal([]byte(tokenIDs), &resp)
+	require.NoError(t, err)
+
+	fmt.Println(tokenIDs)
+	tokenID := resp.Tokens[0].ID
+
+	mailboxes, err := dymension.GetNode().QueryMailboxes(ctx, ismAddr, REMOTE_ROUTER_ADDRESS)
+	require.NoError(t, err)
+
+	fmt.Println(mailboxes)
+
+	var mailboxID string
+	type mailboxList struct {
+		Mailboxes []struct {
+			ID string `json:"id"`
+		} `json:"mailboxes"`
+	}
+	var mailboxObj mailboxList
+	err = json.Unmarshal([]byte(mailboxes), &mailboxObj)
+	require.NoError(t, err)
+	if len(mailboxObj.Mailboxes) > 0 {
+		mailboxID = mailboxObj.Mailboxes[0].ID
+	}
+	if mailboxID != "" {
+		configPath := "data/kaspa/configs/agent-config.json"
+		configData, err := os.ReadFile(configPath)
+		require.NoError(t, err)
+		var config map[string]interface{}
+		err = json.Unmarshal(configData, &config)
+		require.NoError(t, err)
+		chains, ok := config["chains"].(map[string]interface{})
+		require.True(t, ok)
+		kaspatest, ok := chains["kaspatest10"].(map[string]interface{})
+		require.True(t, ok)
+		kaspatest["hubMailboxId"] = mailboxID
+		kaspatest["validatorPubsKaspa"] = info.ValidatorEscrowPubKey
+		kaspatest["escrowAddress"] = info.MultisigEscrowAddr
+		kaspatest["kaspaEscrowPrivateKey"] = info.ValidatorEscrowSecret
+		kaspatest["hubTokenId"] = tokenID
+		newConfigData, err := json.MarshalIndent(config, "", "  ")
+		require.NoError(t, err)
+		err = os.WriteFile(configPath, newConfigData, 0644)
+		require.NoError(t, err)
+		fmt.Println("Updated hubMailboxId in agent-config.json:", mailboxID)
+	}
+
+	err = os.Mkdir("/tmp/dbs", 0777)
+	require.NoError(t, err)
+
+	err = copyDir("data/kaspa/configs/", "/tmp/configs/")
+	require.NoError(t, err)
+
+	err = rollapp1.Sidecars[1].CreateContainer(ctx)
+	require.NoError(t, err)
+
+	// err = rollapp1.Sidecars[0].StartContainer(ctx)
+	// require.NoError(t, err)
+
+	cmd = []string{"./validator",
+		"--db", "/root/dbs/hyperlane_db_validator",
+		"--originChainName", "kaspatest10",
+		"--reorgPeriod", "1",
+		"--checkpointSyncer.type", "localStorage",
+		"--checkpointSyncer.path", "ARBITRARY_VALUE_FOOBAR",
+		"--validator.key", "0x" + info.ValidatorISMPrivKey,
+		"--metrics-port", "9090",
+		"--log.level", "info",
+	}
+
+	env := []string{
+		"CONFIG_FILES=/root/configs/agent-config.json",
+	}
+
+	go rollapp1.Sidecars[1].Exec(ctx, cmd, env)
+
+	time.Sleep(1 * time.Minute)
+	fmt.Println(url.QueryEscape(info.MultisigEscrowAddr))
+	utxos, err := GetKaspaUtxos(url.QueryEscape(info.MultisigEscrowAddr))
+	require.NoError(t, err)
+	fmt.Println(utxos)
+
+	txidHex := utxos[0].Outpoint.TransactionId
+	// decode hex to bytes
+	txidBytes, err := hex.DecodeString(txidHex)
+	require.NoError(t, err)
+	// encode to base64
+	txidBase64 := base64.StdEncoding.EncodeToString(txidBytes)
+	fmt.Println("TransactionId base64:", txidBase64)
+
+	isms, err := dymension.GetNode().QueryIsms(ctx)
+	require.NoError(t, err)
+
+	var ismresp IsmResponse
+	err = json.Unmarshal([]byte(isms), &ismresp)
+	require.NoError(t, err)
+
+	msg := map[string]interface{}{
+		"@type":     "/dymensionxyz.dymension.kas.MsgBootstrap",
+		"authority": "dym10d07y265gmmuvt4z0w9aw880jnsr700jgllrna",
+		"mailbox":   mailboxID,
+		"ism":       ismresp.Isms[0].ID,
+		"outpoint": map[string]interface{}{
+			"transactionId": txidBase64,
+			"index":         0,
+		},
+	}
+
+	rawMsg, err := json.Marshal(msg)
+	if err != nil {
+		fmt.Println("Err:", err)
+	}
+
+	proposal := cosmos.TxProposalV1{
+		Deposit:     "500000000000" + dymension.Config().Denom,
+		Title:       "Bootstrap KAS Module",
+		Summary:     "This proposal initializes the Kaspa-Dymension bridge (KAS) module with its core components, enabling cross-chain operations.",
+		Description: "This proposal initializes the Kaspa-Dymension bridge (KAS) module with its core components, enabling cross-chain operations.",
+		Messages:    []json.RawMessage{rawMsg},
+		Expedited:   false,
+	}
+
+	_, err = dymension.GetNode().SubmitProposal(ctx, "faucet", proposal)
+	require.NoError(t, err, "error submitting change param proposal tx")
+
+	err = dymension.VoteOnProposalAllValidators(ctx, "1", cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	height, err := dymension.Height(ctx)
+	require.NoError(t, err, "error fetching height")
+	_, err = cosmos.PollForProposalStatusV50(ctx, dymension.CosmosChain, height, height+30, "1", cosmos.ProposalStatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed")
+
+	cmd = []string{"./relayer",
+		"--db", "/root/dbs/hyperlane_db_relayer",
+		"--relayChains", "kaspatest10,dymension",
+		"--allowLocalCheckpointSyncers", "true",
+		"--defaultSigner.key", HYP_KEY,
+		"--chains.dymension.signer.type", "cosmosKey",
+		"--chains.dymension.signer.prefix", "dym",
+		"--chains.dymension.signer.key", HYP_KEY,
+		"--chains.kaspatest10.signer.type", "cosmosKey",
+		"--chains.kaspatest10.signer.prefix", "dym",
+		"--chains.kaspatest10.signer.key", HYP_KEY,
+		"--metrics-port", "9091",
+		"--log.level", "debug",
+	}
+
+	go rollapp1.Sidecars[1].Exec(ctx, cmd, env)
+
+	// Create some user accounts on both chains
+	users := test.GetAndFundTestUsers(t, ctx, t.Name(), walletAmount, dymension, rollapp1)
+
+	dymensionUser1, rollappUser1 := users[0], users[1]
+
+	dymensionUser1Addr := dymensionUser1.FormattedAddress()
+	_ = rollappUser1.FormattedAddress()
+
+	message, err := dymension.GetNode().QueryHyperlaneMessageKaspa(ctx, tokenID, dymensionUser1Addr, "100000000")
+	require.NoError(t, err)
+
+	fmt.Println(message)
+
+	cmd = []string{"cargo", "run", "--", "deposit",
+		"--escrow-address", info.MultisigEscrowAddr,
+		"--amount", "100000000",
+		"--wrpc-url", "185.69.54.99:17210",
+		"--network-id", "testnet-10",
+		"--wallet-secret", "lkjsdf",
+		"--payload", strings.TrimPrefix(message, "0x")}
+
+	_, _, err = rollapp1.Sidecars[2].Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	res, err := http.Get(fmt.Sprintf("https://api-tn10.kaspa.org/addresses/%s/balance", info.MultisigEscrowAddr))
+	require.NoError(t, err)
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+
+	var data KaspaBalanceResponse
+	err = json.Unmarshal(body, &data)
+	require.NoError(t, err)
+
+	require.Equal(t, uint64(200000000), data.Balance)
+}
+
+type KaspaBalanceResponse struct {
+	Address string `json:"address"`
+	Balance uint64 `json:"balance"` // Đơn vị: sompi
 }
 
 func copyDir(src string, dst string) error {

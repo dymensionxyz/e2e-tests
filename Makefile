@@ -547,6 +547,10 @@ e2e-test-ibc-rol-eth-evm: clean-e2e
 
 e2e-test-ibc-rol-eth-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCRAToETH_Wasm .
+
+e2e-test-ibc-hub-kaspa-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCHubToKaspa_EVM .
+	
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
@@ -817,7 +821,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-eibc-fulfillment-wasm \
 	e2e-test-eibc-fulfillment-thirdparty-wasm \
 	e2e-test-eibc-fulfillment-ignore-hub-to-rollapp-wasm \
-	e2e-test-eibc-invariant-wasm
+  	e2e-test-eibc-invariant-wasm \
 	e2e-test-eibc-pfm-wasm \
 	e2e-test-transfer-multi-hop-wasm \
 	e2e-test-pfm-with-grace-period-wasm \
@@ -825,7 +829,7 @@ e2e-test-all: e2e-test-ibc-success-evm \
 	e2e-test-batch-finalization-wasm \
 	e2e-test-disconnection-wasm \
 	e2e-test-rollapp-freeze-wasm \
- 	e2e-test-other-rollapp-not-affected-wasm \
+    e2e-test-other-rollapp-not-affected-wasm \
 	e2e-test-dym-finalize-block-on-recv-packet \
 	e2e-test-dym-finalize-block-on-timeout-packet \
 	e2e-test-dym-finalize-block-on-ack-packet\
