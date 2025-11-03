@@ -1,4 +1,4 @@
-node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Timeout_Wasm:26657
+node_address: http://dymension_100-1-val-0-Test_EIBC_Client_Success_EVM:26657
 gas:
     prices: ""
     fees: 100adym
@@ -7,22 +7,22 @@ order_polling:
     interval: 30s
     enabled: false
 rollapps:
-    rollappwasm_1234-1:
+    rollappevm_1234-1:
         full_nodes:
-            - http://ra-rollappwasm_1234-1-fn-0-Test_EIBC_Client_Timeout_Wasm:26657
+            - http://ra-rollappevm_1234-1-fn-0-Test_EIBC_Client_Success_EVM:26657
         min_confirmations: 1
 operator:
     account_name: operator
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-228118cbdfee2d16bb4fb02b184b14a72d0e8ba52f8d3410b575deea85f680cc3
+    keyring_dir: /root/dymension-hub-2a0f22c46319467458914bedc6c0edf044c1cc66d73ce871f9df168d34a3b24e1
     group_id: 1
-    min_fee_share: "0.0001"
+    min_fee_share: "0.1"
 fulfillers:
     scale: 10
     operator_address: ""
     policy_address: dym1afk9zr2hn2jsac63h4hm60vl9z3e5u69gndzf7c99cqge3vzwjzs8ag8zm
     keyring_backend: test
-    keyring_dir: /root/dymension-hub-228118cbdfee2d16bb4fb02b184b14a72d0e8ba52f8d3410b575deea85f680cc3
+    keyring_dir: /root/dymension-hub-2a0f22c46319467458914bedc6c0edf044c1cc66d73ce871f9df168d34a3b24e1
     batch_size: 0
     max_orders_per_tx: 5
 validation:

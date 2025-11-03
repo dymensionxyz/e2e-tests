@@ -138,6 +138,7 @@ func copyFile(src, dst string) error {
 
 	return nil
 }
+
 func StartDB(ctx context.Context, t *testing.T, client *client.Client, net string) {
 	fmt.Println("Starting pull image ...")
 	out, err := client.ImagePull(ctx, "mongo:7.0", types.ImagePullOptions{})
@@ -400,7 +401,7 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -428,7 +429,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -437,7 +439,8 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -619,17 +622,19 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -696,14 +701,14 @@ func Test_EIBC_Client_Success_EVM(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -998,7 +1003,7 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -1026,7 +1031,8 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -1035,7 +1041,8 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -1217,17 +1224,19 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -1294,14 +1303,14 @@ func Test_EIBC_Client_Success_Wasm(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -1596,7 +1605,7 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -1624,7 +1633,8 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -1633,7 +1643,8 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -1815,17 +1826,19 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -1892,14 +1905,14 @@ func Test_EIBC_Client_NoFulfillRollapp_EVM(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -2194,7 +2207,7 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -2222,7 +2235,8 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -2231,7 +2245,8 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -2413,17 +2428,19 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -2490,14 +2507,14 @@ func Test_EIBC_Client_NoFulfillRollapp_Wasm(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -2796,7 +2813,7 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -2823,7 +2840,8 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -2832,7 +2850,8 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -2877,17 +2896,19 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -2950,14 +2971,14 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -3032,7 +3053,7 @@ func Test_EIBC_Client_Timeout_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -3254,7 +3275,7 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -3281,7 +3302,8 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -3290,7 +3312,8 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -3335,17 +3358,19 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -3408,14 +3433,14 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -3490,7 +3515,7 @@ func Test_EIBC_Client_Timeout_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -3716,7 +3741,7 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -3742,7 +3767,8 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	lp1Addr := lp1.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -3751,7 +3777,8 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -3796,17 +3823,19 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -3869,14 +3898,14 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -3949,7 +3978,7 @@ func Test_EIBC_Client_AckErr_EVM(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -4171,7 +4200,7 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -4197,7 +4226,8 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	lp1Addr := lp1.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -4206,7 +4236,8 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -4251,17 +4282,19 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -4324,14 +4357,14 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -4404,7 +4437,7 @@ func Test_EIBC_Client_AckErr_Wasm(t *testing.T) {
 	testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.SubRaw(1500))
 	// upon timeout error eibc should be created, and eibc should fulfill it
 	// lp should get his funds after claiming the finalized tx
-	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.Sub(transferAmount).AddRaw(1500))
+	testutil.AssertBalance(t, ctx, dymension, lp1Addr, dymension.Config().Denom, walletAmount.AddRaw(1500))
 
 	// Run invariant check
 	CheckInvariant(t, ctx, dymension, dymensionUser.KeyName())
@@ -4626,7 +4659,7 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -4653,7 +4686,8 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -4662,7 +4696,8 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -4756,17 +4791,19 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -4829,14 +4866,14 @@ func Test_EIBC_Client_Update_Order_EVM(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")
@@ -5139,7 +5176,7 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -5166,7 +5203,8 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 	rollappUserAddr := rollappUser.FormattedAddress()
 
 	// create operator
-	cmd := []string{"keys", "add", "operator",
+	cmd := []string{
+		"keys", "add", "operator",
 		"--coin-type", dymension.GetNode().Chain.Config().CoinType,
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -5175,7 +5213,8 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 	_, _, err = dymension.GetNode().ExecBin(ctx, cmd...)
 	require.NoError(t, err)
 
-	cmd = []string{dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
+	cmd = []string{
+		dymension.GetNode().Chain.Config().Bin, "keys", "show", "--address", "operator",
 		"--home", dymension.GetNode().HomeDir(),
 		"--keyring-backend", "test",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
@@ -5269,17 +5308,19 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 	updatedJSON, err := json.MarshalIndent(members, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0755)
+	err = os.WriteFile(fmt.Sprintf("/tmp/%s/members.json", dymFolderName), updatedJSON, 0o755)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
+	cmd = []string{
+		"group", "create-group", "operator", "==A", dymension.GetNode().HomeDir() + "/members.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err := dymension.GetNode().ExecTx(ctx, "operator", cmd...)
 	fmt.Println(txHash)
 	require.NoError(t, err)
 
-	cmd = []string{"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
+	cmd = []string{
+		"group", "create-group-policy", "operator", "1", "==A", dymension.GetNode().HomeDir() + "/policy.json",
 		"--keyring-dir", dymension.GetNode().HomeDir(),
 	}
 	txHash, err = dymension.GetNode().ExecTx(ctx, "operator", cmd...)
@@ -5342,14 +5383,14 @@ func Test_EIBC_Client_Update_Order_Wasm(t *testing.T) {
 	modifiedContent, err := yaml.Marshal(&config)
 	require.NoError(t, err)
 
-	err = os.Chmod(configFile, 0777)
+	err = os.Chmod(configFile, 0o777)
 	require.NoError(t, err)
 
 	// Write the updated content back to the file
-	err = os.WriteFile(configFile, modifiedContent, 0777)
+	err = os.WriteFile(configFile, modifiedContent, 0o777)
 	require.NoError(t, err)
 
-	err = os.Mkdir("/tmp/.eibc-client", 0755)
+	err = os.Mkdir("/tmp/.eibc-client", 0o755)
 	require.NoError(t, err)
 
 	err = copyFile("data/config.yaml", "/tmp/.eibc-client/config.yaml")

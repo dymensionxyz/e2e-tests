@@ -174,5 +174,4 @@ func TestEIBC_AckError_Dym_RolY_Live(t *testing.T) {
 	// fund was return to roly user and dym user balance stay the same
 	testutil.AssertBalance(t, ctx, rollappYUser, mochaRollappYIBCDenom, rollappY.GrpcAddr, transferAmountMM)
 	testutil.AssertBalance(t, ctx, dymensionUser, mochaIBCDenom, hub.GrpcAddr, transferAmountMM)
-
 }

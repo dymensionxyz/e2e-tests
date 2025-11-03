@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/require"
@@ -30,14 +30,13 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/relayer"
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
-
-	"strconv"
 )
 
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) container.CreateResponse {
 	fmt.Println("Starting pull image ...")
 	out, err := client.ImagePull(ctx, "ghcr.io/dymensionxyz/dymint:latest", types.ImagePullOptions{})
+	// out, err := client.ImagePull(ctx, "ghcr.io/decentrio/dymint:arm", types.ImagePullOptions{})
 	require.NoError(t, err)
 	defer out.Close()
 
@@ -68,7 +67,8 @@ func StartDA(ctx context.Context, t *testing.T, client *client.Client, net strin
 		ctx,
 		&container.Config{
 			Image: "ghcr.io/dymensionxyz/dymint:latest", // Image to run
-			Tty:   true,                                 // Attach to a TTY
+			// Image: "ghcr.io/decentrio/dymint:arm", // Image to run
+			Tty: true, // Attach to a TTY
 		},
 		hostConfig, networkConfig, nil, "grpc-da-container",
 	)
@@ -393,7 +393,6 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
@@ -509,28 +508,9 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	time.Sleep(30 * time.Second)
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
 	require.NoError(t, err)
@@ -669,7 +649,6 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	numRollAppVals := 1
 	nodeStore := "/home/celestia/light"
 	p2pNetwork := "mocha-4"
-	coreIp := "https://celestia-mocha-archive-rpc.mzonder.com:443"
 	// trustedHash := "\"A62DD37EDF3DFF5A7383C6B5AA2AC619D1F8C8FEB7BA07730E50BBAAC8F2FF0C\""
 	// sampleFrom := 2395649
 
@@ -786,28 +765,8 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Create an exec instance
-	execConfig := types.ExecConfig{
-		Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--gateway", "--core.ip", coreIp, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}), // Replace with your command and arguments
-	}
-
-	execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
-	if err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	execID := execIDResp.ID
-
-	// Start the exec instance
-	execStartCheck := types.ExecStartCheck{
-		Tty: false,
-	}
-
-	if err := client.ContainerExecStart(ctx, execID, execStartCheck); err != nil {
-		fmt.Println("Err:", err)
-	}
-
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
+	// Start Celestia light node with retry mechanism
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
 	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
@@ -1054,7 +1013,7 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -1111,8 +1070,10 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+	command := []string{
+		"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys",
+	}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -1169,7 +1130,6 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.Validators[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1224,8 +1184,10 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
+	command = []string{
+		"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys",
+	}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -1287,7 +1249,6 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	}
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.FullNodes[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1306,7 +1267,6 @@ func Test_FulNodeSync_MulForks_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.FullNodes[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1483,7 +1443,7 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -1540,8 +1500,10 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command := []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys"}
+	command := []string{
+		"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000100000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[0].HomeDir() + "/sequencer_keys",
+	}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -1598,7 +1560,6 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = rollapp1.Validators[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.Validators[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1652,8 +1613,10 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 5, dymension)
 	require.NoError(t, err)
 
-	command = []string{"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
-		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys"}
+	command = []string{
+		"sequencer", "create-sequencer", string(pub1), rollapp1.Config().ChainID, "100000000000000000000adym", rollapp1.GetSequencerKeyDir() + "/metadata_sequencer1.json",
+		"--broadcast-mode", "async", "--keyring-dir", rollapp1.FullNodes[1].HomeDir() + "/sequencer_keys",
+	}
 
 	_, err = dymension.FullNodes[0].ExecTx(ctx, "sequencer", command...)
 	require.NoError(t, err)
@@ -1715,7 +1678,6 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	}
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.FullNodes[0].StopContainer(ctx)
 		require.NoError(t, err)
@@ -1734,7 +1696,6 @@ func Test_FulNodeSync_MulForks_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
-
 	if err != nil {
 		err = rollapp1.FullNodes[0].StopContainer(ctx)
 		require.NoError(t, err)

@@ -1,2 +1,3 @@
 /tests/db/*
-/tests/data/config.yaml
+/tests/data/.hyperlane/*
+/tests/data/configs/*

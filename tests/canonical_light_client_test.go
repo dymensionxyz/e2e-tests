@@ -193,7 +193,6 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
 	t.Run("canonial client gaia<->dym", func(t *testing.T) {
-
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
 
@@ -240,7 +239,6 @@ func TestIBCTransferBetweenHub3rd_EVM(t *testing.T) {
 
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount))
-
 	})
 }
 
@@ -416,7 +414,6 @@ func TestIBCTransferBetweenHub3rd_Wasm(t *testing.T) {
 	require.Equal(t, walletAmount, gaiaOrigBal)
 
 	t.Run("canonial client gaia<->dym", func(t *testing.T) {
-
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
 
@@ -463,7 +460,6 @@ func TestIBCTransferBetweenHub3rd_Wasm(t *testing.T) {
 
 		testutil.AssertBalance(t, ctx, gaia, gaiaUserAddr, secondHopIBCDenom, transferAmount)
 		testutil.AssertBalance(t, ctx, dymension, dymensionUserAddr, dymension.Config().Denom, walletAmount.Sub(transferAmount))
-
 	})
 }
 
@@ -600,7 +596,7 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -700,7 +696,6 @@ func TestIBCTransferRA_3rdSameChainID_EVM(t *testing.T) {
 	require.Equal(t, walletAmount, rollappOrigBal)
 
 	t.Run("canonial client test gaia<->dym and rollapp<->dym", func(t *testing.T) {
-
 		// sending between gaia and dymension
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
@@ -956,7 +951,7 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 	keyDir := dymension.GetRollApps()[0].GetSequencerKeyDir()
 	keyPath := keyDir + "/sequencer_keys"
 
-	//Update white listed relayers
+	// Update white listed relayers
 	for i := 0; i < 10; i++ {
 		_, err = dymension.GetNode().UpdateWhitelistedRelayers(ctx, "sequencer", keyPath, []string{wallet.FormattedAddress()})
 		if err == nil {
@@ -972,7 +967,24 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 
 	// create ibc path between dymension and gaia, and between dymension and rollapp1
 	CreateChannel(ctx, t, r, eRep, dymension.CosmosChain, rollapp1.CosmosChain, ibcPath)
-	CreateChannel(ctx, t, r2, eRep, dymension.CosmosChain, gaia, anotherIbcPath)
+
+	err = r2.GeneratePath(ctx, eRep, dymension.Config().ChainID, gaia.Config().ChainID, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = r2.CreateClients(ctx, eRep, anotherIbcPath, ibc.DefaultClientOpts())
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r2.CreateConnections(ctx, eRep, anotherIbcPath)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 5, dymension, gaia)
+	require.NoError(t, err)
+
+	err = r2.CreateChannel(ctx, eRep, anotherIbcPath, ibc.DefaultChannelOpts())
+	require.NoError(t, err)
 
 	// get rollapp -> dym channel
 	rollappChan, err := r.GetChannels(ctx, eRep, rollapp1.GetChainID())
@@ -1039,7 +1051,6 @@ func TestIBCTransferRA_3rdSameChainID_Wasm(t *testing.T) {
 	require.Equal(t, walletAmount, rollappOrigBal)
 
 	t.Run("canonial client test gaia<->dym and rollapp<->dym", func(t *testing.T) {
-
 		// sending between gaia and dymension
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
@@ -1329,7 +1340,6 @@ func TestIBCTransfer_NoLightClient_EVM(t *testing.T) {
 	require.Equal(t, walletAmount, rollappOrigBal)
 
 	t.Run("canonial client test gaia<->dym", func(t *testing.T) {
-
 		// sending between gaia and dymension
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)
@@ -1553,7 +1563,6 @@ func TestIBCTransfer_NoLightClient_Wasm(t *testing.T) {
 	require.Equal(t, walletAmount, rollappOrigBal)
 
 	t.Run("canonial client test gaia<->dym", func(t *testing.T) {
-
 		// sending between gaia and dymension
 		firstHopDenom := transfertypes.GetPrefixedDenom(dymGaiaChan.PortID, dymGaiaChan.ChannelID, gaia.Config().Denom)
 		secondHopDenom := transfertypes.GetPrefixedDenom(gaiaDymChan.PortID, gaiaDymChan.ChannelID, dymension.Config().Denom)

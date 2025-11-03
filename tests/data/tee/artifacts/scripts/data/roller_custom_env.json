@@ -1,0 +1,8 @@
+{
+    "id": "dymension_100-1",
+    "rpcUrl": "https://hub.tee.e2e.rollapp.network:443",
+    "apiUrl": "https://rest.hub.tee.e2e.rollapp.network:443",
+    "gasPrice": "100000000",
+    "commit": "faf6c0b68ffd06c6d72ade2a717d5063c6c9d122",
+    "keyringBackend": "test"
+}

@@ -530,6 +530,9 @@ e2e-test-full-node-sync-mul-forks-evm: clean-e2e
 e2e-test-erc20-staking-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestERC20StakingAndIBC_EVM .
 
+e2e-test-erc20-vesting-evm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestERC20Vesting_EVM .
+	
 e2e-test-hardfork-before-submitted-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run Test_HardFork_BeforeSubmitted_EVM .
 
@@ -542,9 +545,12 @@ e2e-test-hardfork-before-genesis-bridge-evm: clean-e2e
 e2e-test-ibc-rol-eth-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCRAToETH_EVM .
 
+e2e-test-ibc-rol-eth-wasm: clean-e2e
+	cd tests && go test -timeout=45m -race -v -run TestIBCRAToETH_Wasm .
+
 e2e-test-ibc-hub-kaspa-evm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCHubToKaspa_EVM .
-
+	
 # Executes IBC tests via rollup-e2e-testing
 e2e-test-ibc-success-wasm: clean-e2e
 	cd tests && go test -timeout=45m -race -v -run TestIBCTransferSuccess_Wasm .
