@@ -20,7 +20,7 @@ import (
 
 const (
 	// AvailTuringRPCEndpoint is the public RPC endpoint for Avail Turing testnet
-	AvailTuringRPCEndpoint = "wss://turing-rpc.avail.so/ws"
+	AvailTuringRPCEndpoint = "https://avail-turing-rpc.publicnode.com"
 
 	// AvailAppID is the application ID for blob submission on Avail
 	// Use app_id 1 for testing purposes
