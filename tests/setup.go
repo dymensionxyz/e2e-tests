@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -19,6 +18,7 @@ import (
 	util "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/decentrio/rollup-e2e-testing/blockdb"
 	"github.com/decentrio/rollup-e2e-testing/cosmos"
+	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/celes_hub"
 	"github.com/decentrio/rollup-e2e-testing/cosmos/hub/dym_hub"
 	dymensiontesting "github.com/decentrio/rollup-e2e-testing/dymension"
 	"github.com/decentrio/rollup-e2e-testing/ibc"
@@ -850,50 +850,59 @@ func RandomHex(numberOfBytes int) (string, error) {
 	return hexString, nil
 }
 
-func GetFaucet(api, address string) {
-	// Data to send in the POST request
-	data := map[string]string{
-		"address": address,
-	}
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
+// MinCelestiaBalance is the minimum balance required in utia (1 TIA = 1,000,000 utia)
+var MinCelestiaBalance = math.NewInt(1_000_000)
+
+// CelestiaLightNodeKeyName is the key name used for the Celestia light node
+const CelestiaLightNodeKeyName = "blob-submitter"
+
+// CelestiaLightNodeMnemonic is a deterministic mnemonic used for the Celestia light node key.
+// This ensures the same address is used across test runs, allowing pre-funding.
+// Address: celestia1xtsnrqe8v5eyp4zrldckx0j8tnxuk3ry9apvum
+const CelestiaLightNodeMnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
+
+// SetupCelestiaLightNodeKey recovers the light node key from the deterministic mnemonic.
+// This must be called after the Celestia chain is built and before starting the light node.
+// Returns the address of the recovered key.
+func SetupCelestiaLightNodeKey(ctx context.Context, t *testing.T, celestia *celes_hub.CelesHub) string {
+	err := celestia.RecoverKey(ctx, CelestiaLightNodeKeyName, CelestiaLightNodeMnemonic)
+	require.NoError(t, err, "failed to recover Celestia light node key")
+
+	address, err := celestia.GetAddress(ctx, CelestiaLightNodeKeyName)
+	require.NoError(t, err, "failed to get Celestia light node address")
+
+	t.Logf("Celestia light node key '%s' recovered with address: %s", CelestiaLightNodeKeyName, string(address))
+	return string(address)
+}
+
+// CheckCelestiaBalance checks if the Celestia light node key has sufficient balance for blob submission.
+// If balance is below MinCelestiaBalance, it fails the test with instructions to fund the address.
+func CheckCelestiaBalance(ctx context.Context, t *testing.T, celestia *celes_hub.CelesHub, address string) {
+	balance, err := celestia.GetBalance(ctx, address, "utia")
+	require.NoError(t, err, "failed to query Celestia balance")
+
+	if balance.LT(MinCelestiaBalance) {
+		t.Fatalf(`
+================================================================================
+INSUFFICIENT CELESTIA BALANCE
+================================================================================
+The Celestia light node account has insufficient balance for blob submission.
+
+Address: %s
+Current balance: %s utia
+Required minimum: %s utia
+
+Please fund this address with TIA tokens using the Celestia Mocha testnet faucet:
+https://mocha.celenium.io/faucet
+
+Or manually send tokens to the address above.
+
+NOTE: This address is deterministic and will be the same across all test runs.
+================================================================================
+`, address, balance.String(), MinCelestiaBalance.String())
 	}
 
-	// Create a new POST request
-	req, err := http.NewRequest("POST", api, bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the request header to indicate that we're sending JSON data
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create an HTTP client and send the request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Read the response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	fmt.Println("Response Status:", resp.Status)
-	fmt.Println("Response Body:", string(body))
-
-	if resp.Status != "200 OK" {
-		time.Sleep(15 * time.Second)
-		GetFaucet(api, address)
-	}
+	t.Logf("Celestia light node balance: %s utia (minimum required: %s utia)", balance.String(), MinCelestiaBalance.String())
 }
 
 func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
@@ -1081,7 +1090,7 @@ func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *
 
 		// Create an exec instance
 		execConfig := types.ExecConfig{
-			Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIP, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}),
+			Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIP, "--p2p.network", p2pNetwork, "--keyring.keyname", CelestiaLightNodeKeyName}),
 		}
 
 		execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)

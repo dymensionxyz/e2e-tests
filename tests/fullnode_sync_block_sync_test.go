@@ -125,13 +125,9 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
+	// Setup the deterministic light node key and check balance
+	lightNodeAddr := SetupCelestiaLightNodeKey(ctx, t, celestia)
+	CheckCelestiaBalance(ctx, t, celestia, lightNodeAddr)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -450,13 +446,9 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
+	// Setup the deterministic light node key and check balance
+	lightNodeAddr := SetupCelestiaLightNodeKey(ctx, t, celestia)
+	CheckCelestiaBalance(ctx, t, celestia, lightNodeAddr)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -775,13 +767,9 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
+	// Setup the deterministic light node key and check balance
+	lightNodeAddr := SetupCelestiaLightNodeKey(ctx, t, celestia)
+	CheckCelestiaBalance(ctx, t, celestia, lightNodeAddr)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
@@ -1133,13 +1121,9 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 2, celestia)
-	require.NoError(t, err)
+	// Setup the deterministic light node key and check balance
+	lightNodeAddr := SetupCelestiaLightNodeKey(ctx, t, celestia)
+	CheckCelestiaBalance(ctx, t, celestia, lightNodeAddr)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
