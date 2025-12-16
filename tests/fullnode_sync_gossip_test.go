@@ -71,7 +71,7 @@ func TestSync_Celes_Rt_Gossip_EVM(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -370,7 +370,7 @@ func TestSync_Celes_Rt_Gossip_Wasm(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -682,7 +682,7 @@ func TestSync_Sqc_Disconnect_Gossip_EVM(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1009,7 +1009,7 @@ func TestSync_Sqc_Disconnect_Gossip_Wasm(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1336,7 +1336,7 @@ func TestSync_Fullnode_Disconnect_Gossip_EVM(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -1664,7 +1664,7 @@ func TestSync_Fullnode_Disconnect_Gossip_Wasm(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{

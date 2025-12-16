@@ -72,7 +72,7 @@ func TestSequencerCelestia_EVM(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -320,7 +320,7 @@ func TestSequencerCelestia_Wasm(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -568,7 +568,7 @@ func TestSequencerHubDisconnection_EVM(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
@@ -831,7 +831,7 @@ func TestSequencerHubDisconnection_Wasm(t *testing.T) {
 	url := "https://api-mocha.celenium.io/v1/block/count"
 	headerKey := "User-Agent"
 	headerValue := "Apidog/1.0.0 (https://apidog.com)"
-	rpcEndpoint := "http://celestia-mocha-archive-rpc.mzonder.com:26657"
+	rpcEndpoint := "https://rpc-mocha.pops.one:443"
 
 	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
 		{
