@@ -858,8 +858,11 @@ const CelestiaLightNodeKeyName = "blob-submitter"
 
 // CelestiaLightNodeMnemonic is a deterministic mnemonic used for the Celestia light node key.
 // This ensures the same address is used across test runs, allowing pre-funding.
-// Address: celestia1xtsnrqe8v5eyp4zrldckx0j8tnxuk3ry9apvum
+// Address: celestia1r5v5srda7xfth3hn2s26txvrcrntldju2pktdj (coin-type 118)
 const CelestiaLightNodeMnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
+
+// CelestiaMochaAPIEndpoint is the REST API endpoint for querying Mocha testnet
+const CelestiaMochaAPIEndpoint = "https://api-mocha.pops.one"
 
 // SetupCelestiaLightNodeKey recovers the light node key from the deterministic mnemonic.
 // This must be called after the Celestia chain is built and before starting the light node.
@@ -875,16 +878,17 @@ func SetupCelestiaLightNodeKey(ctx context.Context, t *testing.T, celestia *cele
 	return address
 }
 
-// CheckCelestiaBalance checks if the Celestia light node key has sufficient balance for blob submission.
+// CheckCelestiaBalance checks if the Celestia light node key has sufficient balance on Mocha testnet.
 // If balance is below MinCelestiaBalance, it fails the test with instructions to fund the address.
 func CheckCelestiaBalance(ctx context.Context, t *testing.T, celestia *celes_hub.CelesHub, address string) {
-	balance, err := celestia.GetBalance(ctx, address, "utia")
-	require.NoError(t, err, "failed to query Celestia balance")
+	// Query Mocha testnet directly (not the local test chain)
+	balance, err := queryCelestiaMochaBalance(address)
+	require.NoError(t, err, "failed to query Celestia Mocha balance")
 
 	if balance.LT(MinCelestiaBalance) {
 		t.Fatalf(`
 ================================================================================
-INSUFFICIENT CELESTIA BALANCE
+INSUFFICIENT CELESTIA BALANCE ON MOCHA TESTNET
 ================================================================================
 The Celestia light node account has insufficient balance for blob submission.
 
@@ -902,7 +906,46 @@ NOTE: This address is deterministic and will be the same across all test runs.
 `, address, balance.String(), MinCelestiaBalance.String())
 	}
 
-	t.Logf("Celestia light node balance: %s utia (minimum required: %s utia)", balance.String(), MinCelestiaBalance.String())
+	t.Logf("Celestia Mocha balance for %s: %s utia (minimum required: %s utia)", address, balance.String(), MinCelestiaBalance.String())
+}
+
+// queryCelestiaMochaBalance queries the balance of an address on Celestia Mocha testnet
+func queryCelestiaMochaBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", CelestiaMochaAPIEndpoint, address)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Mocha API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var result struct {
+		Balances []struct {
+			Denom  string `json:"denom"`
+			Amount string `json:"amount"`
+		} `json:"balances"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	for _, b := range result.Balances {
+		if b.Denom == "utia" {
+			amount, ok := math.NewIntFromString(b.Amount)
+			if !ok {
+				return math.Int{}, fmt.Errorf("failed to parse balance amount: %s", b.Amount)
+			}
+			return amount, nil
+		}
+	}
+
+	return math.ZeroInt(), nil
 }
 
 func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
