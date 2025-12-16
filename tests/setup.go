@@ -868,11 +868,11 @@ func SetupCelestiaLightNodeKey(ctx context.Context, t *testing.T, celestia *cele
 	err := celestia.RecoverKey(ctx, CelestiaLightNodeKeyName, CelestiaLightNodeMnemonic)
 	require.NoError(t, err, "failed to recover Celestia light node key")
 
-	address, err := celestia.GetAddress(ctx, CelestiaLightNodeKeyName)
+	address, err := celestia.GetNode().AccountKeyBech32(ctx, CelestiaLightNodeKeyName)
 	require.NoError(t, err, "failed to get Celestia light node address")
 
-	t.Logf("Celestia light node key '%s' recovered with address: %s", CelestiaLightNodeKeyName, string(address))
-	return string(address)
+	t.Logf("Celestia light node key '%s' recovered with address: %s", CelestiaLightNodeKeyName, address)
+	return address
 }
 
 // CheckCelestiaBalance checks if the Celestia light node key has sufficient balance for blob submission.
