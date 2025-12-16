@@ -918,6 +918,119 @@ func GetLatestBlockHeight(url, headerKey, headerValue string) (string, error) {
 	return string(body), nil
 }
 
+// Avail DA balance check constants and functions
+
+// AvailTuringSubscanAPI is the Subscan API endpoint for Avail Turing testnet
+const AvailTuringSubscanAPI = "https://avail-turing.api.subscan.io"
+
+// AvailMnemonic is a deterministic mnemonic for the Avail account used in tests.
+const AvailMnemonic = "plug mandate gossip deposit reduce civil lawn extra fantasy grow increase off"
+
+// AvailAddress is the address derived from AvailMnemonic on Avail Turing testnet (sr25519)
+// You can verify this by importing the mnemonic in Polkadot.js extension
+const AvailAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+
+// MinAvailBalance is the minimum balance required (1 AVAIL = 10^18 base units)
+var MinAvailBalance = math.NewInt(1_000_000_000_000_000_000) // 1 AVAIL
+
+// CheckAvailBalance checks if the Avail account has sufficient balance on Turing testnet.
+// If balance is below MinAvailBalance, it fails the test with instructions to fund the address.
+func CheckAvailBalance(t *testing.T, address string) {
+	balance, err := queryAvailTuringBalance(address)
+	if err != nil {
+		t.Logf("Warning: failed to query Avail balance: %v", err)
+		t.Logf("Please ensure the Avail account is funded before running this test")
+		t.Logf("Address: %s", address)
+		t.Logf("Faucet: https://faucet.avail.tools/")
+		return
+	}
+
+	// Convert to AVAIL for display (18 decimals)
+	balanceAVAIL := balance.Quo(math.NewInt(1_000_000_000_000_000_000))
+
+	if balance.LT(MinAvailBalance) {
+		t.Fatalf(`
+================================================================================
+INSUFFICIENT AVAIL BALANCE ON TURING TESTNET
+================================================================================
+The Avail account has insufficient balance for blob submission.
+
+Address: %s
+Current balance: %s AVAIL
+Required minimum: 1 AVAIL
+
+Please fund this address with AVAIL tokens using the Avail Turing testnet faucet:
+https://faucet.avail.tools/
+
+NOTE: This address is derived from the test mnemonic and will be the same across all test runs.
+================================================================================
+`, address, balanceAVAIL.String())
+	}
+
+	t.Logf("Avail Turing balance for %s: %s AVAIL", address, balanceAVAIL.String())
+}
+
+// queryAvailTuringBalance queries the balance of an address on Avail Turing testnet using Subscan API
+func queryAvailTuringBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/api/v2/scan/search", AvailTuringSubscanAPI)
+
+	// Subscan API request body
+	requestBody := map[string]string{
+		"key": address,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Subscan API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var result struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    struct {
+			Account struct {
+				Balance string `json:"balance"`
+			} `json:"account"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if result.Code != 0 {
+		return math.Int{}, fmt.Errorf("Subscan API error: %s", result.Message)
+	}
+
+	if result.Data.Account.Balance == "" {
+		return math.ZeroInt(), nil
+	}
+
+	balance, ok := math.NewIntFromString(result.Data.Account.Balance)
+	if !ok {
+		return math.Int{}, fmt.Errorf("failed to parse balance: %s", result.Data.Account.Balance)
+	}
+
+	return balance, nil
+}
+
 func getEibcEventFromTx(t *testing.T, dymension *dym_hub.DymHub, txhash string) *dymensiontesting.EibcEvent {
 	txResp, err := dymension.GetTransaction(txhash)
 	if err != nil {

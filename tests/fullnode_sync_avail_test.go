@@ -25,11 +25,6 @@ const (
 	// AvailAppID is the application ID for blob submission on Avail
 	// Use app_id 1 for testing purposes
 	AvailAppID = 1
-
-	// AvailMnemonic is a deterministic mnemonic for the Avail account.
-	// This account needs to be funded with AVAIL tokens on Turing testnet.
-	// Faucet: https://faucet.avail.tools/
-	AvailMnemonic = "plug mandate gossip deposit reduce civil lawn extra fantasy grow increase off"
 )
 
 // TestFullnodeSync_Avail_EVM tests the synchronization of a fullnode using Avail as DA.
@@ -39,6 +34,10 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
+	// Check Avail balance before starting the test
+	t.Logf("Checking Avail balance for address: %s", AvailAddress)
+	CheckAvailBalance(t, AvailAddress)
 
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -50,7 +49,7 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	dymintTomlOverrides["batch_submit_time"] = "50s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
-	// Avail DA configuration
+	// Avail DA configuration (uses AvailMnemonic from setup.go)
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "app_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
 		AvailTuringRPCEndpoint, AvailAppID, AvailMnemonic)}
 
