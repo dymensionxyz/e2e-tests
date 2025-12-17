@@ -96,7 +96,7 @@ const (
 	// EthAddress is the EVM address derived from DAMnemonic at path m/44'/60'/0'/0/0
 	// This is the standard Ethereum BIP44 derivation path
 	// Same address is used for Eth and BNB since they share the same derivation path
-	EthAddress = "0x8D97689C9818892B700e27F316cc3E41e17fBeb9"
+	EthAddress = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 )
 
 // MinEthBalance is the minimum balance required (0.01 ETH = 10^16 wei)
@@ -115,7 +115,7 @@ const (
 
 	// BNBAddress is the EVM address derived from DAMnemonic at path m/44'/60'/0'/0/0
 	// BNB uses the same derivation path as Ethereum for BSC compatibility
-	BNBAddress = "0x8D97689C9818892B700e27F316cc3E41e17fBeb9"
+	BNBAddress = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 )
 
 // MinBNBBalance is the minimum balance required (0.01 BNB = 10^16 wei)
