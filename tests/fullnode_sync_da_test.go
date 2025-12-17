@@ -63,10 +63,10 @@ var MinAvailBalance = math.NewInt(1_000_000_000_000_000_000) // 1 AVAIL
 
 const (
 	// KaspaTestnetAPIURL is the REST API endpoint for Kaspa Testnet-10
-	KaspaTestnetAPIURL = "https://api-tn10.kaspa.org"
+	KaspaTestnetAPIURL = "https://rest.tn.kaspa.rollapp.network"
 
 	// KaspaTestnetEndpoint is the gRPC endpoint for Kaspa Testnet-10
-	KaspaTestnetEndpoint = "rpc.tn.kaspa.rollapp.network:443"
+	KaspaTestnetEndpoint = "val.rpc.tn.kaspa.rollapp.network:16210"
 
 	// KaspaNetworkID is the network identifier for Kaspa Testnet-10
 	KaspaNetworkID = "kaspa-testnet-10"
