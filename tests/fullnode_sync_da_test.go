@@ -1194,6 +1194,8 @@ func TestFullnodeSync_Eth_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "30s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	// Eth has a blob size limit of ~130KB, so we need to limit batch size
+	dymintTomlOverrides["batch_max_size_bytes"] = "120000"
 
 	// Eth DA configuration
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "api_url": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
@@ -1355,6 +1357,8 @@ func TestFullnodeSync_BNB_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "30s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	// BNB has a blob size limit of ~130KB, so we need to limit batch size
+	dymintTomlOverrides["batch_max_size_bytes"] = "120000"
 
 	// BNB DA configuration
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
