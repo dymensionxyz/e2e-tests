@@ -32,7 +32,7 @@ import (
 const (
 	// DAMnemonic is a deterministic mnemonic used for all DA accounts in tests.
 	// Each DA derives its address using its own derivation path and key type.
-	DAMnemonic = "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
+	DAMnemonic = "toward biology settle legend tuition disease shrimp loyal universe crop pen cement"
 )
 
 // =============================================================================
@@ -51,7 +51,7 @@ const (
 
 	// AvailAddress is the address derived from DAMnemonic on Avail (sr25519, SS58 prefix 42)
 	// Derived using: availgo.Account.NewKeyPair(mnemonic).SS58Address(42)
-	AvailAddress = "5DfhGyQdFobKM8NsWvEeAKk5EQQgYe9AydgJ7rMB6E1EqRzV"
+	AvailAddress = "5F9WpKRbYCMfaQHiJZF8XMKmt9E7pnSV8qBW48EoH6kJMTAr"
 )
 
 // MinAvailBalance is the minimum balance required (1 AVAIL = 10^18 base units)
@@ -73,7 +73,7 @@ const (
 
 	// KaspaAddress is the address derived from DAMnemonic at path m/44'/111111'/0'/0/0
 	// Derived using Kaspa BIP44 derivation with testnet parameters
-	KaspaAddress = "kaspatest:qprvzewn9zt2gcguayp6v93nehr808gmh07wclf7dd8dj62ns8fpzx8d5zj5q"
+	KaspaAddress = "kaspatest:qzhuvrnn52zudqgqzwjzv87a9w5xrf8tcz5ewfg75r4nqdcemfd4j2mhhhelx"
 )
 
 // MinKaspaBalance is the minimum balance required (1 KAS = 10^8 Sompi)
@@ -96,7 +96,7 @@ const (
 	// EthAddress is the EVM address derived from DAMnemonic at path m/44'/60'/0'/0/0
 	// This is the standard Ethereum BIP44 derivation path
 	// Same address is used for Eth and BNB since they share the same derivation path
-	EthAddress = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+	EthAddress = "0xc51Fe2bD5e3bE44AE593a62933948672a7F91Ea3"
 )
 
 // MinEthBalance is the minimum balance required (0.01 ETH = 10^16 wei)
@@ -115,7 +115,7 @@ const (
 
 	// BNBAddress is the EVM address derived from DAMnemonic at path m/44'/60'/0'/0/0
 	// BNB uses the same derivation path as Ethereum for BSC compatibility
-	BNBAddress = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+	BNBAddress = "0xc51Fe2bD5e3bE44AE593a62933948672a7F91Ea3"
 )
 
 // MinBNBBalance is the minimum balance required (0.01 BNB = 10^16 wei)
