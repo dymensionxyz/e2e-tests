@@ -1031,6 +1031,8 @@ func TestFullnodeSync_Sui_EVM(t *testing.T) {
 	dymintTomlOverrides["max_proof_time"] = "500ms"
 	dymintTomlOverrides["batch_submit_time"] = "30s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+	// Sui has a smaller blob size limit (~96KB), so we need to limit batch size
+	dymintTomlOverrides["batch_max_size_bytes"] = "90000"
 
 	// Sui DA configuration
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "noop_contract_address": "%s", "gas_budget": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
