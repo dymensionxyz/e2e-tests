@@ -1,11 +1,18 @@
 package tests
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math/big"
+	"net/http"
+	"strconv"
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -22,12 +29,132 @@ const (
 	// AvailTuringRPCEndpoint is the public RPC endpoint for Avail Turing testnet
 	AvailTuringRPCEndpoint = "https://avail-turing-rpc.publicnode.com"
 
+	// AvailTuringSubscanAPI is the Subscan API endpoint for Avail Turing testnet
+	AvailTuringSubscanAPI = "https://avail-turing.api.subscan.io"
+
 	// AvailAppID is the application ID for blob submission on Avail
 	AvailAppID = 1
 
-	// Number of batches to submit before checking sync
-	AvailTestBatchCount = 5
+	// AvailMnemonic is a deterministic mnemonic for the Avail account used in tests.
+	AvailMnemonic = "plug mandate gossip deposit reduce civil lawn extra fantasy grow increase off"
+
+	// AvailAddress is the address derived from AvailMnemonic on Avail Turing testnet (sr25519)
+	// You can verify this by importing the mnemonic in Polkadot.js extension
+	AvailAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 )
+
+// MinAvailBalance is the minimum balance required (1 AVAIL = 10^18 base units)
+var MinAvailBalance = math.NewInt(1_000_000_000_000_000_000) // 1 AVAIL
+
+// checkAvailBalance checks if the Avail account has sufficient balance on Turing testnet.
+// If balance is below MinAvailBalance, it fails the test with instructions to fund the address.
+func checkAvailBalance(t *testing.T, address string) {
+	balance, err := queryAvailTuringBalance(address)
+	if err != nil {
+		t.Logf("Warning: failed to query Avail balance: %v", err)
+		t.Logf("Please ensure the Avail account is funded before running this test")
+		t.Logf("Address: %s", address)
+		t.Logf("Faucet: https://faucet.avail.tools/")
+		return
+	}
+
+	// Convert to AVAIL for display (18 decimals)
+	balanceAVAIL := balance.Quo(math.NewInt(1_000_000_000_000_000_000))
+
+	if balance.LT(MinAvailBalance) {
+		t.Fatalf(`
+================================================================================
+INSUFFICIENT AVAIL BALANCE ON TURING TESTNET
+================================================================================
+The Avail account has insufficient balance for blob submission.
+
+Address: %s
+Current balance: %s AVAIL
+Required minimum: 1 AVAIL
+
+Please fund this address with AVAIL tokens using the Avail Turing testnet faucet:
+https://faucet.avail.tools/
+
+NOTE: This address is derived from the test mnemonic and will be the same across all test runs.
+================================================================================
+`, address, balanceAVAIL.String())
+	}
+
+	t.Logf("Avail Turing balance for %s: %s AVAIL", address, balanceAVAIL.String())
+}
+
+// queryAvailTuringBalance queries the balance of an address on Avail Turing testnet using Subscan API
+func queryAvailTuringBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/api/v2/scan/search", AvailTuringSubscanAPI)
+
+	// Subscan API request body
+	requestBody := map[string]string{
+		"key": address,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Subscan API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var result struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Data    struct {
+			Account struct {
+				Balance string `json:"balance"`
+			} `json:"account"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if result.Code != 0 {
+		return math.Int{}, fmt.Errorf("Subscan API error: %s", result.Message)
+	}
+
+	if result.Data.Account.Balance == "" {
+		return math.ZeroInt(), nil
+	}
+
+	// Subscan returns balance as a float string in AVAIL units (18 decimals)
+	// We need to parse it as float and convert to base units
+	balanceFloat, err := strconv.ParseFloat(result.Data.Account.Balance, 64)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse balance: %s", result.Data.Account.Balance)
+	}
+
+	// Convert from AVAIL to base units (multiply by 10^18)
+	// Use big.Float for precision
+	bigBalance := new(big.Float).SetFloat64(balanceFloat)
+	multiplier := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+	bigBalance.Mul(bigBalance, multiplier)
+
+	// Convert to big.Int (truncate decimals)
+	balanceInt := new(big.Int)
+	bigBalance.Int(balanceInt)
+
+	return math.NewIntFromBigInt(balanceInt), nil
+}
 
 // TestFullnodeSync_Avail_EVM tests the synchronization of a fullnode using Avail as DA.
 // This test submits batches to Avail and verifies the fullnode can sync from DA.
@@ -40,7 +167,7 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 
 	// Check Avail balance before starting the test
 	t.Logf("Checking Avail balance for address: %s", AvailAddress)
-	CheckAvailBalance(t, AvailAddress)
+	checkAvailBalance(t, AvailAddress)
 
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
@@ -52,7 +179,7 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	dymintTomlOverrides["batch_submit_time"] = "30s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
-	// Avail DA configuration (uses AvailMnemonic from setup.go)
+	// Avail DA configuration
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "app_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
 		AvailTuringRPCEndpoint, AvailAppID, AvailMnemonic)}
 
@@ -139,10 +266,18 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
 	require.NoError(t, err)
 
-	// Get the current validator height (this is the target for fullnode sync)
-	targetHeight, err := rollapp1.Validators[0].Height(ctx)
+	// Query the hub for the last submitted state (target for fullnode sync)
+	// Use finalized=false to get the latest submitted state
+	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
 	require.NoError(t, err)
-	t.Logf("Validator reached height: %d", targetHeight)
+
+	// Calculate the last submitted height: StartHeight + NumBlocks - 1
+	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
+	require.NoError(t, err)
+	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
+	require.NoError(t, err)
+	targetHeight := startHeight + numBlocks - 1
+	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
 
 	// Stop the sequencer to prevent more batches from being submitted
 	t.Log("Stopping sequencer...")
