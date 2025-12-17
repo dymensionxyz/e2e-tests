@@ -195,20 +195,21 @@ func deploySuiNoopContract(t *testing.T) (string, error) {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
-	// First, set up Sui CLI environment for devnet
+	// Initialize Sui client config if it doesn't exist
+	// This handles the case where sui CLI has never been run before
+	if err := initSuiClientConfig(); err != nil {
+		return "", fmt.Errorf("failed to initialize sui client config: %w", err)
+	}
+
+	// Create the devnet environment
+	createEnvCmd := exec.Command("sui", "client", "new-env", "--alias", "devnet", "--rpc", SuiDevnetEndpoint)
+	createEnvCmd.CombinedOutput() // Ignore error if already exists
+
+	// Switch to devnet
 	setupCmd := exec.Command("sui", "client", "switch", "--env", "devnet")
 	setupOutput, err := setupCmd.CombinedOutput()
 	if err != nil {
-		// Try to create the devnet environment first
-		createEnvCmd := exec.Command("sui", "client", "new-env", "--alias", "devnet", "--rpc", SuiDevnetEndpoint)
-		createEnvCmd.CombinedOutput() // Ignore error if already exists
-
-		// Try switch again
-		setupCmd = exec.Command("sui", "client", "switch", "--env", "devnet")
-		setupOutput, err = setupCmd.CombinedOutput()
-		if err != nil {
-			return "", fmt.Errorf("failed to switch to devnet: %s: %w", string(setupOutput), err)
-		}
+		return "", fmt.Errorf("failed to switch to devnet: %s: %w", string(setupOutput), err)
 	}
 
 	// Import the mnemonic if not already imported
@@ -216,8 +217,17 @@ func deploySuiNoopContract(t *testing.T) (string, error) {
 	importCmd := exec.Command("sui", "keytool", "import", DAMnemonic, "ed25519")
 	importCmd.CombinedOutput() // Ignore error if already imported
 
+	// Set the active address to the one derived from our mnemonic
+	// First get the address from the mnemonic
+	addrCmd := exec.Command("sui", "keytool", "import", DAMnemonic, "ed25519", "--json")
+	addrOutput, _ := addrCmd.CombinedOutput()
+	// Try to extract address from the output or list addresses
+	listCmd := exec.Command("sui", "client", "addresses", "--json")
+	listOutput, _ := listCmd.CombinedOutput()
+	t.Logf("Available addresses: %s", string(listOutput))
+
 	// Publish the contract
-	publishCmd := exec.Command("sui", "client", "publish", "--gas-budget", "100000000", "--json")
+	publishCmd := exec.Command("sui", "client", "publish", "--gas-budget", "100000000", "--json", "--skip-dependency-verification")
 	publishCmd.Dir = contractPath
 	publishOutput, err := publishCmd.CombinedOutput()
 	if err != nil {
@@ -227,10 +237,57 @@ func deploySuiNoopContract(t *testing.T) (string, error) {
 	// Parse the JSON output to get the package ID
 	packageID, err := parseSuiPublishOutput(string(publishOutput))
 	if err != nil {
-		return "", fmt.Errorf("failed to parse publish output: %w", err)
+		return "", fmt.Errorf("failed to parse publish output: %s: %w", string(publishOutput), err)
 	}
 
+	_ = addrOutput // suppress unused warning
 	return packageID, nil
+}
+
+// initSuiClientConfig initializes the Sui client configuration if it doesn't exist
+func initSuiClientConfig() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	configDir := filepath.Join(homeDir, ".sui", "sui_config")
+	configFile := filepath.Join(configDir, "client.yaml")
+
+	// Check if config already exists
+	if _, err := os.Stat(configFile); err == nil {
+		return nil // Config exists, nothing to do
+	}
+
+	// Create config directory if it doesn't exist
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Create a minimal client.yaml that points to devnet
+	clientConfig := `---
+keystore:
+  File: ~/.sui/sui_config/sui.keystore
+envs:
+  - alias: devnet
+    rpc: "https://fullnode.devnet.sui.io:443"
+    ws: ~
+active_env: devnet
+active_address: ~
+`
+	if err := os.WriteFile(configFile, []byte(clientConfig), 0644); err != nil {
+		return fmt.Errorf("failed to write client config: %w", err)
+	}
+
+	// Create empty keystore file if it doesn't exist
+	keystoreFile := filepath.Join(configDir, "sui.keystore")
+	if _, err := os.Stat(keystoreFile); os.IsNotExist(err) {
+		if err := os.WriteFile(keystoreFile, []byte("[]"), 0644); err != nil {
+			return fmt.Errorf("failed to write keystore: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // parseSuiPublishOutput parses the JSON output from `sui client publish --json` and extracts the package ID
