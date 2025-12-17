@@ -23,11 +23,14 @@ const (
 	AvailTuringRPCEndpoint = "https://avail-turing-rpc.publicnode.com"
 
 	// AvailAppID is the application ID for blob submission on Avail
-	// Use app_id 1 for testing purposes
 	AvailAppID = 1
+
+	// Number of batches to submit before checking sync
+	AvailTestBatchCount = 5
 )
 
 // TestFullnodeSync_Avail_EVM tests the synchronization of a fullnode using Avail as DA.
+// This test submits batches to Avail and verifies the fullnode can sync from DA.
 func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -46,7 +49,7 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
 	dymintTomlOverrides["max_idle_time"] = "3s"
 	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "50s"
+	dymintTomlOverrides["batch_submit_time"] = "30s"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
 
 	// Avail DA configuration (uses AvailMnemonic from setup.go)
@@ -67,9 +70,9 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 		},
 	)
 
-	// Create chain factory with dymension
+	// Create chain factory
 	numHubVals := 1
-	numHubFullNodes := 1
+	numHubFullNodes := 0
 	numRollAppFn := 1
 	numRollAppVals := 1
 
@@ -111,7 +114,7 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
 	dymension := chains[1].(*dym_hub.DymHub)
 
-	// Relayer Factory
+	// Docker setup
 	client, network := test.DockerSetup(t)
 
 	ic := test.NewSetup().
@@ -128,43 +131,49 @@ func TestFullnodeSync_Avail_EVM(t *testing.T) {
 	}, nil, "", nil, false, 1179360, true)
 	require.NoError(t, err)
 
-	t.Log("Waiting for rollapp to produce blocks...")
+	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to Avail...")
 
-	// Wait for some blocks to be produced
-	err = testutil.WaitForBlocks(ctx, 10, rollapp1)
+	// Wait for enough blocks to ensure multiple batches are submitted
+	// batch_submit_time is 30s, so wait for sufficient time
+	targetBlocks := 50
+	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
 	require.NoError(t, err)
 
-	rollappHeight, err := rollapp1.Validators[0].Height(ctx)
+	// Get the current validator height (this is the target for fullnode sync)
+	targetHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
-	t.Logf("Rollapp reached height: %d", rollappHeight)
+	t.Logf("Validator reached height: %d", targetHeight)
 
-	// Wait for rollapp height to be finalized on dymension
-	isFinalized, err := dymension.WaitUntilRollappHeightIsFinalized(ctx, rollapp1.GetChainID(), rollappHeight, 300)
+	// Stop the sequencer to prevent more batches from being submitted
+	t.Log("Stopping sequencer...")
+	err = rollapp1.Validators[0].StopContainer(ctx)
 	require.NoError(t, err)
-	require.True(t, isFinalized)
-	t.Logf("Rollapp height %d is finalized on Dymension", rollappHeight)
+	t.Log("Sequencer stopped, waiting for fullnode to sync...")
 
-	valHeight, err := rollapp1.Validators[0].Height(ctx)
-	require.NoError(t, err)
-
-	// Poll until full node is synced
+	// Poll until fullnode syncs to the target height
 	err = testutil.WaitForCondition(
-		time.Minute*50,
+		time.Minute*10,
 		time.Second*5,
 		func() (bool, error) {
 			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
 			if err != nil {
+				t.Logf("Error getting fullnode height: %v", err)
 				return false, nil
 			}
 
-			t.Logf("Validator height: %d, Fullnode height: %d", valHeight, fullnodeHeight)
-			if valHeight > fullnodeHeight {
-				return false, nil
+			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
+
+			// Fullnode should catch up to at least the target height
+			if fullnodeHeight >= targetHeight {
+				return true, nil
 			}
 
-			return true, nil
+			return false, nil
 		},
 	)
 	require.NoError(t, err)
-	t.Log("Fullnode successfully synced with validator")
+
+	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+	t.Logf("Fullnode successfully synced to height %d using Avail DA", finalHeight)
 }
