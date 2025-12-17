@@ -570,811 +570,227 @@ func queryBNBTestnetBalance(address string) (math.Int, error) {
 }
 
 // =============================================================================
-// Avail DA Test
+// DA Test Configuration and Common Helper
 // =============================================================================
 
-// TestFullnodeSync_Avail_EVM tests the synchronization of a fullnode using Avail as DA.
-// This test submits batches to Avail and verifies the fullnode can sync from DA.
+// daTestConfig holds the configuration for a DA fullnode sync test
+type daTestConfig struct {
+	DALayer         string            // DA layer name (e.g., "avail", "kaspa")
+	DAConfig        string            // DA-specific JSON configuration
+	BatchSubmitBytes int              // Optional batch size limit (0 = use default)
+	BalanceCheck    func(t *testing.T) // Optional balance check function (nil = skip)
+}
+
+// runFullnodeSyncDATest runs a fullnode sync test with the given DA configuration
+func runFullnodeSyncDATest(t *testing.T, cfg daTestConfig) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	ctx := context.Background()
+
+	// Run balance check if provided
+	if cfg.BalanceCheck != nil {
+		cfg.BalanceCheck(t)
+	}
+
+	// Build dymint TOML overrides
+	dymintTomlOverrides := make(testutil.Toml)
+	dymintTomlOverrides["settlement_layer"] = "dymension"
+	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
+	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
+	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
+	dymintTomlOverrides["max_idle_time"] = "3s"
+	dymintTomlOverrides["max_proof_time"] = "500ms"
+	dymintTomlOverrides["batch_submit_time"] = "30s"
+	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
+
+	if cfg.BatchSubmitBytes > 0 {
+		dymintTomlOverrides["batch_submit_bytes"] = cfg.BatchSubmitBytes
+	}
+
+	dymintTomlOverrides["da_layer"] = []string{cfg.DALayer}
+	dymintTomlOverrides["da_config"] = []string{cfg.DAConfig}
+
+	configFileOverrides := make(map[string]any)
+	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
+
+	modifyEVMGenesisKV := append(
+		rollappEVMGenesisKV,
+		cosmos.GenesisKV{
+			Key:   "app_state.rollappparams.params.da",
+			Value: cfg.DALayer,
+		},
+	)
+
+	// Create chain factory
+	numHubVals := 1
+	numHubFullNodes := 0
+	numRollAppFn := 1
+	numRollAppVals := 1
+
+	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
+		{
+			Name: "rollapp1",
+			ChainConfig: ibc.ChainConfig{
+				Type:                "rollapp-dym",
+				Name:                "rollapp-temp",
+				ChainID:             "rollappevm_1234-1",
+				Images:              []ibc.DockerImage{rollappEVMImage},
+				Bin:                 "rollappd",
+				Bech32Prefix:        "ethm",
+				Denom:               "urax",
+				CoinType:            "60",
+				GasPrices:           "0.0urax",
+				GasAdjustment:       1.1,
+				TrustingPeriod:      "112h",
+				EncodingConfig:      encodingConfig(),
+				NoHostMount:         false,
+				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
+				ConfigFileOverrides: configFileOverrides,
+			},
+			NumValidators: &numRollAppVals,
+			NumFullNodes:  &numRollAppFn,
+		},
+		{
+			Name:          "dymension-hub",
+			ChainConfig:   dymensionConfig,
+			NumValidators: &numHubVals,
+			NumFullNodes:  &numHubFullNodes,
+		},
+	})
+
+	// Get chains from the chain factory
+	chains, err := cf.Chains(t.Name())
+	require.NoError(t, err)
+
+	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
+	dymension := chains[1].(*dym_hub.DymHub)
+
+	// Docker setup
+	client, network := test.DockerSetup(t)
+
+	ic := test.NewSetup().
+		AddRollUp(dymension, rollapp1)
+
+	rep := testreporter.NewNopReporter()
+	eRep := rep.RelayerExecReporter(t)
+
+	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
+		TestName:         t.Name(),
+		Client:           client,
+		NetworkID:        network,
+		SkipPathCreation: true,
+	}, nil, "", nil, false, 1179360, true)
+	require.NoError(t, err)
+
+	t.Logf("Chains started, waiting for rollapp to produce blocks and submit batches to %s...", cfg.DALayer)
+
+	// Wait for enough blocks to ensure multiple batches are submitted
+	targetBlocks := 50
+	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
+	require.NoError(t, err)
+
+	// Query the hub for the last submitted state
+	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
+	require.NoError(t, err)
+
+	// Calculate the last submitted height
+	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
+	require.NoError(t, err)
+	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
+	require.NoError(t, err)
+	targetHeight := startHeight + numBlocks - 1
+	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
+
+	// Stop the sequencer
+	t.Log("Stopping sequencer...")
+	err = rollapp1.Validators[0].StopContainer(ctx)
+	require.NoError(t, err)
+	t.Log("Sequencer stopped, waiting for fullnode to sync...")
+
+	// Poll until fullnode syncs to the target height
+	err = testutil.WaitForCondition(
+		time.Minute*10,
+		time.Second*5,
+		func() (bool, error) {
+			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
+			if err != nil {
+				t.Logf("Error getting fullnode height: %v", err)
+				return false, nil
+			}
+			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
+			return fullnodeHeight >= targetHeight, nil
+		},
+	)
+	require.NoError(t, err)
+
+	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
+	require.NoError(t, err)
+	t.Logf("Fullnode successfully synced to height %d using %s DA", finalHeight, cfg.DALayer)
+}
+
+// =============================================================================
+// DA Tests
+// =============================================================================
+
 func TestFullnodeSync_Avail_EVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-
-	// Check Avail balance before starting the test
-	t.Logf("Checking Avail balance for address: %s", AvailAddress)
-	checkAvailBalance(t, AvailAddress)
-
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "30s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-
-	// Avail DA configuration
-	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "app_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		AvailTuringRPCEndpoint, AvailAppID, DAMnemonic)}
-
-	dymintTomlOverrides["da_layer"] = []string{"avail"}
-	dymintTomlOverrides["da_config"] = da_config
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyEVMGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "avail",
-		},
-	)
-
-	// Create chain factory
-	numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 1
-	numRollAppVals := 1
-
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "avail",
+		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "app_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			AvailTuringRPCEndpoint, AvailAppID, DAMnemonic),
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking Avail balance for address: %s", AvailAddress)
+			checkAvailBalance(t, AvailAddress)
 		},
 	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-
-	// Docker setup
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
-
-	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to Avail...")
-
-	// Wait for enough blocks to ensure multiple batches are submitted
-	// batch_submit_time is 30s, so wait for sufficient time
-	targetBlocks := 50
-	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
-	require.NoError(t, err)
-
-	// Query the hub for the last submitted state (target for fullnode sync)
-	// Use finalized=false to get the latest submitted state
-	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
-	require.NoError(t, err)
-
-	// Calculate the last submitted height: StartHeight + NumBlocks - 1
-	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
-	require.NoError(t, err)
-	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
-	require.NoError(t, err)
-	targetHeight := startHeight + numBlocks - 1
-	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
-
-	// Stop the sequencer to prevent more batches from being submitted
-	t.Log("Stopping sequencer...")
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-	t.Log("Sequencer stopped, waiting for fullnode to sync...")
-
-	// Poll until fullnode syncs to the target height
-	err = testutil.WaitForCondition(
-		time.Minute*10,
-		time.Second*5,
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			if err != nil {
-				t.Logf("Error getting fullnode height: %v", err)
-				return false, nil
-			}
-
-			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
-
-			// Fullnode should catch up to at least the target height
-			if fullnodeHeight >= targetHeight {
-				return true, nil
-			}
-
-			return false, nil
-		},
-	)
-	require.NoError(t, err)
-
-	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-	t.Logf("Fullnode successfully synced to height %d using Avail DA", finalHeight)
 }
 
-// =============================================================================
-// Kaspa DA Test
-// =============================================================================
-
-// TestFullnodeSync_Kaspa_EVM tests the synchronization of a fullnode using Kaspa as DA.
-// This test submits batches to Kaspa and verifies the fullnode can sync from DA.
 func TestFullnodeSync_Kaspa_EVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-
-	// Check Kaspa balance before starting the test
-	t.Logf("Checking Kaspa balance for address: %s", KaspaAddress)
-	checkKaspaBalance(t, KaspaAddress)
-
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "30s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-
-	// Kaspa DA configuration
-	da_config := []string{fmt.Sprintf(`{"api_url": "%s", "endpoint": "%s", "network_id": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		KaspaTestnetAPIURL, KaspaTestnetEndpoint, KaspaNetworkID, DAMnemonic)}
-
-	dymintTomlOverrides["da_layer"] = []string{"kaspa"}
-	dymintTomlOverrides["da_config"] = da_config
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyEVMGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "kaspa",
-		},
-	)
-
-	// Create chain factory
-	numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 1
-	numRollAppVals := 1
-
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "kaspa",
+		DAConfig: fmt.Sprintf(`{"api_url": "%s", "endpoint": "%s", "network_id": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			KaspaTestnetAPIURL, KaspaTestnetEndpoint, KaspaNetworkID, DAMnemonic),
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking Kaspa balance for address: %s", KaspaAddress)
+			checkKaspaBalance(t, KaspaAddress)
 		},
 	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-
-	// Docker setup
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
-
-	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to Kaspa...")
-
-	// Wait for enough blocks to ensure multiple batches are submitted
-	// batch_submit_time is 30s, so wait for sufficient time
-	targetBlocks := 50
-	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
-	require.NoError(t, err)
-
-	// Query the hub for the last submitted state (target for fullnode sync)
-	// Use finalized=false to get the latest submitted state
-	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
-	require.NoError(t, err)
-
-	// Calculate the last submitted height: StartHeight + NumBlocks - 1
-	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
-	require.NoError(t, err)
-	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
-	require.NoError(t, err)
-	targetHeight := startHeight + numBlocks - 1
-	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
-
-	// Stop the sequencer to prevent more batches from being submitted
-	t.Log("Stopping sequencer...")
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-	t.Log("Sequencer stopped, waiting for fullnode to sync...")
-
-	// Poll until fullnode syncs to the target height
-	err = testutil.WaitForCondition(
-		time.Minute*10,
-		time.Second*5,
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			if err != nil {
-				t.Logf("Error getting fullnode height: %v", err)
-				return false, nil
-			}
-
-			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
-
-			// Fullnode should catch up to at least the target height
-			if fullnodeHeight >= targetHeight {
-				return true, nil
-			}
-
-			return false, nil
-		},
-	)
-	require.NoError(t, err)
-
-	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-	t.Logf("Fullnode successfully synced to height %d using Kaspa DA", finalHeight)
 }
 
-// =============================================================================
-// Eth (Sepolia) DA Test
-// =============================================================================
-
-// TestFullnodeSync_Eth_EVM tests the synchronization of a fullnode using Ethereum (Sepolia) as DA.
-// This test submits batches to Ethereum Sepolia and verifies the fullnode can sync from DA.
 func TestFullnodeSync_Eth_EVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-
-	// Check Eth balance before starting the test
-	t.Logf("Checking Eth balance for address: %s", EthAddress)
-	checkEthBalance(t, EthAddress)
-
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "30s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	// Eth has a blob size limit of ~130KB, so we need to limit batch size
-	dymintTomlOverrides["batch_submit_bytes"] = 120000
-
-	// Eth DA configuration
-	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "api_url": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		EthSepoliaRPCEndpoint, EthSepoliaNetworkID, EthSepoliaBeaconAPI, DAMnemonic)}
-
-	dymintTomlOverrides["da_layer"] = []string{"eth"}
-	dymintTomlOverrides["da_config"] = da_config
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyEVMGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "eth",
-		},
-	)
-
-	// Create chain factory
-	numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 1
-	numRollAppVals := 1
-
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "eth",
+		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "api_url": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			EthSepoliaRPCEndpoint, EthSepoliaNetworkID, EthSepoliaBeaconAPI, DAMnemonic),
+		BatchSubmitBytes: 120000,
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking Eth balance for address: %s", EthAddress)
+			checkEthBalance(t, EthAddress)
 		},
 	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-
-	// Docker setup
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
-
-	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to Eth Sepolia...")
-
-	// Wait for enough blocks to ensure multiple batches are submitted
-	// batch_submit_time is 30s, so wait for sufficient time
-	targetBlocks := 50
-	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
-	require.NoError(t, err)
-
-	// Query the hub for the last submitted state (target for fullnode sync)
-	// Use finalized=false to get the latest submitted state
-	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
-	require.NoError(t, err)
-
-	// Calculate the last submitted height: StartHeight + NumBlocks - 1
-	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
-	require.NoError(t, err)
-	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
-	require.NoError(t, err)
-	targetHeight := startHeight + numBlocks - 1
-	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
-
-	// Stop the sequencer to prevent more batches from being submitted
-	t.Log("Stopping sequencer...")
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-	t.Log("Sequencer stopped, waiting for fullnode to sync...")
-
-	// Poll until fullnode syncs to the target height
-	err = testutil.WaitForCondition(
-		time.Minute*10,
-		time.Second*5,
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			if err != nil {
-				t.Logf("Error getting fullnode height: %v", err)
-				return false, nil
-			}
-
-			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
-
-			// Fullnode should catch up to at least the target height
-			if fullnodeHeight >= targetHeight {
-				return true, nil
-			}
-
-			return false, nil
-		},
-	)
-	require.NoError(t, err)
-
-	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-	t.Logf("Fullnode successfully synced to height %d using Eth Sepolia DA", finalHeight)
 }
 
-// =============================================================================
-// BNB (BSC Testnet) DA Test
-// =============================================================================
-
-// TestFullnodeSync_BNB_EVM tests the synchronization of a fullnode using BNB (BSC Testnet) as DA.
-// This test submits batches to BNB BSC Testnet and verifies the fullnode can sync from DA.
 func TestFullnodeSync_BNB_EVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-
-	// Check BNB balance before starting the test
-	t.Logf("Checking BNB balance for address: %s", BNBAddress)
-	checkBNBBalance(t, BNBAddress)
-
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "30s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-	// BNB has a blob size limit of ~130KB, so we need to limit batch size
-	dymintTomlOverrides["batch_submit_bytes"] = 120000
-
-	// BNB DA configuration
-	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		BNBTestnetRPCEndpoint, BNBTestnetNetworkID, DAMnemonic)}
-
-	dymintTomlOverrides["da_layer"] = []string{"bnb"}
-	dymintTomlOverrides["da_config"] = da_config
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyEVMGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "bnb",
-		},
-	)
-
-	// Create chain factory
-	numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 1
-	numRollAppVals := 1
-
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "bnb",
+		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "network_id": %d, "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			BNBTestnetRPCEndpoint, BNBTestnetNetworkID, DAMnemonic),
+		BatchSubmitBytes: 120000,
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking BNB balance for address: %s", BNBAddress)
+			checkBNBBalance(t, BNBAddress)
 		},
 	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-
-	// Docker setup
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
-
-	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to BNB BSC Testnet...")
-
-	// Wait for enough blocks to ensure multiple batches are submitted
-	// batch_submit_time is 30s, so wait for sufficient time
-	targetBlocks := 50
-	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
-	require.NoError(t, err)
-
-	// Query the hub for the last submitted state (target for fullnode sync)
-	// Use finalized=false to get the latest submitted state
-	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
-	require.NoError(t, err)
-
-	// Calculate the last submitted height: StartHeight + NumBlocks - 1
-	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
-	require.NoError(t, err)
-	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
-	require.NoError(t, err)
-	targetHeight := startHeight + numBlocks - 1
-	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
-
-	// Stop the sequencer to prevent more batches from being submitted
-	t.Log("Stopping sequencer...")
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-	t.Log("Sequencer stopped, waiting for fullnode to sync...")
-
-	// Poll until fullnode syncs to the target height
-	err = testutil.WaitForCondition(
-		time.Minute*10,
-		time.Second*5,
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			if err != nil {
-				t.Logf("Error getting fullnode height: %v", err)
-				return false, nil
-			}
-
-			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
-
-			// Fullnode should catch up to at least the target height
-			if fullnodeHeight >= targetHeight {
-				return true, nil
-			}
-
-			return false, nil
-		},
-	)
-	require.NoError(t, err)
-
-	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-	t.Logf("Fullnode successfully synced to height %d using BNB BSC Testnet DA", finalHeight)
 }
 
-// =============================================================================
-// Walrus DA Test
-// =============================================================================
-
-// TestFullnodeSync_Walrus_EVM tests the synchronization of a fullnode using Walrus as DA.
-// This test submits batches to Walrus and verifies the fullnode can sync from DA.
-// Note: Walrus uses a public publisher, so no balance check is needed.
 func TestFullnodeSync_Walrus_EVM(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-
-	// Note: Walrus uses a public publisher, no balance check needed
-	t.Log("Walrus uses public publisher - no balance check required")
-
-	dymintTomlOverrides := make(testutil.Toml)
-	dymintTomlOverrides["settlement_layer"] = "dymension"
-	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
-	dymintTomlOverrides["rollapp_id"] = "rollappevm_1234-1"
-	dymintTomlOverrides["settlement_gas_prices"] = "0adym"
-	dymintTomlOverrides["max_idle_time"] = "3s"
-	dymintTomlOverrides["max_proof_time"] = "500ms"
-	dymintTomlOverrides["batch_submit_time"] = "30s"
-	dymintTomlOverrides["p2p_blocksync_enabled"] = "false"
-
-	// Walrus DA configuration
-	// Note: Walrus uses public publisher, no key needed
-	da_config := []string{fmt.Sprintf(`{"publisher_url": "%s", "aggregator_url": "%s", "blob_owner_addr": "%s", "store_duration_epochs": %d, "timeout": 300000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		WalrusPublisherURL, WalrusAggregatorURL, WalrusBlobOwnerAddr, WalrusStoreDurationEpochs)}
-
-	dymintTomlOverrides["da_layer"] = []string{"walrus"}
-	dymintTomlOverrides["da_config"] = da_config
-
-	configFileOverrides := make(map[string]any)
-	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
-
-	modifyEVMGenesisKV := append(
-		rollappEVMGenesisKV,
-		cosmos.GenesisKV{
-			Key:   "app_state.rollappparams.params.da",
-			Value: "walrus",
-		},
-	)
-
-	// Create chain factory
-	numHubVals := 1
-	numHubFullNodes := 0
-	numRollAppFn := 1
-	numRollAppVals := 1
-
-	cf := test.NewBuiltinChainFactory(zaptest.NewLogger(t), []*test.ChainSpec{
-		{
-			Name: "rollapp1",
-			ChainConfig: ibc.ChainConfig{
-				Type:                "rollapp-dym",
-				Name:                "rollapp-temp",
-				ChainID:             "rollappevm_1234-1",
-				Images:              []ibc.DockerImage{rollappEVMImage},
-				Bin:                 "rollappd",
-				Bech32Prefix:        "ethm",
-				Denom:               "urax",
-				CoinType:            "60",
-				GasPrices:           "0.0urax",
-				GasAdjustment:       1.1,
-				TrustingPeriod:      "112h",
-				EncodingConfig:      encodingConfig(),
-				NoHostMount:         false,
-				ModifyGenesis:       modifyRollappEVMGenesis(modifyEVMGenesisKV),
-				ConfigFileOverrides: configFileOverrides,
-			},
-			NumValidators: &numRollAppVals,
-			NumFullNodes:  &numRollAppFn,
-		},
-		{
-			Name:          "dymension-hub",
-			ChainConfig:   dymensionConfig,
-			NumValidators: &numHubVals,
-			NumFullNodes:  &numHubFullNodes,
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "walrus",
+		DAConfig: fmt.Sprintf(`{"publisher_url": "%s", "aggregator_url": "%s", "blob_owner_addr": "%s", "store_duration_epochs": %d, "timeout": 300000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			WalrusPublisherURL, WalrusAggregatorURL, WalrusBlobOwnerAddr, WalrusStoreDurationEpochs),
+		BalanceCheck: func(t *testing.T) {
+			t.Log("Walrus uses public publisher - no balance check required")
 		},
 	})
-
-	// Get chains from the chain factory
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	rollapp1 := chains[0].(*dym_rollapp.DymRollApp)
-	dymension := chains[1].(*dym_hub.DymHub)
-
-	// Docker setup
-	client, network := test.DockerSetup(t)
-
-	ic := test.NewSetup().
-		AddRollUp(dymension, rollapp1)
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
-	err = ic.Build(ctx, eRep, test.InterchainBuildOptions{
-		TestName:         t.Name(),
-		Client:           client,
-		NetworkID:        network,
-		SkipPathCreation: true,
-	}, nil, "", nil, false, 1179360, true)
-	require.NoError(t, err)
-
-	t.Log("Chains started, waiting for rollapp to produce blocks and submit batches to Walrus...")
-
-	// Wait for enough blocks to ensure multiple batches are submitted
-	// batch_submit_time is 30s, so wait for sufficient time
-	targetBlocks := 50
-	err = testutil.WaitForBlocks(ctx, targetBlocks, rollapp1)
-	require.NoError(t, err)
-
-	// Query the hub for the last submitted state (target for fullnode sync)
-	// Use finalized=false to get the latest submitted state
-	rollappState, err := dymension.QueryRollappState(ctx, rollapp1.GetChainID(), false)
-	require.NoError(t, err)
-
-	// Calculate the last submitted height: StartHeight + NumBlocks - 1
-	startHeight, err := strconv.ParseInt(rollappState.StateInfo.StartHeight, 10, 64)
-	require.NoError(t, err)
-	numBlocks, err := strconv.ParseInt(rollappState.StateInfo.NumBlocks, 10, 64)
-	require.NoError(t, err)
-	targetHeight := startHeight + numBlocks - 1
-	t.Logf("Last submitted state: StartHeight=%d, NumBlocks=%d, TargetHeight=%d", startHeight, numBlocks, targetHeight)
-
-	// Stop the sequencer to prevent more batches from being submitted
-	t.Log("Stopping sequencer...")
-	err = rollapp1.Validators[0].StopContainer(ctx)
-	require.NoError(t, err)
-	t.Log("Sequencer stopped, waiting for fullnode to sync...")
-
-	// Poll until fullnode syncs to the target height
-	err = testutil.WaitForCondition(
-		time.Minute*10,
-		time.Second*5,
-		func() (bool, error) {
-			fullnodeHeight, err := rollapp1.FullNodes[0].Height(ctx)
-			if err != nil {
-				t.Logf("Error getting fullnode height: %v", err)
-				return false, nil
-			}
-
-			t.Logf("Fullnode height: %d / Target: %d", fullnodeHeight, targetHeight)
-
-			// Fullnode should catch up to at least the target height
-			if fullnodeHeight >= targetHeight {
-				return true, nil
-			}
-
-			return false, nil
-		},
-	)
-	require.NoError(t, err)
-
-	finalHeight, err := rollapp1.FullNodes[0].Height(ctx)
-	require.NoError(t, err)
-	t.Logf("Fullnode successfully synced to height %d using Walrus DA", finalHeight)
 }
