@@ -8,7 +8,11 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -100,6 +104,172 @@ const (
 
 // MinSuiBalance is the minimum balance required (0.1 SUI = 10^8 MIST)
 var MinSuiBalance = math.NewInt(100_000_000) // 0.1 SUI
+
+// SuiNoopContractPath is the relative path to the noop contract source
+const SuiNoopContractPath = "../dymint/da/sui/noop"
+
+// =============================================================================
+// Sui Contract Deployment Helpers
+// =============================================================================
+
+// checkSuiObjectExists checks if an object exists on Sui using JSON-RPC
+func checkSuiObjectExists(objectID string) bool {
+	requestBody := map[string]interface{}{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "sui_getObject",
+		"params": []interface{}{
+			objectID,
+			map[string]bool{"showType": true},
+		},
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return false
+	}
+
+	req, err := http.NewRequest("POST", SuiDevnetEndpoint, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return false
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
+
+	var result struct {
+		Result struct {
+			Data  interface{} `json:"data"`
+			Error interface{} `json:"error"`
+		} `json:"result"`
+		Error interface{} `json:"error"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return false
+	}
+
+	// If there's an error or no data, the object doesn't exist
+	if result.Error != nil || result.Result.Error != nil || result.Result.Data == nil {
+		return false
+	}
+
+	return true
+}
+
+// ensureSuiNoopContract checks if the noop contract exists and deploys it if not.
+// Returns the contract address to use.
+func ensureSuiNoopContract(t *testing.T) string {
+	// First check if the default contract exists
+	if checkSuiObjectExists(SuiNoopContractAddress) {
+		t.Logf("Sui noop contract exists at %s", SuiNoopContractAddress)
+		return SuiNoopContractAddress
+	}
+
+	t.Logf("Sui noop contract not found at %s, deploying new contract...", SuiNoopContractAddress)
+
+	// Deploy new contract
+	contractAddr, err := deploySuiNoopContract(t)
+	if err != nil {
+		t.Fatalf("Failed to deploy Sui noop contract: %v", err)
+	}
+
+	t.Logf("Successfully deployed Sui noop contract at %s", contractAddr)
+	return contractAddr
+}
+
+// deploySuiNoopContract deploys the noop contract to Sui devnet and returns the package ID
+func deploySuiNoopContract(t *testing.T) (string, error) {
+	// Get absolute path to contract directory
+	contractPath, err := filepath.Abs(SuiNoopContractPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
+	}
+
+	// First, set up Sui CLI environment for devnet
+	setupCmd := exec.Command("sui", "client", "switch", "--env", "devnet")
+	setupOutput, err := setupCmd.CombinedOutput()
+	if err != nil {
+		// Try to create the devnet environment first
+		createEnvCmd := exec.Command("sui", "client", "new-env", "--alias", "devnet", "--rpc", SuiDevnetEndpoint)
+		createEnvCmd.CombinedOutput() // Ignore error if already exists
+
+		// Try switch again
+		setupCmd = exec.Command("sui", "client", "switch", "--env", "devnet")
+		setupOutput, err = setupCmd.CombinedOutput()
+		if err != nil {
+			return "", fmt.Errorf("failed to switch to devnet: %s: %w", string(setupOutput), err)
+		}
+	}
+
+	// Import the mnemonic if not already imported
+	// Note: This may fail if already imported, which is fine
+	importCmd := exec.Command("sui", "keytool", "import", DAMnemonic, "ed25519")
+	importCmd.CombinedOutput() // Ignore error if already imported
+
+	// Publish the contract
+	publishCmd := exec.Command("sui", "client", "publish", "--gas-budget", "100000000", "--json")
+	publishCmd.Dir = contractPath
+	publishOutput, err := publishCmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to publish contract: %s: %w", string(publishOutput), err)
+	}
+
+	// Parse the JSON output to get the package ID
+	packageID, err := parseSuiPublishOutput(string(publishOutput))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse publish output: %w", err)
+	}
+
+	return packageID, nil
+}
+
+// parseSuiPublishOutput parses the JSON output from `sui client publish --json` and extracts the package ID
+func parseSuiPublishOutput(output string) (string, error) {
+	// The output contains JSON with the transaction result
+	// We need to find the published package ID from objectChanges
+
+	var result struct {
+		ObjectChanges []struct {
+			Type      string `json:"type"`
+			PackageId string `json:"packageId"`
+		} `json:"objectChanges"`
+	}
+
+	// Find JSON in the output (there might be other text before/after)
+	jsonStart := strings.Index(output, "{")
+	if jsonStart == -1 {
+		return "", fmt.Errorf("no JSON found in output: %s", output)
+	}
+
+	if err := json.Unmarshal([]byte(output[jsonStart:]), &result); err != nil {
+		// Try to extract package ID using regex as fallback
+		re := regexp.MustCompile(`"packageId"\s*:\s*"(0x[a-fA-F0-9]+)"`)
+		matches := re.FindStringSubmatch(output)
+		if len(matches) >= 2 {
+			return matches[1], nil
+		}
+		return "", fmt.Errorf("failed to parse JSON and regex fallback failed: %w", err)
+	}
+
+	// Find the published package
+	for _, change := range result.ObjectChanges {
+		if change.Type == "published" && change.PackageId != "" {
+			return change.PackageId, nil
+		}
+	}
+
+	return "", fmt.Errorf("no published package found in output: %s", output)
+}
 
 // =============================================================================
 // Eth (Sepolia) DA Constants
@@ -1022,6 +1192,9 @@ func TestFullnodeSync_Sui_EVM(t *testing.T) {
 	t.Logf("Checking Sui balance for address: %s", SuiAddress)
 	checkSuiBalance(t, SuiAddress)
 
+	// Ensure noop contract exists, deploy if needed
+	suiContractAddress := ensureSuiNoopContract(t)
+
 	dymintTomlOverrides := make(testutil.Toml)
 	dymintTomlOverrides["settlement_layer"] = "dymension"
 	dymintTomlOverrides["settlement_node_address"] = fmt.Sprintf("http://dymension_100-1-val-0-%s:26657", t.Name())
@@ -1036,7 +1209,7 @@ func TestFullnodeSync_Sui_EVM(t *testing.T) {
 
 	// Sui DA configuration
 	da_config := []string{fmt.Sprintf(`{"endpoint": "%s", "noop_contract_address": "%s", "gas_budget": "%s", "mnemonic": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
-		SuiDevnetEndpoint, SuiNoopContractAddress, SuiGasBudget, DAMnemonic)}
+		SuiDevnetEndpoint, suiContractAddress, SuiGasBudget, DAMnemonic)}
 
 	dymintTomlOverrides["da_layer"] = []string{"sui"}
 	dymintTomlOverrides["da_config"] = da_config
