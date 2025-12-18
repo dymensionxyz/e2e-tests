@@ -146,17 +146,18 @@ const (
 // =============================================================================
 
 const (
-	// AptosDevnetEndpoint is the RPC endpoint for Aptos Devnet
-	AptosDevnetEndpoint = "https://fullnode.devnet.aptoslabs.com/v1"
+	// AptosEndpoint is the RPC endpoint for Aptos Testnet
+	AptosEndpoint = "https://fullnode.testnet.aptoslabs.com/v1"
 
-	// AptosNetworkID is the network identifier for Aptos Devnet
-	AptosNetworkID = "devnet"
+	// AptosNetworkID is the network identifier for Aptos Testnet
+	AptosNetworkID = "testnet"
 
 	// AptosPrivateKey is the private key for the test account (ed25519)
-	AptosPrivateKey = "0x6605eb1d2dfd95dfe21135f4cf76c2e4e8b8a2822b081a746e129058b99af893"
+	// This account must have the 'noop' module deployed for DA blob submission
+	AptosPrivateKey = "0x638802252197206baa5160bf2ac60e0b95491d2128a265e6ee51e0c1b0a59d9f"
 
 	// AptosAddress is the address derived from AptosPrivateKey
-	AptosAddress = "0x053456e2b7eb076a8bb2c90ce593802adddc27220b69601e22cd7e4eb94ecb17"
+	AptosAddress = "0x5ede2bb2ce80c3bf76e5ef8f1a3d0db04bb8e6d99753a9fed2f49e5c2e0f7d35"
 )
 
 // MinAptosBalance is the minimum balance required (0.01 APT = 10^6 Octas)
@@ -615,19 +616,19 @@ func queryBNBTestnetBalance(address string) (math.Int, error) {
 // Aptos Balance Check Functions
 // =============================================================================
 
-// checkAptosBalance checks if the Aptos account has sufficient balance on Devnet.
+// checkAptosBalance checks if the Aptos account has sufficient balance on Testnet.
 func checkAptosBalance(t *testing.T, address string) {
 	params := daBalanceCheckParams{
 		DAName:      "APTOS",
-		Network:     "Devnet",
+		Network:     "Testnet",
 		Address:     address,
 		FaucetURL:   "https://aptoslabs.com/testnet-faucet",
 		Denom:       "APT",
 		MinRequired: "0.01 APT",
-		Note:        "NOTE: This address is derived from the test private key.",
+		Note:        "NOTE: This account must have the 'noop' module deployed for DA submission.",
 	}
 
-	balance, err := queryAptosDevnetBalance(address)
+	balance, err := queryAptosBalance(address)
 	if err != nil {
 		fatalBalanceCheckFailed(t, params, err)
 	}
@@ -639,14 +640,14 @@ func checkAptosBalance(t *testing.T, address string) {
 		fatalInsufficientBalance(t, params, balanceAPT.String())
 	}
 
-	t.Logf("Aptos Devnet balance for %s: %s APT", address, balanceAPT.String())
+	t.Logf("Aptos Testnet balance for %s: %s APT", address, balanceAPT.String())
 }
 
-// queryAptosDevnetBalance queries the balance of an address on Aptos Devnet.
+// queryAptosBalance queries the balance of an address on Aptos.
 // Supports both legacy CoinStore and new Fungible Asset (FA) balance formats.
-func queryAptosDevnetBalance(address string) (math.Int, error) {
+func queryAptosBalance(address string) (math.Int, error) {
 	// First try to get balance from account resources (legacy CoinStore)
-	url := fmt.Sprintf("%s/accounts/%s/resources", AptosDevnetEndpoint, address)
+	url := fmt.Sprintf("%s/accounts/%s/resources", AptosEndpoint, address)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -703,7 +704,7 @@ func queryAptosDevnetBalance(address string) (math.Int, error) {
 
 // queryAptosFABalance queries APT balance using the new Fungible Asset standard
 func queryAptosFABalance(address string) (math.Int, error) {
-	url := fmt.Sprintf("%s/view", AptosDevnetEndpoint)
+	url := fmt.Sprintf("%s/view", AptosEndpoint)
 
 	// Call primary_fungible_store::balance view function
 	requestBody := map[string]interface{}{
