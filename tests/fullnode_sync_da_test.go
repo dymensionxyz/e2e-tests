@@ -142,6 +142,48 @@ const (
 // NOTE: Walrus uses public publisher, no balance check needed
 
 // =============================================================================
+// Aptos DA Constants
+// =============================================================================
+
+const (
+	// AptosTestnetEndpoint is the RPC endpoint for Aptos Testnet
+	AptosTestnetEndpoint = "https://fullnode.testnet.aptoslabs.com/v1"
+
+	// AptosNetworkID is the network identifier for Aptos Testnet
+	AptosNetworkID = "testnet"
+
+	// AptosPrivateKey is the private key for the test account (ed25519)
+	AptosPrivateKey = "0x6605eb1d2dfd95dfe21135f4cf76c2e4e8b8a2822b081a746e129058b99af893"
+
+	// AptosAddress is the address derived from AptosPrivateKey
+	AptosAddress = "0x053456e2b7eb076a8bb2c90ce593802adddc27220b69601e22cd7e4eb94ecb17"
+)
+
+// MinAptosBalance is the minimum balance required (0.01 APT = 10^6 Octas)
+var MinAptosBalance = math.NewInt(1_000_000) // 0.01 APT
+
+// =============================================================================
+// Solana DA Constants
+// =============================================================================
+
+const (
+	// SolanaDevnetEndpoint is the RPC endpoint for Solana Devnet
+	SolanaDevnetEndpoint = "https://api.devnet.solana.com"
+
+	// SolanaProgramAddress is the program address for DA storage on Solana
+	SolanaProgramAddress = "5cfjxBnFMoqdbZXTMHaoXfQm7obMpYMnkT681sRd95Qo"
+
+	// SolanaPrivateKey is the base58-encoded keypair for the test account
+	SolanaPrivateKey = "cPBSvzVbMGrfZ1wmJD2Nc8P8V3thhMsJMFV7mfRRYPkAMuLRx2qnjsAU6J8WJ7svR9pJFoJesD7AQyu41AAnK9f"
+
+	// SolanaAddress is the address derived from SolanaPrivateKey
+	SolanaAddress = "BebGGyp4CnWW4GhzetAAYg3gfBgvyNDEe1tAoynXyrRb"
+)
+
+// MinSolanaBalance is the minimum balance required (0.1 SOL = 10^8 lamports)
+var MinSolanaBalance = math.NewInt(100_000_000) // 0.1 SOL
+
+// =============================================================================
 // Common Balance Check Helpers
 // =============================================================================
 
@@ -570,6 +612,175 @@ func queryBNBTestnetBalance(address string) (math.Int, error) {
 }
 
 // =============================================================================
+// Aptos Balance Check Functions
+// =============================================================================
+
+// checkAptosBalance checks if the Aptos account has sufficient balance on Testnet.
+func checkAptosBalance(t *testing.T, address string) {
+	params := daBalanceCheckParams{
+		DAName:      "APTOS",
+		Network:     "Testnet",
+		Address:     address,
+		FaucetURL:   "https://aptoslabs.com/testnet-faucet",
+		Denom:       "APT",
+		MinRequired: "0.01 APT",
+		Note:        "NOTE: This address is derived from the test private key.",
+	}
+
+	balance, err := queryAptosTestnetBalance(address)
+	if err != nil {
+		fatalBalanceCheckFailed(t, params, err)
+	}
+
+	// Convert to APT for display (8 decimals, 1 APT = 10^8 Octas)
+	balanceAPT := balance.Quo(math.NewInt(100_000_000))
+
+	if balance.LT(MinAptosBalance) {
+		fatalInsufficientBalance(t, params, balanceAPT.String())
+	}
+
+	t.Logf("Aptos Testnet balance for %s: %s APT", address, balanceAPT.String())
+}
+
+// queryAptosTestnetBalance queries the balance of an address on Aptos Testnet
+func queryAptosTestnetBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/accounts/%s/resources", AptosTestnetEndpoint, address)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Aptos API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode == 404 {
+		return math.ZeroInt(), nil // Account not found = zero balance
+	}
+
+	if resp.StatusCode != 200 {
+		return math.Int{}, fmt.Errorf("Aptos API error: %s", string(body))
+	}
+
+	var resources []struct {
+		Type string `json:"type"`
+		Data struct {
+			Coin struct {
+				Value string `json:"value"`
+			} `json:"coin"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &resources); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Find the APT coin resource
+	for _, r := range resources {
+		if r.Type == "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" {
+			balance, ok := math.NewIntFromString(r.Data.Coin.Value)
+			if !ok {
+				return math.Int{}, fmt.Errorf("failed to parse balance: %s", r.Data.Coin.Value)
+			}
+			return balance, nil
+		}
+	}
+
+	return math.ZeroInt(), nil
+}
+
+// =============================================================================
+// Solana Balance Check Functions
+// =============================================================================
+
+// checkSolanaBalance checks if the Solana account has sufficient balance on Devnet.
+func checkSolanaBalance(t *testing.T, address string) {
+	params := daBalanceCheckParams{
+		DAName:      "SOLANA",
+		Network:     "Devnet",
+		Address:     address,
+		FaucetURL:   "https://faucet.solana.com/",
+		Denom:       "SOL",
+		MinRequired: "0.1 SOL",
+		Note:        "NOTE: This address is derived from the test private key.",
+	}
+
+	balance, err := querySolanaDevnetBalance(address)
+	if err != nil {
+		fatalBalanceCheckFailed(t, params, err)
+	}
+
+	// Convert to SOL for display (9 decimals, 1 SOL = 10^9 lamports)
+	balanceSOL := balance.Quo(math.NewInt(1_000_000_000))
+
+	if balance.LT(MinSolanaBalance) {
+		fatalInsufficientBalance(t, params, balanceSOL.String())
+	}
+
+	t.Logf("Solana Devnet balance for %s: %s SOL", address, balanceSOL.String())
+}
+
+// querySolanaDevnetBalance queries the balance of an address on Solana Devnet
+func querySolanaDevnetBalance(address string) (math.Int, error) {
+	requestBody := map[string]interface{}{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "getBalance",
+		"params":  []interface{}{address},
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", SolanaDevnetEndpoint, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Solana RPC: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var result struct {
+		Result struct {
+			Value uint64 `json:"value"`
+		} `json:"result"`
+		Error *struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if result.Error != nil {
+		return math.Int{}, fmt.Errorf("Solana RPC error: %s", result.Error.Message)
+	}
+
+	return math.NewIntFromUint64(result.Result.Value), nil
+}
+
+// =============================================================================
 // DA Test Configuration and Common Helper
 // =============================================================================
 
@@ -791,6 +1002,31 @@ func TestFullnodeSync_Walrus_EVM(t *testing.T) {
 			WalrusPublisherURL, WalrusAggregatorURL, WalrusBlobOwnerAddr, WalrusStoreDurationEpochs),
 		BalanceCheck: func(t *testing.T) {
 			t.Log("Walrus uses public publisher - no balance check required")
+		},
+	})
+}
+
+func TestFullnodeSync_Aptos_EVM(t *testing.T) {
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "aptos",
+		DAConfig: fmt.Sprintf(`{"network_id": "%s", "private_key": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			AptosNetworkID, AptosPrivateKey),
+		BatchSubmitBytes: 60000, // Aptos has 64KB limit
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking Aptos balance for address: %s", AptosAddress)
+			checkAptosBalance(t, AptosAddress)
+		},
+	})
+}
+
+func TestFullnodeSync_Solana_EVM(t *testing.T) {
+	runFullnodeSyncDATest(t, daTestConfig{
+		DALayer: "solana",
+		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "program_address": "%s", "private_key": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+			SolanaDevnetEndpoint, SolanaProgramAddress, SolanaPrivateKey),
+		BalanceCheck: func(t *testing.T) {
+			t.Logf("Checking Solana balance for address: %s", SolanaAddress)
+			checkSolanaBalance(t, SolanaAddress)
 		},
 	})
 }
