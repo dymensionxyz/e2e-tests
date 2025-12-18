@@ -642,8 +642,10 @@ func checkAptosBalance(t *testing.T, address string) {
 	t.Logf("Aptos Devnet balance for %s: %s APT", address, balanceAPT.String())
 }
 
-// queryAptosDevnetBalance queries the balance of an address on Aptos Devnet
+// queryAptosDevnetBalance queries the balance of an address on Aptos Devnet.
+// Supports both legacy CoinStore and new Fungible Asset (FA) balance formats.
 func queryAptosDevnetBalance(address string) (math.Int, error) {
+	// First try to get balance from account resources (legacy CoinStore)
 	url := fmt.Sprintf("%s/accounts/%s/resources", AptosDevnetEndpoint, address)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -684,7 +686,7 @@ func queryAptosDevnetBalance(address string) (math.Int, error) {
 		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	// Find the APT coin resource
+	// Find the APT coin resource (legacy)
 	for _, r := range resources {
 		if r.Type == "0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>" {
 			balance, ok := math.NewIntFromString(r.Data.Coin.Value)
@@ -695,7 +697,64 @@ func queryAptosDevnetBalance(address string) (math.Int, error) {
 		}
 	}
 
-	return math.ZeroInt(), nil
+	// If no legacy CoinStore, try Fungible Asset balance via view function
+	return queryAptosFABalance(address)
+}
+
+// queryAptosFABalance queries APT balance using the new Fungible Asset standard
+func queryAptosFABalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/view", AptosDevnetEndpoint)
+
+	// Call primary_fungible_store::balance view function
+	requestBody := map[string]interface{}{
+		"function":      "0x1::primary_fungible_store::balance",
+		"type_arguments": []string{"0x1::fungible_asset::Metadata"},
+		"arguments":     []string{address, "0xa"}, // 0xa is APT metadata object
+	}
+
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Aptos FA balance: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		// FA store might not exist, return zero
+		return math.ZeroInt(), nil
+	}
+
+	var result []string
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse FA response: %w", err)
+	}
+
+	if len(result) == 0 {
+		return math.ZeroInt(), nil
+	}
+
+	balance, ok := math.NewIntFromString(result[0])
+	if !ok {
+		return math.Int{}, fmt.Errorf("failed to parse FA balance: %s", result[0])
+	}
+
+	return balance, nil
 }
 
 // =============================================================================
