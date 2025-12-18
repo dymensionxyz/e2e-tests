@@ -146,11 +146,11 @@ const (
 // =============================================================================
 
 const (
-	// AptosTestnetEndpoint is the RPC endpoint for Aptos Testnet
-	AptosTestnetEndpoint = "https://fullnode.testnet.aptoslabs.com/v1"
+	// AptosDevnetEndpoint is the RPC endpoint for Aptos Devnet
+	AptosDevnetEndpoint = "https://fullnode.devnet.aptoslabs.com/v1"
 
-	// AptosNetworkID is the network identifier for Aptos Testnet
-	AptosNetworkID = "testnet"
+	// AptosNetworkID is the network identifier for Aptos Devnet
+	AptosNetworkID = "devnet"
 
 	// AptosPrivateKey is the private key for the test account (ed25519)
 	AptosPrivateKey = "0x6605eb1d2dfd95dfe21135f4cf76c2e4e8b8a2822b081a746e129058b99af893"
@@ -615,11 +615,11 @@ func queryBNBTestnetBalance(address string) (math.Int, error) {
 // Aptos Balance Check Functions
 // =============================================================================
 
-// checkAptosBalance checks if the Aptos account has sufficient balance on Testnet.
+// checkAptosBalance checks if the Aptos account has sufficient balance on Devnet.
 func checkAptosBalance(t *testing.T, address string) {
 	params := daBalanceCheckParams{
 		DAName:      "APTOS",
-		Network:     "Testnet",
+		Network:     "Devnet",
 		Address:     address,
 		FaucetURL:   "https://aptoslabs.com/testnet-faucet",
 		Denom:       "APT",
@@ -627,7 +627,7 @@ func checkAptosBalance(t *testing.T, address string) {
 		Note:        "NOTE: This address is derived from the test private key.",
 	}
 
-	balance, err := queryAptosTestnetBalance(address)
+	balance, err := queryAptosDevnetBalance(address)
 	if err != nil {
 		fatalBalanceCheckFailed(t, params, err)
 	}
@@ -639,12 +639,12 @@ func checkAptosBalance(t *testing.T, address string) {
 		fatalInsufficientBalance(t, params, balanceAPT.String())
 	}
 
-	t.Logf("Aptos Testnet balance for %s: %s APT", address, balanceAPT.String())
+	t.Logf("Aptos Devnet balance for %s: %s APT", address, balanceAPT.String())
 }
 
-// queryAptosTestnetBalance queries the balance of an address on Aptos Testnet
-func queryAptosTestnetBalance(address string) (math.Int, error) {
-	url := fmt.Sprintf("%s/accounts/%s/resources", AptosTestnetEndpoint, address)
+// queryAptosDevnetBalance queries the balance of an address on Aptos Devnet
+func queryAptosDevnetBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/accounts/%s/resources", AptosDevnetEndpoint, address)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -1022,7 +1022,7 @@ func TestFullnodeSync_Aptos_EVM(t *testing.T) {
 func TestFullnodeSync_Solana_EVM(t *testing.T) {
 	runFullnodeSyncDATest(t, daTestConfig{
 		DALayer: "solana",
-		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "program_address": "%s", "private_key": "%s", "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
+		DAConfig: fmt.Sprintf(`{"endpoint": "%s", "program_address": "%s", "private_key": "%s", "tx_rate_second": 2, "req_rate_second": 2, "timeout": 60000000000, "retry_attempts": 4, "retry_delay": 3000000000}`,
 			SolanaDevnetEndpoint, SolanaProgramAddress, SolanaPrivateKey),
 		BalanceCheck: func(t *testing.T) {
 			t.Logf("Checking Solana balance for address: %s", SolanaAddress)
