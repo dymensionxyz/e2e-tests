@@ -44,6 +44,7 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
+	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
 	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
@@ -218,6 +219,7 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
+	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
 	dymintTomlOverrides["da_layer"] = []string{"grpc"}
 
@@ -392,6 +394,7 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
+	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -750,6 +753,7 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
+	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
