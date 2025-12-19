@@ -1081,7 +1081,7 @@ func SetupCelestiaDAKey(ctx context.Context, t *testing.T, celestiaNode interfac
 	// The --recover flag reads the mnemonic from stdin, so we use sh -c with echo to pipe it
 	cmd := []string{
 		"sh", "-c",
-		fmt.Sprintf("echo '%s' | celestia cel-key add %s --keyring-backend test --node.type light --p2p.network %s --keyring-dir %s/keys --recover",
+		fmt.Sprintf("echo '%s' | cel-key add %s --keyring-backend test --node.type light --p2p.network %s --keyring-dir %s/keys --recover",
 			mnemonic, keyName, p2pNetwork, nodeStore),
 	}
 
