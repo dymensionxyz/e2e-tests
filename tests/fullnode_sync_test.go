@@ -3,7 +3,10 @@ package tests
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -31,6 +34,130 @@ import (
 	"github.com/decentrio/rollup-e2e-testing/testreporter"
 	"github.com/decentrio/rollup-e2e-testing/testutil"
 )
+
+// =============================================================================
+// Celestia DA Constants
+// =============================================================================
+
+const (
+	// CelestiaMochaAPIEndpoint is the REST API endpoint for querying Mocha testnet balances
+	CelestiaMochaAPIEndpoint = "https://api-mocha.pops.one"
+
+	// CelestiaDAMnemonic is the mnemonic used to derive the Celestia DA account.
+	// This is the same mnemonic used for other DA tests (Avail, Kaspa, etc.)
+	// NOTE: The light client setup will need to be updated to use this key.
+	CelestiaDAMnemonic = "toward biology settle legend tuition disease shrimp loyal universe crop pen cement"
+
+	// CelestiaDAAddress is the address derived from CelestiaDAMnemonic using coin-type 118
+	// Derived using: celestia-appd keys add <name> --recover --coin-type 118
+	CelestiaDAAddress = "celestia130p2u3f49y9lxw76g3ulwhyhchae3lchfh4ew0"
+)
+
+// MinCelestiaBalance is the minimum balance required (1 TIA = 1,000,000 utia)
+var MinCelestiaBalance = math.NewInt(1_000_000) // 1 TIA
+
+// =============================================================================
+// Celestia Balance Check Functions
+// =============================================================================
+
+// checkCelestiaBalance checks if the Celestia account has sufficient balance on Mocha testnet.
+// If balance is below MinCelestiaBalance, it fails the test with instructions to fund the address.
+func checkCelestiaBalance(t *testing.T, address string) {
+	balance, err := queryCelestiaMochaBalance(address)
+	if err != nil {
+		t.Fatalf(`
+================================================================================
+CELESTIA BALANCE CHECK FAILED
+================================================================================
+Failed to query Celestia balance: %v
+
+Address: %s
+
+This could mean:
+  - The address has never been funded (not found on chain)
+  - Network connectivity issues
+  - The API is temporarily unavailable
+
+Please fund this address using the Celestia Mocha faucet:
+https://faucet.celestia-mocha.com/
+
+NOTE: This address is derived from the test mnemonic and will be the same
+      across all test runs.
+================================================================================
+`, err, address)
+	}
+
+	// Convert to TIA for display (6 decimals)
+	balanceTIA := balance.Quo(math.NewInt(1_000_000))
+
+	if balance.LT(MinCelestiaBalance) {
+		t.Fatalf(`
+================================================================================
+INSUFFICIENT CELESTIA BALANCE ON MOCHA TESTNET
+================================================================================
+The Celestia account has insufficient balance for blob submission.
+
+Address: %s
+Current balance: %s TIA
+Required minimum: 1 TIA
+
+Please fund this address using the Celestia Mocha faucet:
+https://faucet.celestia-mocha.com/
+
+NOTE: This address is derived from the test mnemonic and will be the same
+      across all test runs.
+================================================================================
+`, address, balanceTIA.String())
+	}
+
+	t.Logf("Celestia Mocha balance for %s: %s TIA", address, balanceTIA.String())
+}
+
+// queryCelestiaMochaBalance queries the balance of an address on Celestia Mocha testnet
+func queryCelestiaMochaBalance(address string) (math.Int, error) {
+	url := fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s", CelestiaMochaAPIEndpoint, address)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to query Celestia API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return math.Int{}, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var result struct {
+		Balances []struct {
+			Denom  string `json:"denom"`
+			Amount string `json:"amount"`
+		} `json:"balances"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return math.Int{}, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Find utia balance
+	for _, bal := range result.Balances {
+		if bal.Denom == "utia" {
+			amount, ok := math.NewIntFromString(bal.Amount)
+			if !ok {
+				return math.Int{}, fmt.Errorf("failed to parse balance amount: %s", bal.Amount)
+			}
+			return amount, nil
+		}
+	}
+
+	return math.ZeroInt(), nil
+}
 
 // StartDA start grpc DALC server
 func StartDA(ctx context.Context, t *testing.T, client *client.Client, net string) container.CreateResponse {
@@ -455,16 +582,14 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-
-	time.Sleep(30 * time.Second)
+	// Check Celestia DA account balance before proceeding
+	checkCelestiaBalance(t, CelestiaDAAddress)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
+
+	// Setup the deterministic DA key in the light node
+	SetupCelestiaDAKey(ctx, t, celestia.GetNode(), nodeStore, p2pNetwork, CelestiaDAKeyName, CelestiaDAMnemonic)
 
 	time.Sleep(30 * time.Second)
 
@@ -508,8 +633,8 @@ func TestFullnodeSync_Celestia_EVM(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Start Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	// Start Celestia light node with retry mechanism using the DA key
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), CelestiaDAKeyName, celestia.GetNode())
 	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
@@ -711,16 +836,14 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 	}, nil, "", nil, true, 1179360, true)
 	require.NoError(t, err)
 
-	validator, err := celestia.Validators[0].AccountKeyBech32(ctx, "validator")
-	require.NoError(t, err)
-
-	// Get fund for submit blob
-	GetFaucet("http://18.184.170.181:3000/api/get-tia", validator)
-	err = testutil.WaitForBlocks(ctx, 10, celestia)
-	require.NoError(t, err)
+	// Check Celestia DA account balance before proceeding
+	checkCelestiaBalance(t, CelestiaDAAddress)
 
 	err = celestia.GetNode().InitCelestiaDaLightNode(ctx, nodeStore, p2pNetwork, nil)
 	require.NoError(t, err)
+
+	// Setup the deterministic DA key in the light node
+	SetupCelestiaDAKey(ctx, t, celestia.GetNode(), nodeStore, p2pNetwork, CelestiaDAKeyName, CelestiaDAMnemonic)
 
 	err = testutil.WaitForBlocks(ctx, 3, celestia)
 	require.NoError(t, err)
@@ -765,8 +888,8 @@ func TestFullnodeSync_Celestia_Wasm(t *testing.T) {
 
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
-	// Start Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	// Start Celestia light node with retry mechanism using the DA key
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), CelestiaDAKeyName, celestia.GetNode())
 	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
