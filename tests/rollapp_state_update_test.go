@@ -1701,7 +1701,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
 	// Start Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), "validator", celestia.GetNode())
 	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
@@ -1912,7 +1912,7 @@ func Test_RollAppStateUpdateFail_Celes_EVM(t *testing.T) {
 	require.NoError(t, err)
 
 	// Restart Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), "validator", celestia.GetNode())
 	require.NoError(t, err)
 
 	// Rollapp resume produce blocks
@@ -2138,7 +2138,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	containerID := fmt.Sprintf("test-val-0-%s", t.Name())
 
 	// Start Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), "validator", celestia.GetNode())
 	require.NoError(t, err)
 
 	celestia_token, err := celestia.GetNode().GetAuthTokenCelestiaDaLight(ctx, p2pNetwork, nodeStore)
@@ -2349,7 +2349,7 @@ func Test_RollAppStateUpdateFail_Celes_Wasm(t *testing.T) {
 	require.NoError(t, err)
 
 	// Restart Celestia light node with retry mechanism
-	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), celestia.GetNode())
+	err = StartCelestiaLightNodeWithRetry(ctx, t, client, containerID, nodeStore, p2pNetwork, fmt.Sprintf("http://test-val-0-%s:26658", t.Name()), "validator", celestia.GetNode())
 	require.NoError(t, err)
 
 	// Rollapp resume produce blocks
