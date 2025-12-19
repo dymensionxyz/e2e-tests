@@ -146,7 +146,12 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	configPath := fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName)
+	t.Logf("Full node home dir: %s", rollapp1.FullNodes[0].HomeDir())
+	t.Logf("Modifying full node config at: %s", configPath)
+	t.Logf("Setting p2p_bootstrap_nodes to: %s", p2p_bootstrap_node)
+
+	file, err := os.Open(configPath)
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -156,19 +161,26 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 		lines = append(lines, scanner.Text())
 	}
 
+	foundBootstrapLine := false
 	for i, line := range lines {
 		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
 			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+			foundBootstrapLine = true
+			t.Logf("Found and replaced p2p_bootstrap_nodes line at index %d", i)
 		}
+	}
+	if !foundBootstrapLine {
+		t.Logf("WARNING: p2p_bootstrap_nodes line not found in config file!")
 	}
 
 	output := strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	file, err = os.Create(configPath)
 	require.NoError(t, err)
 	defer file.Close()
 
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
+	t.Logf("Config file updated successfully")
 
 	// Start full node
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
