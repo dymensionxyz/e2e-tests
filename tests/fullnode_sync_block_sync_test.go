@@ -174,23 +174,44 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	}
 
 	output := strings.Join(lines, "\n")
+	file.Close() // Close the read handle before creating new file
+
 	file, err = os.Create(configPath)
 	require.NoError(t, err)
-	defer file.Close()
 
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
-	t.Logf("Config file updated successfully")
+	file.Close()
+	t.Logf("Config file written to: %s", configPath)
 
-	// Start full node
+	// Verify the file was written correctly
+	verifyBytes, err := os.ReadFile(configPath)
+	require.NoError(t, err)
+	verifyContent := string(verifyBytes)
+	if strings.Contains(verifyContent, p2p_bootstrap_node) {
+		t.Logf("VERIFIED: p2p_bootstrap_nodes correctly written to host file")
+	} else {
+		t.Logf("ERROR: p2p_bootstrap_nodes NOT found in file after write!")
+		// Print lines containing p2p_bootstrap
+		for _, line := range strings.Split(verifyContent, "\n") {
+			if strings.Contains(line, "p2p_bootstrap") {
+				t.Logf("  Found line: %s", line)
+			}
+		}
+	}
+
+	// Stop full node before restart
+	t.Logf("Stopping full node container...")
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
 	require.NoError(t, err)
 
+	t.Logf("Starting full node container with updated config...")
 	err = rollapp1.FullNodes[0].StartContainer(ctx)
 	require.NoError(t, err)
 
 	valHeight, err := rollapp1.Validators[0].Height(ctx)
 	require.NoError(t, err)
+	t.Logf("Validator height: %d, waiting for full node to sync...", valHeight)
 
 	// Poll until full node is sync
 	err = testutil.WaitForCondition(
