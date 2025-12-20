@@ -81,6 +81,9 @@ const (
 	CelestiaCoreIPBackup2               = "https://public-celestia-mocha4-consensus.numia.xyz:443"
 	CelestiaCoreIPBackup3               = "celestia-mocha-archive-rpc.mzonder.com:443"
 	CelestiaCoreIPBackup4               = "https://celestia-testnet-consensus.itrocket.net:26657"
+
+	// CelestiaDAKeyName is the key name used for the Celestia light node DA account
+	CelestiaDAKeyName = "da-account"
 )
 
 var (
@@ -1068,9 +1071,33 @@ func CheckInvariant(t *testing.T, ctx context.Context, dymension *dym_hub.DymHub
 	require.NoError(t, err)
 }
 
+// SetupCelestiaDAKey recovers the deterministic DA key in the Celestia light node container.
+// This must be called after InitCelestiaDaLightNode and before StartCelestiaLightNodeWithRetry.
+// The mnemonic and key name should match the constants defined in fullnode_sync_test.go.
+func SetupCelestiaDAKey(ctx context.Context, t *testing.T, celestiaNode interface {
+	Exec(context.Context, []string, []string) ([]byte, []byte, error)
+}, nodeStore, p2pNetwork, keyName, mnemonic string) {
+	// Use cel-key to add the key to the light node's keystore
+	// The --recover flag reads the mnemonic from stdin, so we use sh -c with echo to pipe it
+	cmd := []string{
+		"sh", "-c",
+		fmt.Sprintf("echo '%s' | cel-key add %s --keyring-backend test --node.type light --p2p.network %s --keyring-dir %s/keys --recover",
+			mnemonic, keyName, p2pNetwork, nodeStore),
+	}
+
+	stdout, stderr, err := celestiaNode.Exec(ctx, cmd, []string{})
+	if err != nil {
+		t.Logf("cel-key stdout: %s", string(stdout))
+		t.Logf("cel-key stderr: %s", string(stderr))
+		require.NoError(t, err, "failed to add DA key to light node keystore")
+	}
+
+	t.Logf("Successfully added key '%s' to light node keystore at %s/keys", keyName, nodeStore)
+}
+
 // StartCelestiaLightNodeWithRetry attempts to start Celestia light node with multiple RPC endpoints
 // It tries each endpoint 5 times before moving to the next one
-func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *client.Client, containerID, nodeStore, p2pNetwork, curlEndpoint string, celestiaNode interface {
+func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *client.Client, containerID, nodeStore, p2pNetwork, curlEndpoint, keyName string, celestiaNode interface {
 	Exec(context.Context, []string, []string) ([]byte, []byte, error)
 },
 ) error {
@@ -1081,7 +1108,7 @@ func StartCelestiaLightNodeWithRetry(ctx context.Context, t *testing.T, client *
 
 		// Create an exec instance
 		execConfig := types.ExecConfig{
-			Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIP, "--p2p.network", p2pNetwork, "--keyring.keyname", "validator"}),
+			Cmd: strslice.StrSlice([]string{"celestia", "light", "start", "--node.store", nodeStore, "--core.ip", coreIP, "--p2p.network", p2pNetwork, "--keyring.keyname", keyName}),
 		}
 
 		execIDResp, err := client.ContainerExecCreate(ctx, containerID, execConfig)
