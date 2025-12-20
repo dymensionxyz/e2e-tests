@@ -44,9 +44,8 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_layer"] = "grpc"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -163,14 +162,15 @@ func TestSync_BlockSync_EVM(t *testing.T) {
 
 	foundBootstrapLine := false
 	for i, line := range lines {
-		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+		if strings.Contains(line, "p2p_bootstrap_nodes") {
 			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
 			foundBootstrapLine = true
-			t.Logf("Found and replaced p2p_bootstrap_nodes line at index %d", i)
+			t.Logf("Found and replaced p2p_bootstrap_nodes line at index %d: %s", i, line)
 		}
 	}
 	if !foundBootstrapLine {
-		t.Logf("WARNING: p2p_bootstrap_nodes line not found in config file!")
+		t.Logf("WARNING: p2p_bootstrap_nodes line not found in config file! Adding it.")
+		lines = append(lines, fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node))
 	}
 
 	output := strings.Join(lines, "\n")
@@ -231,9 +231,8 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
-	dymintTomlOverrides["da_config"] = []string{"{\"host\":\"grpc-da-container\",\"port\": 7980}"}
-	dymintTomlOverrides["da_layer"] = []string{"grpc"}
+	dymintTomlOverrides["da_config"] = "{\"host\":\"grpc-da-container\",\"port\": 7980}"
+	dymintTomlOverrides["da_layer"] = "grpc"
 
 	configFileOverrides := make(map[string]any)
 	configFileOverrides["config/dymint.toml"] = dymintTomlOverrides
@@ -333,7 +332,12 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 	rollapp1HomeDir := strings.Split(rollapp1.FullNodes[0].HomeDir(), "/")
 	rollapp1FolderName := rollapp1HomeDir[len(rollapp1HomeDir)-1]
 
-	file, err := os.Open(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	configPath := fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName)
+	t.Logf("Full node home dir: %s", rollapp1.FullNodes[0].HomeDir())
+	t.Logf("Modifying full node config at: %s", configPath)
+	t.Logf("Setting p2p_bootstrap_nodes to: %s", p2p_bootstrap_node)
+
+	file, err := os.Open(configPath)
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -343,19 +347,27 @@ func TestSync_BlockSync_Wasm(t *testing.T) {
 		lines = append(lines, scanner.Text())
 	}
 
+	foundBootstrapLine := false
 	for i, line := range lines {
-		if strings.HasPrefix(line, "p2p_bootstrap_nodes =") {
+		if strings.Contains(line, "p2p_bootstrap_nodes") {
 			lines[i] = fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node)
+			foundBootstrapLine = true
+			t.Logf("Found and replaced p2p_bootstrap_nodes line at index %d: %s", i, line)
 		}
+	}
+	if !foundBootstrapLine {
+		t.Logf("WARNING: p2p_bootstrap_nodes line not found in config file! Adding it.")
+		lines = append(lines, fmt.Sprintf("p2p_bootstrap_nodes = \"%s\"", p2p_bootstrap_node))
 	}
 
 	output := strings.Join(lines, "\n")
-	file, err = os.Create(fmt.Sprintf("/tmp/%s/config/dymint.toml", rollapp1FolderName))
+	file, err = os.Create(configPath)
 	require.NoError(t, err)
 	defer file.Close()
 
 	_, err = file.Write([]byte(output))
 	require.NoError(t, err)
+	t.Logf("Config file updated successfully")
 
 	// Start full node
 	err = rollapp1.FullNodes[0].StopContainer(ctx)
@@ -406,7 +418,6 @@ func TestSync_BlockSync_fn_disconnect_EVM(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
@@ -765,7 +776,6 @@ func TestSync_BlockSync_fn_disconnect_Wasm(t *testing.T) {
 	dymintTomlOverrides["p2p_gossip_cache_size"] = "1"
 	dymintTomlOverrides["p2p_blocksync_enabled"] = "true"
 	dymintTomlOverrides["p2p_blocksync_block_request_interval"] = 10
-	dymintTomlOverrides["p2p_bootstrap_nodes"] = ""
 
 	configFileOverrides1 := make(map[string]any)
 	configTomlOverrides1 := make(testutil.Toml)
